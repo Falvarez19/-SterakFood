@@ -1,0 +1,262 @@
+{% extends 'pedidos/base.html' %}
+
+{% block title %}Panel | ShortyFood{% endblock %}
+
+{% block nav_acciones %}
+    <a href="{% url 'pedidos:inicio' %}" class="btn-nav-ghost">← Ver Menú Público</a>
+{% endblock %}
+
+{% block content %}
+<audio id="audio-beep" src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg" preload="auto"></audio>
+
+<div class="container dash-container" style="margin-top: 30px;">
+    
+    <!-- 🎛️ CONTROL MAESTRO -->
+    <div class="dashboard-control-card">
+        <h2>⚙️ Interruptor Maestro del Buffet</h2>
+        <p style="color: var(--texto-mutado); margin-bottom: 0;">Si desactivás esto, nadie podrá realizar pedidos aunque tengan el link.</p>
+        
+        <div class="control-actions">
+            <a href="{% url 'pedidos:cambiar_estado_global' %}" class="btn-master {% if buffet_habilitado %}btn-master-off{% else %}btn-master-on{% endif %}">
+               {{ buffet_habilitado|yesno:"🔴 DESACTIVAR PEDIDOS,🟢 ACTIVAR PEDIDOS" }}
+            </a>
+            <a href="{% url 'pedidos:descargar_backup' %}" class="btn-master btn-master-backup">
+               📦 DESCARGAR BACKUP
+            </a>
+            <a href="javascript:void(0)" onclick="abrirCierreCaja()" class="btn-master" style="background: rgba(58, 134, 255, 0.05); border: 2px solid #3a86ff; color: #3a86ff;">
+                📊 CIERRE DE CAJA
+            </a>
+        </div>
+    </div>
+        
+    <h1 style="margin-bottom: 25px; font-size: 2rem; font-weight: 900; letter-spacing: -0.5px;">Tablero de Control 🚀</h1>
+
+    <!-- 🗂️ TABS -->
+    <div class="panel-tabs">
+        <button class="panel-tab-btn" onclick="abrirTab('pedidos', this)" id="btn-tab-pedidos">📝 Pedidos</button>
+        <button class="panel-tab-btn" onclick="abrirTab('menu', this)" id="btn-tab-menu">🍔 Menú</button>
+        <button class="panel-tab-btn" onclick="abrirTab('mostradores', this)" id="btn-tab-mostradores">🏪 Mostradores</button>
+    </div>
+
+    <!-- 📝 PESTAÑA: PEDIDOS -->
+    <div id="tab-pedidos" class="tab-content">
+        <div class="dashboard-header-row">
+            <h3 style="margin: 0; font-size: 1.3rem;">Historial del día</h3>
+            <a href="{% url 'pedidos:eliminar_todo_historial' %}" class="btn-panel btn-rojo" onclick="eliminarTodoAjax(event, this)">🗑️ Limpiar Historial</a>
+        </div>
+        
+        <div class="filtros-mostrador" style="margin-bottom: 20px; display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px;">
+            <button class="btn-panel btn-azul active" onclick="filtrarPedidos('todos', this)" id="btn-filtro-todos" style="min-width: max-content; border-radius: 20px;">Todos</button>
+            {% for puesto in puestos %}
+                <button class="btn-panel btn-gris" onclick="filtrarPedidos('{{ puesto.slug }}', this)" style="min-width: max-content; border-radius: 20px;">{{ puesto.nombre }}</button>
+            {% endfor %}
+        </div>
+        
+        <table class="tabla-panel">
+            <thead>
+                <tr>
+                    <th style="width: 15%; border-top-left-radius: 8px;">Orden</th>
+                    <th style="width: 40%;">Detalle</th>
+                    <th style="width: 15%;">Total</th>
+                    <th style="width: 30%; border-top-right-radius: 8px;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="lista-pedidos">
+                {% for pedido in pedidos %}
+                    <tr id="pedido-{{ pedido.id }}" class="fila-pedido" data-puesto="{{ pedido.punto_venta.slug|default:'general' }}">
+                        <td>
+                            <strong style="font-size: 1.2rem;">#{{ pedido.id }}</strong><br>
+                            <span class="badge-estado badge-{{ pedido.estado }}" style="display: inline-block; margin-top: 5px;">{{ pedido.get_estado_display }}</span><br>
+                            <small style="display:block; margin-top:8px; font-weight: bold; color: var(--texto-mutado);">🕒 {{ pedido.fecha_creacion|date:"H:i" }} hs</small>
+                            <small style="display:block; margin-top:2px; color: var(--dorado-sanmartin);">{{ pedido.tipo_pago|upper }}</small>
+                        </td>
+                        
+                        <td>
+                            <details class="order-details-box">
+                                <summary>▶ Ver ítems ({{ pedido.items.count }})</summary>
+                                <div style="margin-top: 12px; padding-left: 5px;">
+                                    {% for item in pedido.items.all %}
+                                        <div style="margin-bottom: 8px; font-size: 0.95rem;">
+                                            <strong style="color: var(--text-color);">{{ item.cantidad }}x</strong> {{ item.producto.nombre }}
+                                            {% if item.variante_elegida or item.guarnicion_elegida or item.adicional_elegido or item.punto_coccion_elegido %}
+                                                <br><small style="color: var(--texto-mutado); display: block; margin-top: 2px;">• {{ item.variante_elegida }} {{ item.guarnicion_elegida }} {{ item.punto_coccion_elegido }} {{ item.adicional_elegido }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                    <div style="margin-top: 15px; font-size: 0.85rem; color: var(--texto-mutado); border-top: 1px dashed var(--borde); padding-top: 10px;">
+                                        <strong>👤 Cliente:</strong> {{ pedido.nombre_cliente }}<br>
+                                        <strong>📍 Entrega:</strong> {{ pedido.tipo_entrega }} {% if pedido.numero_mesa %}(Mesa {{ pedido.numero_mesa }}){% endif %}<br>
+                                        {% if pedido.telefono_cliente %}<strong>📱 Tel:</strong> {{ pedido.telefono_cliente }}{% endif %}
+                                    </div>
+                                </div>
+                            </details>
+                        </td>
+
+                        <td style="font-size: 1.2rem; font-weight: 800; color: var(--verde-sanmartin);">${{ pedido.total }}</td>
+                        
+                        <td>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                {% if pedido.estado == 'pendiente' or pedido.estado == 'preparacion' %}
+                                    <a href="{% url 'pedidos:cambiar_estado_pedido' pedido.id 'listo' %}" class="btn-panel btn-verde" onclick="cambiarEstadoAjax(event, this, 'listo')">✅ Listo</a>
+                                    <a href="{% url 'pedidos:cambiar_estado_pedido' pedido.id 'preparacion' %}" class="btn-panel btn-amarillo" onclick="cambiarEstadoAjax(event, this, 'preparacion')">🍳 Prep</a>
+                                {% endif %}
+                                
+                                {% if pedido.estado == 'listo' %}
+                                    <a href="{% url 'pedidos:cambiar_estado_pedido' pedido.id 'entregado' %}" class="btn-panel btn-gris" onclick="cambiarEstadoAjax(event, this, 'entregado')">✔️ Entregado</a>
+                                {% endif %}
+                                
+                                <button class="btn-panel btn-azul" onclick="imprimirCuentaDirecto('{% url 'pedidos:ticket_mesa' pedido.id %}')" style="padding: 6px 12px;">🖨️ Cuenta</button>
+
+                                {% if pedido.estado != 'cancelado' and pedido.estado != 'entregado' %}
+                                    <a href="{% url 'pedidos:cambiar_estado_pedido' pedido.id 'cancelado' %}" class="btn-panel btn-rojo" style="padding: 6px 12px;" onclick="cambiarEstadoAjax(event, this, 'cancelado', true)">❌</a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 🍔 PESTAÑA: MENÚ -->
+    <div id="tab-menu" class="tab-content">
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+            <a href="{% url 'pedidos:agregar_producto' %}" class="btn-panel btn-verde" style="font-weight: 800; padding: 10px 20px; font-size: 1.1rem; border-radius: 8px;">
+                + NUEVO PRODUCTO
+            </a>
+        </div>
+
+        {% regroup productos by categoria.nombre as categorias_lista %}
+        {% for categoria in categorias_lista %}
+            <details class="panel-accordion">
+                <summary>{{ categoria.grouper }}</summary>
+                <div class="accordion-body">
+                    <table class="tabla-panel tabla-menu" style="margin-bottom: 0;">
+                        <tbody>
+                            {% for producto in categoria.list %}
+                                <tr>
+                                    <td style="width: 40%;">
+                                        <small style="color: var(--texto-mutado); margin-right: 8px; font-weight: bold;">[{{ producto.orden }}]</small> 
+                                        <strong>{{ producto.nombre }}</strong>
+                                    </td>
+                                    <td style="width: 20%;">
+                                        <form onsubmit="editarPrecioAjax(event, this)" action="{% url 'pedidos:editar_precio' producto.id %}" style="display: flex; gap: 8px; align-items: center;">
+                                            {% csrf_token %}
+                                            <input type="text" inputmode="decimal" name="precio" value="{{ producto.precio }}" style="width: 90px; background-color: var(--bg-color); color: var(--text-color); border: 1px solid var(--borde); border-radius: 6px; padding: 6px 10px; text-align: center; font-weight: bold; font-size: 1rem;" required>
+                                            <button type="submit" class="btn-panel btn-azul" style="border-radius: 6px;">OK</button>
+                                        </form>
+                                    </td>
+                                    <td style="width: 20%;">
+                                        <form method="POST" action="{% url 'pedidos:actualizar_producto_puestos' producto.id %}" onchange="actualizarPuestosAjax(event, this)">
+                                            {% csrf_token %}
+                                            {% for puesto in puestos %}
+                                                <label class="chk-mostrador" style="margin-right: 5px;">
+                                                    <input type="checkbox" name="puestos" value="{{ puesto.id }}" {% if puesto in producto.puntos_venta.all %}checked{% endif %}> 
+                                                    <span>{{ puesto.nombre|slice:":1" }}</span>
+                                                </label>
+                                            {% endfor %}
+                                        </form>
+                                    </td>
+                                    <td style="width: 20%; text-align: right;">
+                                        <div style="display: flex; gap: 5px; justify-content: flex-end;">
+                                            <a href="{% url 'pedidos:cambiar_disponibilidad' producto.id %}" class="btn-panel {% if producto.disponible %}btn-gris{% else %}btn-verde{% endif %}" onclick="cambiarDisponibilidadAjax(event, this)">
+                                                {{ producto.disponible|yesno:"Pausar,Activar" }}
+                                            </a>
+                                            <a href="{% url 'pedidos:editar_producto' producto.id %}" class="btn-panel btn-amarillo" style="text-decoration: none;">✏️</a>
+                                            <a href="{% url 'pedidos:eliminar_producto' producto.id %}" class="btn-panel btn-rojo" onclick="eliminarProductoAjax(event, this)">🗑️</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        {% endfor %}
+    </div>
+
+    <!-- 🏪 PESTAÑA: MOSTRADORES -->
+    <div id="tab-mostradores" class="tab-content">
+        <div class="panel-grid-mostradores">
+            {% for puesto in puestos %}
+                <div class="panel-card-mostrador">
+                    <h3 style="margin-top: 0; color: var(--text-color);">{{ puesto.nombre }}</h3>
+                    <p style="font-weight: bold; margin-bottom: 20px;">
+                        {% if puesto.abierto %}
+                            <span style="color: #198754;">🟢 ABIERTO</span>
+                        {% else %}
+                            <span style="color: var(--error);">🔴 CERRADO</span>
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'pedidos:cambiar_estado_puesto' puesto.id %}" class="btn-panel {% if puesto.abierto %}btn-rojo{% else %}btn-verde{% endif %}" onclick="ejecutarAjax(event, this)" style="width: 100%; padding: 10px; border-radius: 8px;">
+                        {{ puesto.abierto|yesno:"Cerrar Mostrador,Abrir Mostrador" }}
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+  <!-- =========================================
+         MODAL CIERRE DE CAJA (POR MOSTRADOR)
+         ========================================= -->
+    <div id="modalCierre" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px; padding: 25px;">
+            <button class="btn-cerrar-modal" onclick="cerrarCierreCaja()">×</button>
+            <h2 class="modal-titulo" style="margin-bottom: 5px;">📊 Cierre del Día</h2>
+            <p style="text-align: center; color: var(--texto-mutado); margin-bottom: 20px;">
+                Recaudación Total: <strong id="gran-total-cierre" style="color: var(--verde-sanmartin); font-size: 1.3rem;">$0</strong>
+            </p>
+            
+            <!-- ACÁ SE INYECTAN LOS MOSTRADORES SEPARADOS -->
+            <div id="contenedor-mostradores" style="max-height: 55vh; overflow-y: auto; margin-bottom: 20px; padding-right: 5px;">
+                <!-- JS rellena esto dinámicamente -->
+            </div>
+
+            <button onclick="confirmarCierreYLimpiar()" class="btn-pagar-block" style="background-color: var(--error);">
+                🗑️ CERRAR TURNO Y LIMPIAR TODO
+            </button>
+        </div>
+    </div>
+
+</div> <!-- Cierre dash-container -->
+
+<script>
+    // 🔥 SCRIPT PARA ENVIAR ORDEN DE IMPRESIÓN AL SERVIDOR 🔥
+    function imprimirCuentaDirecto(url) {
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if(data.status === 'ok') {
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Enviando cuenta a impresora...', background: 'var(--card-bg)', color: 'var(--text-color)', showConfirmButton: false, timer: 2000 });
+                }
+            })
+            .catch(err => console.error("Error al imprimir:", err));
+    }
+
+    // Auto-recarga de pedidos sin molestar al usuario
+    document.addEventListener("DOMContentLoaded", function() {
+        setInterval(() => {
+            if(document.getElementById('tab-pedidos').style.display !== 'none') {
+                fetch(window.location.href)
+                .then(res => res.text())
+                .then(html => {
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
+                    const nuevaLista = doc.getElementById('lista-pedidos');
+                    const listaActual = document.getElementById('lista-pedidos');
+                    
+                    if(nuevaLista && listaActual) {
+                        const countNuevos = nuevaLista.querySelectorAll('.fila-pedido').length;
+                        const countActuales = listaActual.querySelectorAll('.fila-pedido').length;
+                        
+                        if(countNuevos > countActuales) {
+                            document.getElementById('audio-beep').play().catch(e => console.log('Bloqueado', e));
+                            Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: '¡Nuevo pedido recibido!', background: 'var(--card-bg)', color: 'var(--text-color)', showConfirmButton: false, timer: 4000 });
+                        }
+                        listaActual.innerHTML = nuevaLista.innerHTML;
+                    }
+                });
+            }
+        }, 10000); 
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ticket Mesa {{ pedido.numero_mesa|default:"Mostrador" }}</title>
+    <style>
+        /* 🔥 REGLAS ESTRICTAS PARA IMPRESORA TÉRMICA 80MM 🔥 */
+        @page { 
+            size: 80mm auto; 
+            margin: 0; 
+        }
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            width: 72mm; /* Dejamos un margen de seguridad interno */
+            margin: 0 auto;
+            padding: 2mm 4mm;
+            color: #000;
+            font-size: 12px; /* Letra bien compacta para ahorrar papel */
+            background: white;
+            line-height: 1.2;
+        }
+        .centrado { text-align: center; }
+        .linea { border-bottom: 1px dashed #000; margin: 6px 0; }
+        .flex-between { display: flex; justify-content: space-between; }
+        h2, h3 { margin: 2px 0; font-size: 14px; font-weight: bold; }
+        
+        .item-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3px;}
+        .item-qty { width: 20px; font-weight: bold;}
+        .item-name { flex: 1; padding-right: 5px; text-transform: uppercase;}
+        .item-price { white-space: nowrap; }
+        .opciones { font-size: 10px; margin-left: 20px; display: block; text-transform: lowercase; }
+    </style>
+</head>
+<body onload="window.print()">
+    
+    <div class="centrado">
+        <h2>MESA {{ pedido.numero_mesa|default:"-" }}</h2>
+        <h3>C{{ pedido.id|stringformat:"010d" }}</h3>
+        <h3>{{ pedido.tipo_entrega|upper }}</h3>
+    </div>
+    
+    <div class="linea"></div>
+    
+    <div class="flex-between">
+        <span>{{ fecha }}</span>
+        <span>{{ hora }}</span>
+    </div>
+    <div class="flex-between">
+        <span>Cliente:</span>
+        <span>{{ pedido.nombre_cliente|default:"-"|truncatechars:15 }}</span>
+    </div>
+    
+    <div class="linea"></div>
+    
+    {% for item in items_ticket %}
+    <div class="item-row">
+        <span class="item-qty">{{ item.cantidad }}</span>
+        <span class="item-name">
+            {{ item.nombre }}
+            {% for op in item.opciones %}
+                <span class="opciones">-> {{ op }}</span>
+            {% endfor %}
+        </span>
+        <span class="item-price">${{ item.subtotal }}</span>
+    </div>
+    {% endfor %}
+    
+    <div class="linea"></div>
+    
+    <h2 class="centrado" style="font-size: 16px;">TOTAL ${{ pedido.total }}</h2>
+    
+    <div class="linea"></div>
+
+    
+    <br>
+    <div class="centrado" style="font-size: 10px;">
+        *** TICKET NO VALIDO COMO FACTURA ***
+    </div>
+    <br>
+
+    <!-- Se cierra sola la pestaña tras imprimir -->
+    <script>
+        window.onafterprint = function() {
+            window.close();
+        };
+    </script>
+</body>
+</html>

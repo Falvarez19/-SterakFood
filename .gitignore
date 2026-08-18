@@ -1,0 +1,18 @@
+# Archivos de entorno y temporales
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
+# Base de datos local
+db.sqlite3
+
+# Archivos de entorno virtual
+venv/
+env/
+.env
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db

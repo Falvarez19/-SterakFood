@@ -1,0 +1,2148 @@
+[
+{
+    "model": "pedidos.puntoventa",
+    "pk": 1,
+    "fields": {
+        "nombre": "Buffet / Menú",
+        "slug": "menu",
+        "telefono": "5491100000000",
+        "abierto": true
+    }
+},
+{
+    "model": "pedidos.puntoventa",
+    "pk": 2,
+    "fields": {
+        "nombre": "Kiosco",
+        "slug": "kiosco",
+        "telefono": "5491100000003",
+        "abierto": false
+    }
+},
+{
+    "model": "pedidos.puntoventa",
+    "pk": 3,
+    "fields": {
+        "nombre": "Parrilla Cancha",
+        "slug": "parrilla",
+        "telefono": "5491100000001",
+        "abierto": false
+    }
+},
+{
+    "model": "pedidos.puntoventa",
+    "pk": 4,
+    "fields": {
+        "nombre": "Foodtruck",
+        "slug": "foodtruck",
+        "telefono": "5491100000002",
+        "abierto": false
+    }
+},
+{
+    "model": "pedidos.categoria",
+    "pk": 28,
+    "fields": {
+        "nombre": "SANDWICHS PARRILLA"
+    }
+},
+{
+    "model": "pedidos.categoria",
+    "pk": 29,
+    "fields": {
+        "nombre": "08. BEBIDAS"
+    }
+},
+{
+    "model": "pedidos.categoria",
+    "pk": 30,
+    "fields": {
+        "nombre": "05. PARRILLA"
+    }
+},
+{
+    "model": "pedidos.categoria",
+    "pk": 31,
+    "fields": {
+        "nombre": "04. MINUTAS"
+    }
+},
+{
+    "model": "pedidos.categoria",
+    "pk": 32,
+    "fields": {
+        "nombre": "03. SANDWICHS"
+    }
+},
+{
+    "model": "pedidos.categoria",
+    "pk": 34,
+    "fields": {
+        "nombre": "10. GOLOSINAS KIOSCO"
+    }
+},
+{
+    "model": "pedidos.categoria",
+    "pk": 35,
+    "fields": {
+        "nombre": "02. CAFETERIA"
+    }
+},
+{
+    "model": "pedidos.categoria",
+    "pk": 36,
+    "fields": {
+        "nombre": "06. TORTILLAS/OMELLETE"
+    }
+},
+{
+    "model": "pedidos.categoria",
+    "pk": 37,
+    "fields": {
+        "nombre": "02. PARA EL CAFE"
+    }
+},
+{
+    "model": "pedidos.categoria",
+    "pk": 38,
+    "fields": {
+        "nombre": "09. PORCIONES"
+    }
+},
+{
+    "model": "pedidos.categoria",
+    "pk": 39,
+    "fields": {
+        "nombre": "01. MENU DEL DIA"
+    }
+},
+{
+    "model": "pedidos.categoria",
+    "pk": 40,
+    "fields": {
+        "nombre": "01. PROMOS DEL DIA"
+    }
+},
+{
+    "model": "pedidos.categoria",
+    "pk": 41,
+    "fields": {
+        "nombre": "07. ENSALADAS"
+    }
+},
+{
+    "model": "pedidos.categoria",
+    "pk": 42,
+    "fields": {
+        "nombre": "05. PASTAS"
+    }
+},
+{
+    "model": "pedidos.categoria",
+    "pk": 43,
+    "fields": {
+        "nombre": "03. ENTRADAS"
+    }
+},
+{
+    "model": "pedidos.categoria",
+    "pk": 44,
+    "fields": {
+        "nombre": "08. POSTRES"
+    }
+},
+{
+    "model": "pedidos.categoria",
+    "pk": 45,
+    "fields": {
+        "nombre": "GOLOSINAS"
+    }
+},
+{
+    "model": "pedidos.categoria",
+    "pk": 46,
+    "fields": {
+        "nombre": "11. HELADOS"
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 150,
+    "fields": {
+        "categoria": 29,
+        "nombre": "COCA-COLA 600ML",
+        "descripcion": "",
+        "precio": "3500.00",
+        "disponible": true,
+        "imagen": "",
+        "variantes": "COMUN, SIN AZUCAR",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": "Con Limón(+500)",
+        "opcion_hielo": "Con Hielo, Sin Hielo",
+        "orden": 0,
+        "puntos_venta": [
+            1,
+            2,
+            3,
+            4
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 152,
+    "fields": {
+        "categoria": 29,
+        "nombre": "SPRITE 600ML",
+        "descripcion": "",
+        "precio": "3500.00",
+        "disponible": true,
+        "imagen": "",
+        "variantes": "COMUN, SIN AZUCAR",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": "Con Hielo, Sin Hielo",
+        "orden": 0,
+        "puntos_venta": [
+            1,
+            2,
+            3,
+            4
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 156,
+    "fields": {
+        "categoria": 29,
+        "nombre": "SABORIZADA",
+        "descripcion": "",
+        "precio": "3500.00",
+        "disponible": true,
+        "imagen": "",
+        "variantes": "UVA, PERA, POMELO, POMELO ROSA",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": "Con Hielo, Sin Hielo",
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 157,
+    "fields": {
+        "categoria": 29,
+        "nombre": "7UP",
+        "descripcion": "",
+        "precio": "3500.00",
+        "disponible": true,
+        "imagen": "",
+        "variantes": "COMUN, SIN AZUCAR",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": "Con Limón(+500)",
+        "opcion_hielo": "Con Hielo, Sin Hielo",
+        "orden": 0,
+        "puntos_venta": [
+            1,
+            2,
+            4
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 159,
+    "fields": {
+        "categoria": 29,
+        "nombre": "AGUA  500ML",
+        "descripcion": "",
+        "precio": "3000.00",
+        "disponible": true,
+        "imagen": "",
+        "variantes": "CON GAS, SIN GAS",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": "Con Limón(+500)",
+        "opcion_hielo": "Con Hielo, Sin Hielo",
+        "orden": 0,
+        "puntos_venta": [
+            1,
+            2,
+            3,
+            4
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 161,
+    "fields": {
+        "categoria": 29,
+        "nombre": "AGUA TONICA",
+        "descripcion": "",
+        "precio": "3500.00",
+        "disponible": true,
+        "imagen": "",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": "Con Limón(+500)",
+        "opcion_hielo": "Con Hielo, Sin Hielo",
+        "orden": 0,
+        "puntos_venta": [
+            1,
+            2
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 162,
+    "fields": {
+        "categoria": 29,
+        "nombre": "CERVEZA LATA 490ml",
+        "descripcion": "HEINEKEN O STELLA",
+        "precio": "6000.00",
+        "disponible": true,
+        "imagen": "",
+        "variantes": "HEINEKEN, STELLA",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1,
+            2,
+            3,
+            4
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 163,
+    "fields": {
+        "categoria": 29,
+        "nombre": "CERVEZA 1L",
+        "descripcion": "HEINEKEN/STELLA",
+        "precio": "10000.00",
+        "disponible": true,
+        "imagen": "",
+        "variantes": "HEINEKEN, STELLA",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 164,
+    "fields": {
+        "categoria": 29,
+        "nombre": "FANTA NARANJA 600ML",
+        "descripcion": "",
+        "precio": "3500.00",
+        "disponible": true,
+        "imagen": "",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1,
+            2
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 165,
+    "fields": {
+        "categoria": 31,
+        "nombre": "MILANESA GUARNICION",
+        "descripcion": "MILANESA DE TERNERA CON GUARNICION",
+        "precio": "17500.00",
+        "disponible": true,
+        "imagen": "productos_img/MILANESA_GUAR.jpg",
+        "variantes": "FRITA, AL HORNO",
+        "guarniciones": "SIN GUARNICION (-2500), PURE DE PAPA, BATATAS FRITAS, PAPAS FRITAS, PAPAS ESPAÑOLAS",
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": "A CABALLO (+4000), A 1/2 CABALLO(+2000)",
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1,
+            2
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 166,
+    "fields": {
+        "categoria": 31,
+        "nombre": "MILANESA ESPECIAL GUARNICION",
+        "descripcion": "MILANESA ESPECIAL, PUEDE SER NAPOLITANA, FUGAZZETA, GRATINADA, SUIZA CON SU RESPECTIVA GUARNICION",
+        "precio": "18500.00",
+        "disponible": true,
+        "imagen": "productos_img/MILA_ESPECIAL.jpg",
+        "variantes": "SUIZA, GRATINADA, FUGAZZETA, NAPOLITANA",
+        "guarniciones": "SIN GUARNICION (-2500), PURE DE PAPA, BATATAS FRITAS, PAPAS FRITAS, PAPAS ESPAÑOLAS",
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1,
+            2
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 167,
+    "fields": {
+        "categoria": 31,
+        "nombre": "SUPREMA GUARNICION",
+        "descripcion": "SUPREMA DE POLLO CON GUARNICION",
+        "precio": "19500.00",
+        "disponible": true,
+        "imagen": "productos_img/SUPREMA_GUARNICION.jpg",
+        "variantes": null,
+        "guarniciones": "SIN GUARNICION (-2500), PURE DE PAPA, BATATAS FRITAS, PAPAS FRITAS, PAPAS ESPAÑOLAS",
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": "A CABALLO (+4000), A 1/2 CABALLO(+2000)",
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1,
+            2
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 168,
+    "fields": {
+        "categoria": 31,
+        "nombre": "SUPREMA ESPECIAL GUARNICION",
+        "descripcion": "SUPREMA DE POLLO ESPECIAL. PUEDE SER NAPOLITANA, FUGAZZETA, SUIZA, GRATINADA",
+        "precio": "20500.00",
+        "disponible": true,
+        "imagen": "productos_img/SUPREMA_ESPECIAL.jpg",
+        "variantes": "SUIZA, GRATINADA, FUGAZZETA, NAPOLITANA",
+        "guarniciones": "SIN GUARNICION (-2500), PURE DE PAPA, BATATAS FRITAS, PAPAS FRITAS, PAPAS ESPAÑOLAS",
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1,
+            2
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 169,
+    "fields": {
+        "categoria": 28,
+        "nombre": "SANDWICH DE COLITA",
+        "descripcion": "",
+        "precio": "15000.00",
+        "disponible": true,
+        "imagen": "",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            3,
+            4
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 170,
+    "fields": {
+        "categoria": 28,
+        "nombre": "SANDWICH DE BONDIOLA",
+        "descripcion": "",
+        "precio": "15000.00",
+        "disponible": true,
+        "imagen": "",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            3,
+            4
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 171,
+    "fields": {
+        "categoria": 28,
+        "nombre": "CHORIPAN",
+        "descripcion": "",
+        "precio": "10000.00",
+        "disponible": true,
+        "imagen": "",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            3,
+            4
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 172,
+    "fields": {
+        "categoria": 28,
+        "nombre": "PATY",
+        "descripcion": "",
+        "precio": "10000.00",
+        "disponible": true,
+        "imagen": "",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            3,
+            4
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 173,
+    "fields": {
+        "categoria": 32,
+        "nombre": "SANDWICH DE MILANESA",
+        "descripcion": "SANDWICH DE MILANESA DE TERNERA",
+        "precio": "14500.00",
+        "disponible": true,
+        "imagen": "productos_img/SANDWICH_MILA.jpg",
+        "variantes": null,
+        "guarniciones": "SIN GUARNICION (-2500), BATATAS FRITAS, PAPAS FRITAS, PAPAS ESPAÑOLAS",
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": "JAMON (+1500), QUESO(+1500), LECHUGA(+1500), TOMATE(+1000)",
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1,
+            2,
+            4
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 177,
+    "fields": {
+        "categoria": 35,
+        "nombre": "JARRITO",
+        "descripcion": "",
+        "precio": "3500.00",
+        "disponible": true,
+        "imagen": "productos_img/JARRITO.jpg",
+        "variantes": "CAFE SOLO, CORTADO,  APENAS CORTADO, LAGRIMA, MITAD/MITAD, LATTE",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": "CREMA (+1500)",
+        "opcion_hielo": null,
+        "orden": 1,
+        "puntos_venta": [
+            1,
+            2,
+            4
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 178,
+    "fields": {
+        "categoria": 35,
+        "nombre": "POSILLO",
+        "descripcion": "",
+        "precio": "3500.00",
+        "disponible": true,
+        "imagen": "productos_img/POSILLO.jpg",
+        "variantes": "CAFE SOLO, CORTADO,  APENAS CORTADO, LAGRIMA, MITAD/MITAD, LATTE",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": "CREMA (+1500)",
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1,
+            2,
+            4
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 179,
+    "fields": {
+        "categoria": 35,
+        "nombre": "CAFE DOBLE",
+        "descripcion": "",
+        "precio": "6000.00",
+        "disponible": true,
+        "imagen": "productos_img/CAFE_DOBLE.jpg",
+        "variantes": "CAFE SOLO, CORTADO,  APENAS CORTADO, LAGRIMA, MITAD/MITAD, LATTE",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": "CREMA (+1500)",
+        "opcion_hielo": null,
+        "orden": 2,
+        "puntos_venta": [
+            1,
+            2,
+            4
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 180,
+    "fields": {
+        "categoria": 35,
+        "nombre": "SUBMARINO",
+        "descripcion": "",
+        "precio": "6000.00",
+        "disponible": true,
+        "imagen": "productos_img/SUBMARINO.jpg",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 5,
+        "puntos_venta": [
+            1,
+            2
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 182,
+    "fields": {
+        "categoria": 36,
+        "nombre": "TORTILLA TAMAÑO PLATO",
+        "descripcion": "TORTILLA DE PAPA TAMAÑO PLATO",
+        "precio": "18000.00",
+        "disponible": true,
+        "imagen": "productos_img/TORTILLA_PLATO.png",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": "BABE, COCIDO, A PUNTO",
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": "CEBOLLA, CHORIZO COLORADO(+4000)",
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 184,
+    "fields": {
+        "categoria": 36,
+        "nombre": "TORTILLA INDIVIDUAL",
+        "descripcion": "",
+        "precio": "14000.00",
+        "disponible": true,
+        "imagen": "productos_img/TORTILLA_INDIVIDUAL.jpg",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": "BABE, COCIDO, A PUNTO",
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": "CEBOLLA, CHORIZO COLORADO(+4000)",
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 185,
+    "fields": {
+        "categoria": 36,
+        "nombre": "OMELLETE",
+        "descripcion": "",
+        "precio": "12000.00",
+        "disponible": true,
+        "imagen": "productos_img/Diseño_sin_título_R8JqAdR.jpg",
+        "variantes": "JAMON Y QUESO, QUESO Y TOMATE, QUESO SOLO",
+        "guarniciones": null,
+        "puntos_coccion": "BABE, COCIDO, A PUNTO",
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 186,
+    "fields": {
+        "categoria": 32,
+        "nombre": "TOSTADO PAN ARABE",
+        "descripcion": "",
+        "precio": "6000.00",
+        "disponible": true,
+        "imagen": "productos_img/ARABE.jpg",
+        "variantes": "TOSTADO, SIN TOSTAR",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": "JAMON Y QUESO, SOLO QUESO, SOLO JAMON",
+        "salsas": null,
+        "adicionales": "CARGADO(+2500),TOMATE(+500), HUEVO(+2000)",
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1,
+            2
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 187,
+    "fields": {
+        "categoria": 32,
+        "nombre": "TOSTADO BAGUETTIN",
+        "descripcion": "BAGUETTE CON QUESO PARMESANO ARRIBA RELLENO",
+        "precio": "6000.00",
+        "disponible": true,
+        "imagen": "productos_img/BAGUETTIN_Pum7OsQ.jpg",
+        "variantes": "TOSTADO, SIN TOSTAR",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": "JAMON Y QUESO, SOLO QUESO, SOLO JAMON",
+        "salsas": null,
+        "adicionales": "CARGADO(+2500), TOMATE(+500), HUEVO(+2000)",
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1,
+            2
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 188,
+    "fields": {
+        "categoria": 32,
+        "nombre": "RAPIDITA JAMON Y QUESO",
+        "descripcion": "",
+        "precio": "7500.00",
+        "disponible": true,
+        "imagen": "productos_img/RAPIDITA.jpg",
+        "variantes": "TOSTADO, SIN TOSTAR",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": "TOMATE(+500), HUEVO(+2000)",
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1,
+            2
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 189,
+    "fields": {
+        "categoria": 37,
+        "nombre": "MEDIA LUNA",
+        "descripcion": "",
+        "precio": "1500.00",
+        "disponible": true,
+        "imagen": "productos_img/MEDIALUNAS_2_z9WZPvO.jpeg",
+        "variantes": "MANTECA, GRASA",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1,
+            2
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 190,
+    "fields": {
+        "categoria": 37,
+        "nombre": "MEDIA LUNA RELLENA TOSTADA",
+        "descripcion": "MEDIALUNA DE MANTECA RELLENA",
+        "precio": "3500.00",
+        "disponible": true,
+        "imagen": "productos_img/MEDIALUNAS.jpeg",
+        "variantes": "TOSTADO, SIN TOSTAR",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": "JAMON Y QUESO, SOLO QUESO",
+        "salsas": null,
+        "adicionales": "CARGADA(+1000)",
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1,
+            2
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 191,
+    "fields": {
+        "categoria": 37,
+        "nombre": "CROISSANT SOLO",
+        "descripcion": "",
+        "precio": "4000.00",
+        "disponible": true,
+        "imagen": "productos_img/CROISSANT_SOLO.jpg",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1,
+            2
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 192,
+    "fields": {
+        "categoria": 37,
+        "nombre": "CROISSANT RELLENO",
+        "descripcion": "",
+        "precio": "6500.00",
+        "disponible": true,
+        "imagen": "productos_img/CROISSANT.jpg",
+        "variantes": "TOSTADO, SIN TOSTAR",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": "JAMON Y QUESO, QUESO SOLO",
+        "salsas": null,
+        "adicionales": "CARGADO(+2500)",
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1,
+            2
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 193,
+    "fields": {
+        "categoria": 37,
+        "nombre": "PASTA FROLA",
+        "descripcion": "",
+        "precio": "5000.00",
+        "disponible": true,
+        "imagen": "productos_img/PAsta_f.png",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1,
+            2
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 194,
+    "fields": {
+        "categoria": 30,
+        "nombre": "BIFE DE CHORIZO GUARNICION",
+        "descripcion": "",
+        "precio": "30000.00",
+        "disponible": true,
+        "imagen": "",
+        "variantes": null,
+        "guarniciones": "SIN GUARNICION (-2500), PURE DE PAPA, BATATAS FRITAS, PAPAS FRITAS, PAPAS ESPAÑOLAS",
+        "puntos_coccion": "JUGOSO, A PUNTO, COCIDO",
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": "A CABALLO (+4000), A 1/2 CABALLO(+2000)",
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 195,
+    "fields": {
+        "categoria": 30,
+        "nombre": "VACIO GUARNICION",
+        "descripcion": "",
+        "precio": "30000.00",
+        "disponible": false,
+        "imagen": "",
+        "variantes": null,
+        "guarniciones": "PAPAS FRITAS, PURE DE PAPA, PAPAS ESPAÑOLAS, BATATAS FRITAS",
+        "puntos_coccion": "JUGOSO, A PUNTO, COCIDO",
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 196,
+    "fields": {
+        "categoria": 30,
+        "nombre": "BONDIOLA GUARNICION",
+        "descripcion": "",
+        "precio": "28000.00",
+        "disponible": true,
+        "imagen": "productos_img/Bondio.jpg",
+        "variantes": null,
+        "guarniciones": "PAPAS FRITAS, PURE DE PAPA, PAPAS ESPAÑOLAS, BATATAS FRITAS",
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 197,
+    "fields": {
+        "categoria": 30,
+        "nombre": "COLITA GUARNICION",
+        "descripcion": "",
+        "precio": "28000.00",
+        "disponible": false,
+        "imagen": "productos_img/Colita.jpg",
+        "variantes": null,
+        "guarniciones": "PAPAS FRITAS, PURE DE PAPA, PAPAS ESPAÑOLAS, BATATAS FRITAS",
+        "puntos_coccion": "JUGOSO, A PUNTO, COCIDO",
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 198,
+    "fields": {
+        "categoria": 38,
+        "nombre": "PAPAS FRITAS",
+        "descripcion": "",
+        "precio": "10000.00",
+        "disponible": true,
+        "imagen": "",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": "A CABALLO (+3000), A 1/2 CABALLO(+1500)",
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 200,
+    "fields": {
+        "categoria": 38,
+        "nombre": "BATATAS FRITAS",
+        "descripcion": "",
+        "precio": "11000.00",
+        "disponible": true,
+        "imagen": "",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 202,
+    "fields": {
+        "categoria": 43,
+        "nombre": "EMPANADAS",
+        "descripcion": "",
+        "precio": "3500.00",
+        "disponible": true,
+        "imagen": "productos_img/EMPANADAS.jpg",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": "JAMON Y QUESO, CARNE",
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 203,
+    "fields": {
+        "categoria": 41,
+        "nombre": "ENSALADA CESAR",
+        "descripcion": "CONTIENE: LECHUGA, CRUTONES, ADEREZO CESAR DE LA CASA, QUESO PARMESANO",
+        "precio": "15000.00",
+        "disponible": true,
+        "imagen": "productos_img/CESAR.jpg",
+        "variantes": "CON ATUN, CON POLLO",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": "EXTRA POLLO (+3500), EXTRA ATUN(+3500)",
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 204,
+    "fields": {
+        "categoria": 41,
+        "nombre": "ENSALADA DEL CLUB",
+        "descripcion": "CONTIENE : LECHUGA, TOMATE, ARROZ, ARVEJAS, ZANAHORIA, JAMON, QUESO, HUEVO y PROTEINA",
+        "precio": "15000.00",
+        "disponible": true,
+        "imagen": "productos_img/CLUB.jpg",
+        "variantes": "CON ATUN, CON POLLO",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": "EXTRA POLLO(+3500), EXTRA ATUN(+3500)",
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 205,
+    "fields": {
+        "categoria": 41,
+        "nombre": "RUCULA Y PARMESANO",
+        "descripcion": "",
+        "precio": "6200.00",
+        "disponible": true,
+        "imagen": "productos_img/rp.jpg",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 206,
+    "fields": {
+        "categoria": 41,
+        "nombre": "ZANAHORIA TOMATE Y HUEVO",
+        "descripcion": "",
+        "precio": "5800.00",
+        "disponible": true,
+        "imagen": "productos_img/ZTYH.jpg",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 207,
+    "fields": {
+        "categoria": 39,
+        "nombre": "VACIO CON MENU",
+        "descripcion": "",
+        "precio": "28000.00",
+        "disponible": false,
+        "imagen": "",
+        "variantes": null,
+        "guarniciones": "PURE DE PAPA, PAPAS FRITAS, PAPAS ESPAÑOLAS, BATATAS FRITAS, SOLO(-2500)",
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 208,
+    "fields": {
+        "categoria": 40,
+        "nombre": "2 MILANESA NAPOLITANA + TORTILLA AL PLATO",
+        "descripcion": "",
+        "precio": "45000.00",
+        "disponible": false,
+        "imagen": "",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 209,
+    "fields": {
+        "categoria": 41,
+        "nombre": "ENSALADA MIXTA",
+        "descripcion": "",
+        "precio": "5800.00",
+        "disponible": true,
+        "imagen": "productos_img/ENSALADA_MIXTA.jpg",
+        "variantes": "LECHUGA TOMATE ZANAHORIA, LECHUGA TOMATE CEBOLLA",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 210,
+    "fields": {
+        "categoria": 29,
+        "nombre": "GATORADE/POWER 500ML",
+        "descripcion": "",
+        "precio": "4000.00",
+        "disponible": true,
+        "imagen": "",
+        "variantes": "AZUL, FRUTOS TROPICALES, UVA, MANZANA",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 214,
+    "fields": {
+        "categoria": 42,
+        "nombre": "ÑOQUIS",
+        "descripcion": "ÑOQUIS DE PAPA",
+        "precio": "11000.00",
+        "disponible": true,
+        "imagen": "productos_img/ÑOQUIS.jpg",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": "SOLOS, MANTECA, FILETO, BLANCA(+2000), ROSA(+2000), MIXTA(+2000), BOLOGNESA(+4000), CREMA(+4000)",
+        "adicionales": "CREMA (+4000), BOLOGNESA(+4000)",
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 215,
+    "fields": {
+        "categoria": 42,
+        "nombre": "SORRENTINOS",
+        "descripcion": "",
+        "precio": "16000.00",
+        "disponible": true,
+        "imagen": "productos_img/SORRENTINOS.jpg",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": "JAMON Y QUESO, RICOTA Y VERDURA",
+        "salsas": "SOLOS, MANTECA, FILETO, BLANCA(+2000), ROSA(+2000), MIXTA(+2000), BOLOGNESA(+5000), CREMA(+5000)",
+        "adicionales": "CREMA (+4000), BOLOGNESA(+4000)",
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 216,
+    "fields": {
+        "categoria": 42,
+        "nombre": "FIDEOS",
+        "descripcion": "",
+        "precio": "9500.00",
+        "disponible": true,
+        "imagen": "productos_img/FIDEOS.jpg",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": "SOLOS, MANTECA, FILETO, BLANCA(+2000), ROSA(+2000), MIXTA(+2000), BOLOGNESA(+5000), CREMA(+5000)",
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 218,
+    "fields": {
+        "categoria": 42,
+        "nombre": "ÑOQUIS RELLENOS",
+        "descripcion": "",
+        "precio": "13000.00",
+        "disponible": true,
+        "imagen": "productos_img/ÑOQUIS_RELLENOS3.jpg",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": "JAMON Y QUESO",
+        "salsas": "SOLOS, MANTECA, FILETO, BLANCA(+2000), ROSA(+2000), MIXTA(+2000), BOLOGNESA(+5000), CREMA(+5000)",
+        "adicionales": "CREMA (+4000), BOLOGNESA(+4000)",
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 219,
+    "fields": {
+        "categoria": 42,
+        "nombre": "MALFATIS",
+        "descripcion": "",
+        "precio": "15000.00",
+        "disponible": true,
+        "imagen": "productos_img/MALFATIS_2.jpg",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": "SOLOS, MANTECA, FILETO, BLANCA(+2000), ROSA(+2000), MIXTA(+2000), BOLOGNESA(+5000), CREMA(+5000)",
+        "adicionales": "CREMA (+4000), BOLOGNESA(+4000)",
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 220,
+    "fields": {
+        "categoria": 30,
+        "nombre": "PECHUGA GRILLE GUAR",
+        "descripcion": "",
+        "precio": "17000.00",
+        "disponible": true,
+        "imagen": "productos_img/Diseño_sin_título.jpg",
+        "variantes": null,
+        "guarniciones": "SIN GUARNICION (-2500), PURE DE PAPA, BATATAS FRITAS, PAPAS FRITAS, PAPAS ESPAÑOLAS",
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": "GRATINADA+(2500)",
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 221,
+    "fields": {
+        "categoria": 38,
+        "nombre": "PAPAS ESPAÑOLAS",
+        "descripcion": "",
+        "precio": "12000.00",
+        "disponible": true,
+        "imagen": "",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": "A CABALLO (+2000), A 1/2 CABALLO(+1000)",
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 222,
+    "fields": {
+        "categoria": 36,
+        "nombre": "TORTILLA CLUB",
+        "descripcion": "TORTILLA TAMAÑO PIZZA",
+        "precio": "35000.00",
+        "disponible": true,
+        "imagen": "productos_img/TORTILLA_CLUB.jpg",
+        "variantes": "COMPLETA, SOLO PAPA, SIN CEBOLLA, SIN CHORIZO",
+        "guarniciones": null,
+        "puntos_coccion": "BABE, A PUNTO, COCIDO",
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 224,
+    "fields": {
+        "categoria": 43,
+        "nombre": "PROVOLETA",
+        "descripcion": "",
+        "precio": "12000.00",
+        "disponible": true,
+        "imagen": "productos_img/kjk.jpg",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 225,
+    "fields": {
+        "categoria": 43,
+        "nombre": "350gr picada",
+        "descripcion": "PICADA CON SALAME JAMÓN QUESO Y ACEITUNAS (comen 4)",
+        "precio": "12500.00",
+        "disponible": true,
+        "imagen": "productos_img/PICADA_Hi0VLsY.jpg",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 226,
+    "fields": {
+        "categoria": 44,
+        "nombre": "FLAN",
+        "descripcion": "",
+        "precio": "5000.00",
+        "disponible": true,
+        "imagen": "productos_img/FLAN.jpg",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": "SOLO, CREMA (+1500), DULCE DE LECHE(+2000)",
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 227,
+    "fields": {
+        "categoria": 44,
+        "nombre": "PANQUEQUE DULCE DE LECHE",
+        "descripcion": "",
+        "precio": "6000.00",
+        "disponible": true,
+        "imagen": "productos_img/PANQUEQUE.png",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": "CREMA(+2000)",
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 228,
+    "fields": {
+        "categoria": 37,
+        "nombre": "ALFAJOR DE MAICENA",
+        "descripcion": "Alfajor casero de maicena",
+        "precio": "2500.00",
+        "disponible": true,
+        "imagen": "productos_img/MAICENA.jpeg",
+        "variantes": "COMUN, GLASEADO",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 229,
+    "fields": {
+        "categoria": 39,
+        "nombre": "GUISO DE LENTEJAS",
+        "descripcion": "",
+        "precio": "18000.00",
+        "disponible": false,
+        "imagen": "productos_img/GUISO.jpg",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 230,
+    "fields": {
+        "categoria": 35,
+        "nombre": "CHOCOLATADA",
+        "descripcion": "",
+        "precio": "6000.00",
+        "disponible": true,
+        "imagen": "productos_img/CHOCOLATADA.png",
+        "variantes": "FRIA, CALIENTE",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 4,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 231,
+    "fields": {
+        "categoria": 35,
+        "nombre": "CAFE TAZON",
+        "descripcion": "",
+        "precio": "7000.00",
+        "disponible": true,
+        "imagen": "productos_img/CAFE_TAZON.jpg",
+        "variantes": "CAFE SOLO, CORTADO,  APENAS CORTADO, LAGRIMA, MITAD/MITAD, LATTE",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 3,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 232,
+    "fields": {
+        "categoria": 34,
+        "nombre": "TITA/RODESIA",
+        "descripcion": "",
+        "precio": "0.00",
+        "disponible": true,
+        "imagen": "productos_img/WhatsApp_Image_2026-06-25_at_6.54.07_PM_1.jpeg",
+        "variantes": "TITA(+1500), RODESIA(+1800)",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 233,
+    "fields": {
+        "categoria": 34,
+        "nombre": "MOGUL",
+        "descripcion": "",
+        "precio": "1500.00",
+        "disponible": true,
+        "imagen": "productos_img/ALFAJORES.jpg",
+        "variantes": "COMUNES, ROLLITOS ACIDOS, OSITOS, OSITOS ACIDOS, ROCKS, CEREBRITOS,  SANDIA, TIBURONES",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 234,
+    "fields": {
+        "categoria": 34,
+        "nombre": "ALFAJORES",
+        "descripcion": "",
+        "precio": "3500.00",
+        "disponible": true,
+        "imagen": "productos_img/ALFAJORES.jpeg",
+        "variantes": "RASTA BLANCO, RASTA NEGRO, OREO, MILKA OREO, BONOBON,",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 235,
+    "fields": {
+        "categoria": 39,
+        "nombre": "PASTEL DE PAPA",
+        "descripcion": "",
+        "precio": "18000.00",
+        "disponible": false,
+        "imagen": "productos_img/PASTEL_DE_PAPA.jpg",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 236,
+    "fields": {
+        "categoria": 36,
+        "nombre": "REVUELTO GRAMAJO",
+        "descripcion": "",
+        "precio": "14000.00",
+        "disponible": true,
+        "imagen": "productos_img/revuelto.jpg",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 237,
+    "fields": {
+        "categoria": 46,
+        "nombre": "EPA",
+        "descripcion": "",
+        "precio": "8000.00",
+        "disponible": true,
+        "imagen": "",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 238,
+    "fields": {
+        "categoria": 46,
+        "nombre": "TORPEDO",
+        "descripcion": "",
+        "precio": "3500.00",
+        "disponible": true,
+        "imagen": "",
+        "variantes": "LIMON, FRUTILLA",
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 239,
+    "fields": {
+        "categoria": 46,
+        "nombre": "BARRITA AGUILA",
+        "descripcion": "",
+        "precio": "3500.00",
+        "disponible": true,
+        "imagen": "",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 240,
+    "fields": {
+        "categoria": 46,
+        "nombre": "HELADO OREO",
+        "descripcion": "",
+        "precio": "8000.00",
+        "disponible": true,
+        "imagen": "",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 241,
+    "fields": {
+        "categoria": 46,
+        "nombre": "MEGA PISTACHO",
+        "descripcion": "",
+        "precio": "8000.00",
+        "disponible": true,
+        "imagen": "",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 242,
+    "fields": {
+        "categoria": 32,
+        "nombre": "FRANCES SALAME Y QUESO",
+        "descripcion": "",
+        "precio": "8000.00",
+        "disponible": true,
+        "imagen": "productos_img/7bfccc56-3890-4f45-817b-eba2c2d2d508.jpg",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 243,
+    "fields": {
+        "categoria": 32,
+        "nombre": "FRANCES CRUDO Y QUESO",
+        "descripcion": "",
+        "precio": "12000.00",
+        "disponible": true,
+        "imagen": "productos_img/36116307-2a82-495d-8877-6808de5556ac.jpg",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": "TOMATE (+500), MANTECA",
+        "opcion_hielo": null,
+        "orden": 1,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 244,
+    "fields": {
+        "categoria": 39,
+        "nombre": "BONDIOLA CON PURE DE BATATA",
+        "descripcion": "",
+        "precio": "28000.00",
+        "disponible": false,
+        "imagen": "",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 245,
+    "fields": {
+        "categoria": 39,
+        "nombre": "SORRENTINOS DE SALMON CON SALSA DE CAMARON",
+        "descripcion": "",
+        "precio": "20000.00",
+        "disponible": false,
+        "imagen": "",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 2,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 246,
+    "fields": {
+        "categoria": 39,
+        "nombre": "LOCRO",
+        "descripcion": "",
+        "precio": "15000.00",
+        "disponible": false,
+        "imagen": "",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 247,
+    "fields": {
+        "categoria": 39,
+        "nombre": "ENTRAÑA  AL VERDEO CON PAPAS ESPAÑOLAS",
+        "descripcion": "",
+        "precio": "30000.00",
+        "disponible": false,
+        "imagen": "",
+        "variantes": null,
+        "guarniciones": "SIN GUARNICION (-3000), MENU",
+        "puntos_coccion": "JUGOSO, A PUNTO, COCIDO",
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 248,
+    "fields": {
+        "categoria": 39,
+        "nombre": "BIFE DE CHORIZO A CABALLO CON PAPAS FRITAS",
+        "descripcion": "",
+        "precio": "30000.00",
+        "disponible": false,
+        "imagen": "",
+        "variantes": null,
+        "guarniciones": "SIN GUARNICION (-3000), MENU",
+        "puntos_coccion": "JUGOSO, A PUNTO, COCIDO",
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 249,
+    "fields": {
+        "categoria": 39,
+        "nombre": "ÑOQUIS DE PAPA GRATINADOS",
+        "descripcion": "",
+        "precio": "15000.00",
+        "disponible": false,
+        "imagen": "",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 250,
+    "fields": {
+        "categoria": 39,
+        "nombre": "CHORIZO A LA POMAROLA",
+        "descripcion": "",
+        "precio": "16000.00",
+        "disponible": false,
+        "imagen": "",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.producto",
+    "pk": 251,
+    "fields": {
+        "categoria": 39,
+        "nombre": "SORRENTINOS J Y Q CON SALSA ROSA",
+        "descripcion": "",
+        "precio": "19000.00",
+        "disponible": false,
+        "imagen": "",
+        "variantes": null,
+        "guarniciones": null,
+        "puntos_coccion": null,
+        "rellenos": null,
+        "salsas": null,
+        "adicionales": null,
+        "opcion_hielo": null,
+        "orden": 0,
+        "puntos_venta": [
+            1
+        ]
+    }
+},
+{
+    "model": "pedidos.configuracion",
+    "pk": 1,
+    "fields": {
+        "buffet_habilitado": true
+    }
+}
+]

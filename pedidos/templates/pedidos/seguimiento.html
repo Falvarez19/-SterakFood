@@ -1,0 +1,175 @@
+{% extends 'pedidos/base.html' %}
+
+{% block title %}Seguimiento | Pedido #{{ pedido.id }}{% endblock %}
+
+{% block content %}
+<div class="seguimiento-wrapper">
+    <div class="order-header">
+        <h1 class="order-number">Pedido Nº {{ pedido.id }}</h1>
+        <p class="order-subtitle">Te avisaremos por acá cuando tu comida esté lista.</p>
+    </div>
+
+    <!-- TARJETA PRINCIPAL -->
+    <div id="statusCard" class="status-card pendiente">
+        <div id="statusIcon" class="icon-container">
+            <div class="loader-modern"></div>
+        </div>
+        
+        <h2 id="statusTitle" class="status-title">Conectando...</h2>
+        <p id="statusDesc" class="status-desc">Aguardá un instante por favor.</p>
+
+        <button id="btn-sonido" class="btn-notificaciones" onclick="habilitarAlertas()">
+            🔕 Tocar para activar notificaciones
+        </button>
+    </div>
+
+    <!-- BARRA DE PROGRESO -->
+    <div class="stepper">
+        <div id="step1" class="step">
+            <div class="step-dot">1</div>
+            <span class="step-label">Recibido</span>
+        </div>
+        <div id="step2" class="step">
+            <div class="step-dot">2</div>
+            <span class="step-label">Cocina</span>
+        </div>
+        <div id="step3" class="step">
+            <div class="step-dot">3</div>
+            <span class="step-label">Listo</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    const pedidoId = "{{ pedido.id }}";
+    const statusCard = document.getElementById('statusCard');
+    const statusIcon = document.getElementById('statusIcon');
+    const statusTitle = document.getElementById('statusTitle');
+    const statusDesc = document.getElementById('statusDesc');
+    
+    const step1 = document.getElementById('step1');
+    const step2 = document.getElementById('step2');
+    const step3 = document.getElementById('step3');
+
+    const sonidoNotificacion = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+    
+    let estadoAnterior = null; 
+    let sonidoHabilitado = false;
+    let notificacionesHabilitadas = false;
+
+    // EL CARTEL AUTOMÁTICO INICIAL CON SWEETALERT
+    document.addEventListener("DOMContentLoaded", function() {
+        if (!sessionStorage.getItem('alertasPedidas_' + pedidoId)) {
+            Swal.fire({
+                title: '¡No te pierdas tu comida!',
+                text: 'Aceptá las notificaciones y dejá el celular en la mesa. Te vamos a avisar apenas esté lista.',
+                icon: 'bell',
+                background: 'var(--card-bg)',
+                color: 'var(--text-color)',
+                confirmButtonText: 'Activar Alertas 🔔',
+                confirmButtonColor: 'var(--verde-sanmartin)',
+                allowOutsideClick: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    habilitarAlertas();
+                    sessionStorage.setItem('alertasPedidas_' + pedidoId, 'true');
+                }
+            });
+        }
+    });
+
+    async function habilitarAlertas() {
+        sonidoNotificacion.play().then(() => {
+            sonidoNotificacion.pause(); sonidoNotificacion.currentTime = 0;
+            sonidoHabilitado = true;
+        }).catch(e => console.log("Audio bloqueado", e));
+
+        if ("Notification" in window) {
+            Notification.requestPermission().then(permiso => {
+                if (permiso === "granted") notificacionesHabilitadas = true;
+            });
+        }
+
+        if ('wakeLock' in navigator) {
+            try { await navigator.wakeLock.request('screen'); } 
+            catch (err) { console.log('Bloqueo de pantalla no permitido'); }
+        }
+
+        const btn = document.getElementById('btn-sonido');
+        btn.innerHTML = '🔔 Alertas Activadas (Dejá el celu en la mesa)';
+        btn.style.backgroundColor = 'rgba(25, 135, 84, 0.2)'; 
+        btn.style.borderColor = '#198754'; 
+        btn.style.color = '#198754';
+    }
+
+    function revisarEstado() {
+        fetch(`/api/pedido/${pedidoId}/estado/`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (estadoAnterior !== null && estadoAnterior !== data.estado) {
+                        let tituloPush = "ShortyFood";
+                        let mensajePush = "👨‍🍳 Actualización de tu pedido.";
+                        
+                        if (data.estado === 'listo') mensajePush = '✅ ¡Tu pedido está listo!';
+                        if (data.estado === 'demorado') mensajePush = '🔥 Mucha demanda. Tardará un poco más.';
+
+                        if (navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 500]); 
+                        if (notificacionesHabilitadas && Notification.permission === "granted") {
+                            try { new Notification(tituloPush, { body: mensajePush }); } catch(e) {}
+                        }
+                        if (sonidoHabilitado) sonidoNotificacion.play().catch(e => console.log(e)); 
+                    }
+                    estadoAnterior = data.estado;
+                    actualizarInterfaz(data.estado, data.tipo_entrega, data.tipo_pago); 
+                }
+            });
+    }
+
+    function actualizarInterfaz(estado, tipoEntrega, tipoPago) { 
+        statusCard.className = 'status-card ' + estado;
+        step1.className = 'step'; step2.className = 'step'; step3.className = 'step';
+
+        if (estado === 'pendiente') {
+            step1.classList.add('active');
+            if (tipoPago === 'efectivo') {
+                statusIcon.innerHTML = '<div style="font-size: 3.5rem;">💵</div>';
+                statusTitle.innerHTML = 'Pago Pendiente';
+                statusDesc.innerHTML = 'Acercate a pagar en el mostrador para empezar a preparar tu pedido.';
+            } else {
+                statusIcon.innerHTML = '<div class="loader-modern"></div>';
+                statusTitle.innerHTML = 'Orden Recibida';
+                statusDesc.innerHTML = 'Esperando confirmación del pago online...';
+            }
+        } 
+        else if (estado === 'preparacion') {
+            step1.classList.add('done');
+            step2.classList.add('active');
+            statusIcon.className = 'icon-container pulse-preparacion';
+            
+            // 🔥 ACÁ ESTÁ TU WOK ANIMADO 🔥
+            statusIcon.innerHTML = '<img src="/static/img/wok.gif" alt="Wok" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">'; 
+            
+            statusTitle.innerHTML = '¡En Preparación!';
+            statusDesc.innerHTML = 'Marchando tu pedido a toda velocidad.';
+        } 
+        else if (estado === 'demorado') {
+            step1.classList.add('done');
+            step2.classList.add('active');
+            statusIcon.className = 'icon-container pulse-demorado';
+            statusIcon.innerHTML = '<div style="font-size: 4rem;">🔥</div>';
+            statusTitle.innerHTML = 'Alta Demanda';
+            statusDesc.innerHTML = 'Estamos a tope. Tu pedido tardará un poco más. ¡Gracias por la paciencia!';
+        }
+        else if (estado === 'listo') {
+            step1.classList.add('done'); step2.classList.add('done'); step3.classList.add('active');
+            statusIcon.className = 'icon-container';
+            statusIcon.innerHTML = '<div style="font-size: 4rem;">✅</div>';
+            statusTitle.innerHTML = (tipoEntrega === 'mesa') ? '¡Listo! En camino.' : '¡Tu pedido está listo!';
+            statusDesc.innerHTML = (tipoEntrega === 'mesa') ? 'Ya te lo estamos llevando a la mesa.' : 'Vení a retirarlo por la barra. ¡Que lo disfrutes!';
+        }
+    }
+
+    revisarEstado(); setInterval(revisarEstado, 5000);
+</script>
+{% endblock %}

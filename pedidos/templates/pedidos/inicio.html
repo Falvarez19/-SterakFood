@@ -1,0 +1,118 @@
+{% extends 'pedidos/base.html' %}
+{% load static %}
+
+{% block title %}Menú {{ puesto_activo.nombre }} | MENU{% endblock %}
+
+{% block content %}
+
+    {% if not buffet_habilitado %}
+    <div style="background-color: #dc3545; color: white; padding: 12px; text-align: center; font-weight: bold; position: sticky; top: 60px; z-index: 1000; font-size: 0.9rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        ⚠️ LOS PEDIDOS POR EL CELULAR ESTAN DESACTIVADOS POR ALTA DEMANDA
+    </div>
+    {% endif %}
+
+    {% if descuento_activo %}
+    <div style="background-color: #198754; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.95rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <span style="font-size: 1.2rem;">💵</span> 
+        ¡10% DE DESCUENTO pagando en EFECTIVO el total de la mesa!
+        <span style="font-size: 1.2rem;">💵</span>
+    </div>
+    {% endif %}
+
+    <!-- 🔥 ACÁ ESTÁ LA MAGIA PARA QUE CARGUE LA FOTO SÍ O SÍ 🔥 -->
+    <header class="hero" style="background-image: linear-gradient(rgba(10, 15, 30, 0.6), rgba(10, 15, 30, 0.8)), url('{% static 'img/fondo-buffet.png' %}');">
+        <div class="hero-content">
+            <div class="hero-texto">
+                <h1 style="color: white; text-shadow: 2px 2px 6px rgba(0,0,0,0.8);">{{ puesto_activo.nombre|default:"¡Bienvenido al Buffet!" }}</h1>
+                <p style="color: white; font-size: 1.2rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);">Elegí lo que quieras...</p>
+            </div>
+            
+            <!-- Si querés que vuelva el logo de la derecha, borrá los comentarios HTML  y -->
+            <!--
+            <div class="hero-logo-side">
+                <img src="{% static 'img/logo.png' %}" alt="Escudo Club San Martín">
+            </div>
+            -->
+        </div>
+    </header>
+
+    <main class="container">
+        {% regroup productos by categoria.nombre as categorias_lista %}
+        
+        {% for categoria in categorias_lista %}
+            <div class="seccion-categoria" style="margin-bottom: 40px;">
+                
+                <div onclick="toggleGrilla(this)" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--borde); margin-bottom: 20px; padding-bottom: 10px;">
+                    <h2 class="seccion-titulo" style="margin: 0; color: var(--text-color); text-transform: uppercase;">{{ categoria.grouper|slice:"4:" }}</h2>
+                    <span class="icono-plegar" style="font-size: 1.2rem; color: var(--texto-mutado); font-weight: bold;">▼</span>
+                </div>
+                
+                <div class="menu-grid" style="display: none !important;">
+                    
+                    {% for producto in categoria.list %}
+                        <div class="tarjeta-producto" style="overflow: hidden;">
+                            
+                            {% if producto.imagen %}
+                                <div class="tarjeta-imagen" style="width: 100%; height: 180px; border-bottom: 1px solid var(--borde); overflow: hidden;">
+                                    <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" style="width: 100%; height: 100%; object-fit: cover; object-position: center center;">
+                                </div>
+                            {% endif %}
+
+                            <div class="tarjeta-cuerpo" style="padding-top: 15px;">
+                                <h3>{{ producto.nombre }}</h3>
+                                <p class="descripcion">{{ producto.descripcion|default:"" }}</p>
+                            </div>
+                            
+                            <div class="tarjeta-pie">
+                                <span class="precio">${{ producto.precio }}</span>
+                                
+                                <div class="opciones-contenedor" 
+                                     data-id="{{ producto.id }}"
+                                     data-variante="{{ producto.variantes|default:'' }}"
+                                     data-guarnicion="{{ producto.guarniciones|default:'' }}"
+                                     data-punto="{{ producto.puntos_coccion|default:'' }}"
+                                     data-relleno="{{ producto.rellenos|default:'' }}"
+                                     data-salsa="{{ producto.salsas|default:'' }}"
+                                     data-adicional="{{ producto.adicionales|default:'' }}"
+                                     data-hielo="{{ producto.opcion_hielo|default:'' }}"
+                                     style="display: flex; flex-direction: column; gap: 8px;">
+                                </div>
+
+                                {% if buffet_habilitado %}
+                                    <button class="btn-agregar" onclick="agregarConOpciones({{ producto.id }})">
+                                        + AGREGAR
+                                    </button>
+                                {% else %}
+                                    <button class="btn-agregar" style="background-color: #6c757d; cursor: not-allowed; color: white;" disabled>
+                                        PAUSADO
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% empty %}
+            <div class="menu-vacio" style="text-align: center; padding: 40px; color: var(--azul-sanmartin);">
+                <h4>¡Menú en preparación! 👨‍🍳</h4>
+                <p>Todavía no cargamos los platos en este mostrador. Volvé a ingresar en unos minutos.</p>
+            </div>
+        {% endfor %}
+    </main>
+
+    <script>
+        function toggleGrilla(elementoTitulo) {
+            const grilla = elementoTitulo.nextElementSibling;
+            const icono = elementoTitulo.querySelector('.icono-plegar');
+            const estiloActual = window.getComputedStyle(grilla).display;
+            
+            if (estiloActual === "none") {
+                grilla.style.setProperty("display", "grid", "important");
+                icono.textContent = "▲";
+            } else {
+                grilla.style.setProperty("display", "none", "important");
+                icono.textContent = "▼";
+            }
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends 'pedidos/base.html' %}
+{% load static %}
+
+{% block title %}Página no encontrada | Buffet San Martín{% endblock %}
+
+{% block nav_acciones %}
+    <a href="{% url 'pedidos:inicio' %}" class="btn-nav-ghost">← Volver al Menú</a>
+{% endblock %}
+
+{% block content %}
+<div class="container dash-container" style="text-align: center; padding: 60px 20px; min-height: 60vh; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+
+    <img src="{% static 'img/logo.png' %}" alt="Logo San Martín" style="max-width: 150px; margin-bottom: 20px; filter: drop-shadow(0 0 10px rgba(255, 204, 0, 0.3));">
+
+    <h1 style="font-size: 5rem; color: var(--amarillo-sanmartin, #ffc107); margin: 0; line-height: 1;">404</h1>
+    <h2 style="color: white; margin-bottom: 15px;">¡Epa! por aca no es</h2>
+    
+    <p style="color: #aaa; font-size: 1.2rem; max-width: 500px; margin: 0 auto 30px;">
+        La página que estás buscando no se encuentra disponible. Puede que hayas escrito mal la dirección o que el enlace ya no exista.
+    </p>
+
+    <a href="{% url 'pedidos:inicio' %}" class="btn-panel btn-verde" style="font-size: 1.2rem; padding: 12px 30px; font-weight: bold; text-decoration: none;">
+        Volver al Buffet
+    </a>
+
+</div>
+{% endblock %}

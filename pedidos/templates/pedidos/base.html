@@ -1,0 +1,213 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{% block title %}    BIENVENIDO  {% endblock %}</title>
+
+    <link rel="preload" as="image" href="{% static 'img/wok.gif' %}">
+    
+    <link rel="icon" href="{% static 'img/logo.png' %}" type="image/png">
+    <link rel="stylesheet" href="{% static 'css/estilos.css' %}?v=19">
+    {% block extra_css %}{% endblock %}
+
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#103b70">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Buffet SM">
+    <link rel="apple-touch-icon" href="{% static 'img/logo.png' %}">
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                    console.log('App lista para instalarse.');
+                }).catch(function(error) {
+                    console.log('Fallo el Service Worker:', error);
+                });
+            });
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body class="bloquear-scroll">
+
+    <div id="pantalla-carga">
+        <img src="{% static 'img/wok.gif' %}" alt="Cargando..." class="gif-carga" style="opacity: 0; transition: opacity 0.3s ease;" onload="this.style.opacity=1">
+        <div class="texto-carga">CARGANDO...</div>
+    </div>
+
+   <nav class="navbar">
+        <div class="nav-container">
+            <a href="{% url 'pedidos:inicio' %}" class="marca">
+                <img src="{% static 'img/logo.png' %}" alt="Escudo ShortyFood" class="nav-logo">
+                <span class="logo-texto">COME COMO EN CASA</span>
+            </a>
+            
+            <div class="nav-acciones">
+                <button id="btn-instalar-nav" class="btn-instalar-app" style="display: none;">
+                    Descargar App
+                </button>
+
+                <div class="theme-switch-wrapper">
+                    <span class="icono-clima">☀️</span>
+                    <label class="switch">
+                        <input type="checkbox" id="theme-toggle">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="icono-clima">🌙</span>
+                </div>
+                
+                {% block nav_acciones %}
+                    <a href="{% url 'pedidos:inicio' %}" class="btn-nav-ghost">Menú</a>
+                    
+                    {% if buffet_habilitado %}
+                    <button class="btn-nav-cart-premium" onclick="abrirCarrito()">
+                        <!-- Ícono SVG transparente y perfecto -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="9" cy="21" r="1"></circle>
+                            <circle cx="20" cy="21" r="1"></circle>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                        </svg>
+                        
+                        <!-- Numerito de alerta (Asegurate de dejarle el id que usabas para actualizar el numero, ej: id="total-items") -->
+                        <span class="badge-flotante-premium" id="badge-contador">0</span>
+                    </button>
+                    {% endif %}
+                {% endblock %}
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <div id="carrito-overlay" class="carrito-overlay" onclick="cerrarCarrito()"></div>
+
+    <div id="carrito-sidebar" class="carrito-sidebar">
+        <div class="carrito-header">
+            <h3 style="margin: 0;">Tu Pedido 🛒</h3>
+            <button type="button" class="btn-cerrar" onclick="cerrarCarrito()">×</button>
+        </div>
+        
+        <div id="carrito-items" class="carrito-items"></div>
+        
+        <div class="carrito-footer">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 1.2rem;">
+                <strong>Total:</strong>
+                <strong>$<span id="carrito-precio-total">0.00</span></strong>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="button" class="btn-panel btn-rojo" style="flex: 1; padding: 12px;" onclick="vaciarCarritoTotal()">Vaciar</button>
+                <button type="button" class="btn-panel btn-verde" style="flex: 2; padding: 12px;" onclick="abrirModalEntrega()">Continuar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-entrega" class="modal-overlay" onclick="if(event.target === this) cerrarModalEntrega()">
+        <div class="modal-content">
+            <button class="btn-cerrar-modal" onclick="cerrarModalEntrega()">×</button>
+            <h2 class="modal-titulo">Completá tu pedido 🚀</h2>
+            
+            <form id="form-checkout" onsubmit="validarYEnviar(event)">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Tu Nombre y Apellido:</label>
+                    <input type="text" id="nombre_cliente" class="input-grande" placeholder="Ej: Lionel Messi" required>
+                </div>
+
+                <h3 class="seccion-titulo">¿Cómo te lo entregamos?</h3>
+                <div class="opciones-grid">
+                    <label class="opcion-card">
+                        <input type="radio" name="tipo_entrega" value="mostrador" onchange="toggleFormularioMesa()" checked>
+                        <div class="opcion-contenido">
+                            <span class="emoji">🚶</span>
+                            <span class="texto">Retiro por Mostrador</span>
+                        </div>
+                    </label>
+                    
+                    <label class="opcion-card" id="label-mesa">
+                        <input type="radio" name="tipo_entrega" value="mesa" onchange="toggleFormularioMesa()">
+                        <div class="opcion-contenido">
+                            <span class="emoji">🍽️</span>
+                            <span class="texto">Llevar a mi Mesa</span>
+                        </div>
+                    </label>
+                </div>
+
+                <div id="form-mesa" class="form-group oculto" style="margin-top: 15px;">
+                    <label>Número de Mesa:</label>
+                    <input type="text" id="numero_mesa" class="input-grande input-destacado" placeholder="Ej: 14">
+                    <label style="margin-top: 10px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" id="armar_mesa" style="width: 20px; height: 20px;">
+                        <span style="font-size: 0.9rem; color: var(--texto-mutado);">Falta armar la mesa (Cubiertos, pan, etc.)</span>
+                    </label>
+                </div>
+
+                <h3 class="seccion-titulo">¿Cómo vas a pagar?</h3>
+                <div class="opciones-grid">
+                    <label class="opcion-card">
+                        <input type="radio" name="tipo_pago" value="mercadopago" onchange="toggleFormularioMesa()" checked>
+                        <div class="opcion-contenido">
+                            <span class="emoji">📱</span>
+                            <span class="texto">Mercado Pago</span>
+                        </div>
+                    </label>
+                    
+                    <label class="opcion-card" style="opacity: 0.5; cursor: not-allowed; filter: grayscale(100%);">
+                        <input type="radio" name="tipo_pago" value="nave" disabled>
+                        <div class="opcion-contenido">
+                            <span class="emoji">🏦</span>
+                            <span class="texto">MODO (Pausado)</span>
+                        </div>
+                    </label>
+
+                    <label class="opcion-card">
+                        <input type="radio" name="tipo_pago" value="efectivo" onchange="toggleFormularioMesa()">
+                        <div class="opcion-contenido">
+                            <span class="emoji">💵</span>
+                            <span class="texto">Efectivo en Caja</span>
+                        </div>
+                    </label>
+                </div>
+
+                <div id="form-telefono" class="form-group oculto" style="margin-top: 15px;">
+                    <label>Tu número de WhatsApp:</label>
+                    <input type="tel" id="telefono_cliente" class="input-grande" placeholder="Ej: 11 1234 5678">
+                </div>
+
+                <div class="form-group" style="margin-top: 20px;">
+                    <label>Comentarios extras (Opcional):</label>
+                    <input type="text" id="comentarios_pedido" class="input-grande" placeholder="Ej: Sin sal, aderezo aparte...">
+                </div>
+
+                <button type="submit" class="btn-pagar-block">Enviar Pedido 🚀</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="{% static 'script/script.js' %}?v=19"></script>
+    {% block extra_js %}{% endblock %}
+
+    <script>
+        window.addEventListener('load', function() {
+            const preloader = document.getElementById('pantalla-carga');
+            if (preloader) {
+                preloader.style.opacity = '0';
+                preloader.style.visibility = 'hidden';
+                document.body.classList.remove('bloquear-scroll');
+                
+                setTimeout(() => {
+                    preloader.remove();
+                }, 600);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{% extends 'pedidos/base.html' %}
+{% load static %}
+
+{% block title %}Cerrado | Buffet San Martín{% endblock %}
+
+{% block content %}
+<div style="text-align: center; padding: 60px 20px; min-height: 80vh; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px;">
+    
+    <img src="{% static 'img/logo.png' %}" alt="Buffet San Martín" style="width: 120px; height: auto; margin-bottom: 10px;">
+    
+    <div style="font-size: 5rem;">😔</div>
+    
+    <h1 style="color: var(--azul-sanmartin); margin: 0;">Buffet Cerrado</h1>
+    
+    <p style="font-size: 1.2rem; color: var(--text-color); max-width: 400px;">
+        En este momento no estamos aceptando pedidos. <br>¡Te esperamos en nuestro próximo horario de apertura!
+    </p>
+
+    <a href="{% url 'pedidos:inicio' %}" class="btn-panel btn-azul" style="margin-top: 20px;">
+        Volver al inicio
+    </a>
+</div>
+{% endblock %}
