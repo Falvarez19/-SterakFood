@@ -26,7 +26,7 @@ urlpatterns = [
     path('', include('pedidos.urls')), 
 ]
 
-# 🔥 ESTO ES LA MAGIA: Fuerza a Django a mostrar fotos aunque estemos en un servidor de Producción
+#  Fuerza a Django a mostrar fotos aunque estemos en un servidor de Producción
 urlpatterns += [
     re_path(r'^media/(?P<path>.*)$', serve, {
         'document_root': settings.MEDIA_ROOT,

@@ -47,10 +47,10 @@ class Producto(models.Model):
     adicionales = models.CharField(max_length=255, blank=True, null=True, help_text="Ej: Sin Limón, Con Limón (+500) | Normal, Cargado (+1500)")
     opcion_hielo = models.CharField(max_length=255, blank=True, null=True, help_text="Ej: Con Hielo, Sin Hielo")
 
-    # 🔥 NUEVO CAMPO PARA ORDENAR EL MENÚ 🔥
+    # CAMPO PARA ORDENAR EL MENÚ 
     orden = models.IntegerField(default=0, help_text="Posición en el menú (1 va primero, 2 después, etc.)")
 
-    # 🔥 ESTO LE DICE A DJANGO CÓMO ORDENARLOS AUTOMÁTICAMENTE 🔥
+    #  ESTO LE DICE A DJANGO CÓMO ORDENARLOS AUTOMÁTICAMENTE 
     class Meta:
         ordering = ['orden', 'nombre']
 

@@ -274,7 +274,7 @@ def procesar_pedido(request):
 
     if pago == 'mercadopago':
         try:
-            # 🔥 LEEMOS EL TOKEN DESDE EL .ENV 🔥
+            # LEEMOS EL TOKEN DESDE EL
             mp_token = os.environ.get('MP_ACCESS_TOKEN')
             sdk = mercadopago.SDK(mp_token)
             
@@ -375,7 +375,7 @@ def login_dashboard(request):
         if request.POST.get('pin') == '5968':
             request.session['dashboard_auth'] = True
             
-            # 🔥 MAGIA: ESTO HACE QUE LA SESIÓN DEL PANEL EXPIRE AL CERRAR EL NAVEGADOR 🔥
+            #  ESTO HACE QUE LA SESIÓN DEL PANEL EXPIRE AL CERRAR EL NAVEGADOR 
             request.session.set_expiry(0) 
             
             return redirect('pedidos:panel_control')
@@ -513,7 +513,7 @@ def eliminar_todo_historial(request):
         except:
             pass
             
-        # Intento 2: Reseteo para PostgreSQL (Entorno de producción, ej: Fly.io)
+        # Intento 2: Reseteo para PostgreSQL
         try:
             cursor.execute("ALTER SEQUENCE pedidos_pedido_id_seq RESTART WITH 1;")
         except:

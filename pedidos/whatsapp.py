@@ -84,7 +84,7 @@ def notificar_pago_procesado(pedido_id):
         pedido = Pedido.objects.get(id=pedido_id)
         detalle = _armar_detalle_items(pedido)
         
-        # 🔥 ACÁ LIMPIAMOS EL NOMBRE PARA EL WHATSAPP
+        #  ACÁ LIMPIAMOS EL NOMBRE PARA EL WHATSAPP
         nombre_limpio = pedido.nombre_cliente.split(" (Nota:")[0] if pedido.nombre_cliente else "Cliente"
         
         texto = (
@@ -108,7 +108,7 @@ def notificar_pedido_listo(pedido_id):
         slug_puesto = pedido.punto_venta.slug.lower() if pedido.punto_venta else ''
         tipo = pedido.tipo_entrega.lower() if pedido.tipo_entrega else 'mostrador'
         
-        # 🔥 ACÁ LIMPIAMOS EL NOMBRE PARA EL WHATSAPP
+        # ACÁ LIMPIAMOS EL NOMBRE PARA EL WHATSAPP
         nombre_limpio = pedido.nombre_cliente.split(" (Nota:")[0] if pedido.nombre_cliente else "Cliente"
         
         if 'parrilla' in slug_puesto or 'foodtruck' in slug_puesto:
