@@ -9,7 +9,7 @@
 {% block content %}
 <div class="container dash-container" style="max-width: 800px; margin: 0 auto; padding-top: 20px;">
     
-    <!-- 🔥 ACÁ ESTABA EL ERROR: Cambiamos el fondo y el texto fijo por las variables dinámicas 🔥 -->
+    <!--  variables dinámicas  -->
     <div style="background: var(--card-bg); padding: 30px; border-radius: 8px; border: 1px solid var(--borde); color: var(--text-color);">
         <h2 style="margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid var(--borde); padding-bottom: 10px;">
             {{ accion }}
@@ -21,7 +21,7 @@
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                 <div>
-                    <!-- Cambiamos el amarillo viejo por tu variable dorada/naranja -->
+                    <!-- variable dorada/naranja -->
                     <h4 style="color: var(--dorado-sanmartin); margin-bottom: 15px;">Datos Principales</h4>
                     <p><strong>Nombre:</strong><br>{{ form.nombre }}</p>
                     <p><strong>Categoría:</strong><br>{{ form.categoria }}</p>
