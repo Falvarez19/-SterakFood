@@ -12,7 +12,7 @@ from django.http import JsonResponse, HttpResponse, Http404
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import localtime  
-from django.utils import timezone # 🔥 IMPORTANTE PARA EL RELOJ DEL DESCUENTO 🔥
+from django.utils import timezone 
 from django.core.cache import cache  
 from .forms import ProductoForm
 from .models import Producto, Pedido, DetallePedido, PuntoVenta, Categoria, Configuracion
@@ -26,25 +26,21 @@ def inicio(request):
     config = Configuracion.objects.first()
     buffet_habilitado = config.buffet_habilitado if config else True
     
-    # 🔥 MAGIA: LÓGICA AUTOMÁTICA DEL DESCUENTO 🔥
     hora_actual = timezone.localtime(timezone.now())
-    es_finde = hora_actual.weekday() in [5, 6]  # 5 = Sábado, 6 = Domingo
-    es_horario = 12 <= hora_actual.hour < 15    # De 12:00 a 14:59 hs
+    es_finde = hora_actual.weekday() in [5, 6]  
+    es_horario = 12 <= hora_actual.hour < 15    
     descuento_activo = es_finde and es_horario
     
-    # 🔥 CAMBIO PORTAFOLIO: Tomamos el primer puesto automáticamente y no pedimos URL 🔥
     puesto_activo = PuntoVenta.objects.first()
     
-    # Si hay un puesto creado, filtramos por él y guardamos en sesión
     if puesto_activo:
         productos = Producto.objects.filter(disponible=True, puntos_venta=puesto_activo).select_related('categoria').order_by('categoria__nombre')
         
         if request.session.get('puesto_carrito') != puesto_activo.slug:
-            request.session['carrito'] = {} # Limpiamos si había basura
+            request.session['carrito'] = {} 
             request.session['puesto_carrito'] = puesto_activo.slug
             request.session.modified = True
     else:
-        # Si por alguna razón la base de datos está vacía y no hay puestos, mostramos todo
         productos = Producto.objects.filter(disponible=True).select_related('categoria').order_by('categoria__nombre')
 
     return render(request, 'pedidos/inicio.html', {
@@ -274,29 +270,40 @@ def procesar_pedido(request):
 
     if pago == 'mercadopago':
         try:
-            # LEEMOS EL TOKEN DESDE EL
-            mp_token = os.environ.get('MP_ACCESS_TOKEN')
+            # 🔥 INYECTAMOS TU TOKEN DE PRUEBA AQUÍ MISMO 🔥
+            mp_token = os.environ.get('MP_ACCESS_TOKEN', 'APP_USR-4556595133137299-091021-90ced7dc6e27cb6b90ea6103145a6e13-3449683431') 
             sdk = mercadopago.SDK(mp_token)
             
             host = request.get_host()
+            # Detectamos si estamos en HTTP (local) o HTTPS (nube)
+            protocolo = "https" if request.is_secure() else "http"
+            
             preference_data = {
-                "items": [{"title": f"Pedido #{pedido.id}", "quantity": 1, "unit_price": float(pedido.total)}],
+                "items": [{"title": f"Pedido #{pedido.id} SterakFood", "quantity": 1, "unit_price": float(pedido.total)}],
                 "back_urls": { 
-                    "success": f"https://{host}/exito/{pedido.id}/", 
-                    "failure": f"https://{host}/", 
-                    "pending": f"https://{host}/exito/{pedido.id}/" 
+                    "success": f"{protocolo}://{host}/seguimiento/{pedido.id}/", 
+                    "failure": f"{protocolo}://{host}/", 
+                    "pending": f"{protocolo}://{host}/seguimiento/{pedido.id}/" 
                 },
-                "auto_return": "approved", "external_reference": str(pedido.id),
-                "notification_url": f"https://{host}/webhook-mp/"
+                "auto_return": "approved", 
+                "external_reference": str(pedido.id),
+                "notification_url": f"{protocolo}://{host}/webhook-mp/"
             }
+            
             res = sdk.preference().create(preference_data)
-            mp_id = res.get("response", {}).get("id")
-        except Exception as e: print(f"Error MP: {e}")
+            
+            # Verificamos que se haya generado bien el ID
+            if "response" in res and "id" in res["response"]:
+                mp_id = res["response"]["id"]
+            else:
+                print(f"⚠️ Error de Mercado Pago: {res}")
+                
+        except Exception as e: 
+            print(f"Error MP: {e}")
 
     elif pago == 'nave':
         try:
             host = request.get_host()
-            # 🔥 LEEMOS EL TOKEN DESDE EL .ENV (si lo usás a futuro) 🔥
             TOKEN_NAVE = os.environ.get('NAVE_ACCESS_TOKEN', 'TU_TOKEN_SECRETO_DE_NAVE_ACA') 
             
             headers = {
@@ -331,8 +338,9 @@ def webhook_mercadopago(request):
             if data.get("action") == "payment.created" or data.get("type") == "payment":
                 payment_id = data.get("data", {}).get("id")
                 
-                # 🔥 LEEMOS EL TOKEN DESDE EL .ENV 🔥
-                token_mp = os.environ.get('MP_ACCESS_TOKEN')
+                # 🔥 INYECTAMOS TU TOKEN DE PRUEBA AQUÍ TAMBIÉN PARA EL WEBHOOK 🔥
+                token_mp = os.environ.get('MP_ACCESS_TOKEN', 'APP_USR-4556595133137299-091021-90ced7dc6e27cb6b90ea6103145a6e13-3449683431')
+                
                 headers = {"Authorization": f"Bearer {token_mp}"}
                 
                 mp_response = requests.get(f"https://api.mercadopago.com/v1/payments/{payment_id}", headers=headers)
@@ -445,7 +453,6 @@ def editar_precio(request, producto_id):
     if request.method == 'POST':
         prod = get_object_or_404(Producto, id=producto_id)
         
-        # 🔥 EL TRUCO: Reemplazamos la coma por punto antes de guardar
         precio_limpio = request.POST.get('precio', '').replace(',', '.')
         
         prod.precio = precio_limpio
@@ -501,19 +508,15 @@ def cambiar_estado_pedido(request, pedido_id, nuevo_estado):
     return redirect('pedidos:panel_control')
 
 def eliminar_todo_historial(request):
-    # 1. Borramos todos los pedidos (Django también borra los detalles en cascada)
     Pedido.objects.all().delete()
     
-    # 2. Inyectamos SQL directo para reiniciar el contador a 1
     from django.db import connection
     with connection.cursor() as cursor:
-        # Intento 1: Reseteo para SQLite (Entorno local)
         try:
             cursor.execute("DELETE FROM sqlite_sequence WHERE name='pedidos_pedido';")
         except:
             pass
             
-        # Intento 2: Reseteo para PostgreSQL
         try:
             cursor.execute("ALTER SEQUENCE pedidos_pedido_id_seq RESTART WITH 1;")
         except:
@@ -645,9 +648,7 @@ def ticket_mesa(request, pedido_id):
 # MÓDULO 6: BACKUP
 # ==========================================================================
 
-#descargar backup menu (Versión Automática)
 def descargar_backup_secreto(request):
-    # Por seguridad: si no está logueado en el panel, lo saca
     if not request.session.get('dashboard_auth'): 
         raise Http404("No estás autorizado para descargar el respaldo.")
 
@@ -656,18 +657,15 @@ def descargar_backup_secreto(request):
     tar_path = os.path.join(base_dir, 'backup_completo.tar.gz')
     
     try:
-        # 1. Arma un JSON con todo tu menú actualizado
         with open(json_path, 'w', encoding='utf-8') as f:
             call_command('dumpdata', 'pedidos', indent=4, stdout=f)
         
-        # 2. Comprime ese JSON junto con todas las fotos de la carpeta "media"
         with tarfile.open(tar_path, "w:gz") as tar:
             if os.path.exists(os.path.join(base_dir, 'media')):
                 tar.add(os.path.join(base_dir, 'media'), arcname='media')
             if os.path.exists(json_path):
                 tar.add(json_path, arcname='backup.json')
                 
-        # 3. Fuerza la descarga en el navegador
         if os.path.exists(tar_path):
             with open(tar_path, 'rb') as fh:
                 response = HttpResponse(fh.read(), content_type="application/x-tar")
@@ -686,18 +684,15 @@ def api_resumen_ventas(request):
     if not request.session.get('dashboard_auth'):
         return JsonResponse({'status': 'error', 'mensaje': 'No autorizado'})
     
-    # Filtramos pedidos válidos (ignoramos los cancelados)
     pedidos_validos = Pedido.objects.exclude(estado='cancelado')
     puestos = PuntoVenta.objects.all()
     
     datos_mostradores = []
     gran_total = 0
     
-    # Iteramos por cada mostrador que tengas creado
     for puesto in puestos:
         pedidos_puesto = pedidos_validos.filter(punto_venta=puesto)
         
-        # Ignoramos los mostradores que no tuvieron ventas hoy para mantener el panel limpio
         if not pedidos_puesto.exists():
             continue
             
@@ -709,14 +704,12 @@ def api_resumen_ventas(request):
         ventas_mp = sum(p.total for p in pedidos_puesto if p.tipo_pago == 'mercadopago')
         ventas_nave = sum(p.total for p in pedidos_puesto if p.tipo_pago == 'nave')
         
-        # Contamos los productos específicos vendidos en ESTE mostrador
         detalles = DetallePedido.objects.filter(pedido__in=pedidos_puesto)
         productos_vendidos = {}
         for d in detalles:
             nombre = d.producto.nombre
             productos_vendidos[nombre] = productos_vendidos.get(nombre, 0) + d.cantidad
             
-        # Ordenamos de mayor a menor
         productos_ordenados = sorted(productos_vendidos.items(), key=lambda x: x[1], reverse=True)
         
         datos_mostradores.append({
@@ -729,7 +722,6 @@ def api_resumen_ventas(request):
             'productos': [{'nombre': k, 'cantidad': v} for k, v in productos_ordenados]
         })
 
-    # Por si quedó algún pedido "huérfano" sin mostrador asignado
     pedidos_sin_puesto = pedidos_validos.filter(punto_venta__isnull=True)
     if pedidos_sin_puesto.exists():
         total_ventas = sum(p.total for p in pedidos_sin_puesto)

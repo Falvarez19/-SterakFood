@@ -488,6 +488,7 @@ input:checked + .slider:before { transform: translateX(21px); }
 .panel-tab-btn.active { color: var(--azul-sanmartin); border-bottom: 3px solid var(--azul-sanmartin); }
 [data-theme='dark'] .panel-tab-btn.active { color: var(--dorado-sanmartin); border-bottom-color: var(--dorado-sanmartin); }
 .tab-content { display: none; animation: fadeIn 0.3s; }
+
 /* =========================================
    GLOW UP: CARRITO NAVBAR
    ========================================= */
@@ -532,18 +533,16 @@ input:checked + .slider:before { transform: translateX(21px); }
 /* =========================================
    GLOW UP: FORMULARIOS DE PRODUCTO
    ========================================= */
-
-/* Estilos para inputs, selects y textareas */
 input[type="text"],
 input[type="number"],
 select,
 textarea {
     width: 100%;
     padding: 12px 15px;
-    background-color: var(--bg-color); /* Usa el fondo sutil del tema */
+    background-color: var(--bg-color);
     border: 1px solid var(--borde);
     color: var(--text-color);
-    border-radius: 8px; /* Bordes redondeados modernos */
+    border-radius: 8px;
     font-family: inherit;
     font-size: 0.95rem;
     transition: all 0.3s ease;
@@ -551,7 +550,6 @@ textarea {
     margin-bottom: 15px;
 }
 
-/* Efecto al hacer clic (Foco) */
 input[type="text"]:focus,
 input[type="number"]:focus,
 select:focus,
@@ -562,7 +560,6 @@ textarea:focus {
     background-color: var(--card-bg);
 }
 
-/* Botón de subir archivo más prolijo */
 input[type="file"] {
     padding: 10px;
     background-color: var(--bg-color);
@@ -575,7 +572,6 @@ input[type="file"] {
     margin-bottom: 15px;
 }
 
-/* Selector múltiple de Puntos de Venta (para que no se vea feo) */
 select[multiple] {
     height: auto;
     min-height: 100px;
@@ -591,4 +587,132 @@ select[multiple] option {
 select[multiple] option:checked {
     background-color: var(--dorado-sanmartin);
     color: #000;
+}
+
+/* =========================================
+   11. ARREGLO: RADIOS Y CHECKBOXES (Pago y Entrega)
+   ========================================= */
+input[type="radio"],
+input[type="checkbox"] {
+    width: auto !important;
+    display: inline-block !important;
+    margin: 0 10px 0 0 !important;
+    vertical-align: middle;
+    cursor: pointer;
+    accent-color: var(--dorado-sanmartin, #ff8533);
+    transform: scale(1.3);
+}
+
+input[type="radio"] + label,
+input[type="checkbox"] + label,
+label:has(input[type="radio"]),
+label:has(input[type="checkbox"]) {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    cursor: pointer;
+    margin-bottom: 12px;
+    font-size: 1rem;
+}
+
+/* CLASE PARA OCULTAR ELEMENTOS DINÁMICAMENTE */
+.oculto {
+    display: none !important;
+}
+
+/* =========================================
+   12. TARJETAS DE OPCIONES (Checkout Premium)
+   ========================================= */
+
+/* Grilla para que las tarjetas se acomoden una al lado de la otra */
+.opciones-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.opcion-card {
+    cursor: pointer;
+    display: block;
+    margin: 0;
+}
+
+/* Ocultamos el circulito de radio original por completo */
+.opcion-card input[type="radio"] {
+    display: none !important;
+}
+
+/* Diseño base de la "tarjetita" */
+.opcion-contenido {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 15px 10px;
+    background-color: var(--bg-color);
+    border: 2px solid var(--borde);
+    border-radius: 12px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: center;
+    height: 100%;
+    gap: 10px;
+    user-select: none; /* Evita que el texto se sombree de azul al hacer doble clic */
+}
+
+.opcion-contenido .emoji {
+    font-size: 2.2rem;
+    line-height: 1;
+    transition: transform 0.2s ease;
+}
+
+.opcion-contenido .texto {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--texto-mutado);
+    line-height: 1.2;
+}
+
+/* Efecto cuando le pasás el mouse por arriba */
+.opcion-card:hover .opcion-contenido {
+    border-color: rgba(255, 133, 51, 0.5); /* Naranja semi-transparente */
+    transform: translateY(-3px);
+}
+
+.opcion-card:hover .opcion-contenido .emoji {
+    transform: scale(1.1);
+}
+
+/* ESTADO SELECCIONADO (La magia cuando hacés clic) */
+.opcion-card input[type="radio"]:checked + .opcion-contenido {
+    border-color: var(--dorado-sanmartin);
+    background-color: rgba(255, 133, 51, 0.08); /* Fondo naranjita súper suave */
+    box-shadow: 0 4px 15px rgba(255, 133, 51, 0.15);
+}
+
+.opcion-card input[type="radio"]:checked + .opcion-contenido .texto {
+    color: var(--text-color);
+    font-weight: 800;
+}
+
+.opcion-card input[type="radio"]:checked + .opcion-contenido .emoji {
+    transform: scale(1.15) rotate(3deg); /* Pequeña animación de salto */
+}
+
+/* Tamaño y animación para los logos de pago - MÁS GRANDES */
+.opcion-contenido .img-pago {
+    width: 85px;  /* Ancho ampliado */
+    height: 55px; /* Altura ideal para logos horizontales como MP */
+    object-fit: contain;
+    transition: transform 0.2s ease;
+}
+
+/* Efecto Hover para los logos */
+.opcion-card:hover .opcion-contenido .img-pago {
+    transform: scale(1.1);
+}
+
+/* Efecto al seleccionar para los logos */
+.opcion-card input[type="radio"]:checked + .opcion-contenido .img-pago {
+    transform: scale(1.15) rotate(3deg);
 }

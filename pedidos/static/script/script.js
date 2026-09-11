@@ -130,6 +130,11 @@ function abrirModalEntrega() {
         toggleFormularioMesa(); 
     } else { 
         labelMesa.style.display = 'block'; 
+        
+        // Reseteamos las opciones para que arranque en limpio
+        document.querySelectorAll('input[name="tipo_entrega"]').forEach(r => r.checked = false);
+        document.querySelectorAll('input[name="tipo_pago"]').forEach(r => r.checked = false);
+        toggleFormularioMesa();
     }
 }
 
@@ -139,31 +144,41 @@ function cerrarModalEntrega() {
 }
 
 function toggleFormularioMesa() {
-    const opcionMesa = document.querySelector('input[name="tipo_entrega"]:checked');
+    const opcionEntrega = document.querySelector('input[name="tipo_entrega"]:checked');
     const formMesa = document.getElementById('form-mesa');
+    const seccionPago = document.getElementById('seccion-pago');
+    
+    const opcionPago = document.querySelector('input[name="tipo_pago"]:checked');
     const formTelefono = document.getElementById('form-telefono');
     
-    // Verificamos si el radio de Efectivo está chequeado
-    const pagoEfectivo = document.querySelector('input[name="tipo_pago"][value="efectivo"]');
-    const esEfectivo = pagoEfectivo ? pagoEfectivo.checked : false;
-
-    if (formTelefono) {
-        if (esEfectivo) {
-            formTelefono.classList.remove('oculto');
-            formTelefono.style.display = 'flex';
+    // 1. Mostrar la sección de pagos SOLO si ya eligió cómo se entrega
+    if (seccionPago) {
+        if (opcionEntrega) {
+            seccionPago.classList.remove('oculto');
         } else {
-            formTelefono.classList.add('oculto');
-            formTelefono.style.display = 'none';
+            seccionPago.classList.add('oculto');
         }
     }
 
+    // 2. Mostrar input del número de mesa SOLO si eligió "Llevar a mi Mesa"
     if (formMesa) {
-        if (opcionMesa && opcionMesa.value === 'mesa') {
+        if (opcionEntrega && opcionEntrega.value === 'mesa') {
             formMesa.classList.remove('oculto');
             formMesa.style.display = 'flex';
         } else {
             formMesa.classList.add('oculto');
             formMesa.style.display = 'none';
+        }
+    }
+
+    // 3. Mostrar input de teléfono SOLO si eligió pagar en "Efectivo en Caja"
+    if (formTelefono) {
+        if (opcionPago && opcionPago.value === 'efectivo') {
+            formTelefono.classList.remove('oculto');
+            formTelefono.style.display = 'flex';
+        } else {
+            formTelefono.classList.add('oculto');
+            formTelefono.style.display = 'none';
         }
     }
 }
@@ -769,7 +784,6 @@ function abrirCierreCaja() {
                     htmlMostradores = '<p style="text-align:center; color: var(--texto-mutado);">No hay ventas registradas en este turno.</p>';
                 } else {
                     data.mostradores.forEach(m => {
-                        // 1. Armar la lista de productos
                         let htmlProductos = '';
                         if(m.productos.length > 0) {
                             m.productos.forEach(p => {
@@ -782,7 +796,6 @@ function abrirCierreCaja() {
                             htmlProductos = '<span style="color: var(--texto-mutado); font-size: 0.85rem;">Sin productos vendidos.</span>';
                         }
 
-                        // 2. Armar el cajón de este mostrador
                         htmlMostradores += `
                         <details class="panel-accordion" style="margin-bottom: 12px; border: 1px solid var(--borde); background: var(--bg-color); border-radius: 8px;">
                             <summary style="padding: 12px 15px; font-size: 1.05rem; border-left: 4px solid var(--dorado-sanmartin); background: transparent; cursor: pointer;">
@@ -838,8 +851,33 @@ function confirmarCierreYLimpiar() {
         color: 'var(--text-color)'
     }).then((result) => {
         if (result.isConfirmed) {
-            // Como esto está en un .js externo, usamos la URL directa en vez del tag de Django
             window.location.href = "/dashboard/eliminar-todo/";
         }
     });
 }
+// ==========================================================================
+// MÓDULO 8: RECUPERAR ESTADO DEL CARRITO AL RECARGAR LA PÁGINA
+// ==========================================================================
+document.addEventListener('DOMContentLoaded', () => {
+    const badgeContador = document.getElementById('badge-contador');
+    
+    // Si el botoncito del carrito existe en esta pantalla, le preguntamos al server cuántos ítems hay
+    if (badgeContador) {
+        fetch('/carrito/ver/')
+            .then(res => res.json())
+            .then(datos => {
+                let totalItems = 0;
+                
+                // Sumamos la cantidad de cada producto que esté guardado en el carrito
+                if (datos.items && datos.items.length > 0) {
+                    datos.items.forEach(item => {
+                        totalItems += item.cantidad;
+                    });
+                }
+                
+                // Actualizamos el globito rojo con el número real
+                badgeContador.innerText = totalItems;
+            })
+            .catch(err => console.log("Error al recuperar el carrito:", err));
+    }
+});
