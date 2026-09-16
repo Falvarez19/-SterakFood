@@ -241,7 +241,7 @@ function validarYEnviar(event) {
     Swal.fire({
         title: 'Procesando...',
         text: '¡Llevando el pedido a toda velocidad!',
-        imageUrl: '/static/img/corriendo.gif',
+        imageUrl: '/static/img/wok.gif',
         imageWidth: 120,
         showConfirmButton: false,
         allowOutsideClick: false, 

@@ -716,3 +716,11 @@ label:has(input[type="checkbox"]) {
 .opcion-card input[type="radio"]:checked + .opcion-contenido .img-pago {
     transform: scale(1.15) rotate(3deg);
 }
+
+/* =========================================
+   ARREGLO: OCULTAR RADIOS NATIVOS EN OPCIONES DE PRODUCTO
+   ========================================= */
+.opcion-item input[type="radio"],
+.opcion-item input[type="checkbox"] {
+    display: none !important;
+}
