@@ -15,11 +15,13 @@ SECRET_KEY = 'django-insecure-8rap(l^@enrgtv&^(7^bn(3ro7d3unq=k&zu)3rr%gm3&+)+mi
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*'
-]
+ALLOWED_HOSTS = ['*']
 
-CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000',
-    'http://localhost:8000'
+# 🔥 ARREGLO CLAVE: Agregamos el dominio de Render para que funcionen los botones y Mercado Pago
+CSRF_TRUSTED_ORIGINS = [
+    'http://127.0.0.1:8000',
+    'http://localhost:8000',
+    'https://*.onrender.com'
 ]
 
 # Application definition
@@ -64,20 +66,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'SisPedidos.wsgi.application'
 
-# Database
+# 🔥 EL ARREGLO MÁGICO: Base de datos estricta en SQLite para el Portafolio
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
-# Si Django detecta que está en Render, pisa la configuración y usa PostgreSQL
-if 'RENDER' in os.environ:
-    DATABASES['default'] = dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600
-    )
+# (Se eliminó el if 'RENDER' para que no rompa la conexión)
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
