@@ -25,27 +25,68 @@
         {% regroup productos by categoria.nombre as categorias_lista %}
         
         {% for categoria in categorias_lista %}
-            <div class="seccion-categoria" style="margin-bottom: 40px;">
+            <div class="seccion-categoria" style="margin-bottom: 45px;">
                 
-                <div onclick="toggleGrilla(this)" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--borde); margin-bottom: 20px; padding-bottom: 10px;">
-                    <h2 class="seccion-titulo" style="margin: 0; color: var(--text-color); font-weight: 900;">{{ categoria.grouper|slice:"4:" }}</h2>
-                    <span class="icono-plegar" style="font-size: 1.2rem; color: var(--naranja-sterak); font-weight: bold;">▼</span>
+                <!-- Título de la categoría -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 class="seccion-titulo" style="margin: 0; color: var(--text-color); font-weight: 900; font-size: 1.4rem;">{{ categoria.grouper|slice:"4:" }}</h2>
+                    <span style="font-size: 0.85rem; color: var(--texto-mutado); font-weight: bold;">Deslizá ➝</span>
                 </div>
                 
-                <div class="menu-grid" style="display: none !important;">
+                <!-- 1. EL DESTACADO (Primer producto de la categoría, gigante) -->
+                {% with producto=categoria.list.0 %}
+                <div class="tarjeta-destacada">
+                    <div class="tarjeta-destacada-img-wrapper">
+                        {% if producto.imagen %}
+                            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" loading="lazy">
+                        {% endif %}
+                    </div>
                     
-                    {% for producto in categoria.list %}
-                        <div class="tarjeta-producto">
+                    <div class="tarjeta-destacada-cuerpo">
+                        <span class="badge-popular">Top Ventas</span>
+                        <h3 style="margin: 0 0 5px 0; font-size: 1.6rem; font-weight: 900; color: white;">{{ producto.nombre }}</h3>
+                        <p style="color: var(--texto-mutado); font-size: 0.95rem; margin: 0 0 15px 0; max-width: 80%;">{{ producto.descripcion|default:"" }}</p>
+                        <span class="precio" style="color: var(--naranja-sterak); font-size: 1.5rem; font-weight: 900;">${{ producto.precio }}</span>
+
+                        <div class="opciones-contenedor" 
+                             data-id="{{ producto.id }}"
+                             data-variante="{{ producto.variantes|default:'' }}"
+                             data-guarnicion="{{ producto.guarniciones|default:'' }}"
+                             data-punto="{{ producto.puntos_coccion|default:'' }}"
+                             data-relleno="{{ producto.rellenos|default:'' }}"
+                             data-salsa="{{ producto.salsas|default:'' }}"
+                             data-adicional="{{ producto.adicionales|default:'' }}"
+                             data-hielo="{{ producto.opcion_hielo|default:'' }}"
+                             style="display: flex; flex-direction: column; gap: 8px; margin-top: 15px; width: 85%;">
+                        </div>
+
+                        {% if buffet_habilitado %}
+                            <!-- Botón flotante re fachero -->
+                            <button class="btn-agregar-flotante" onclick="agregarConOpciones({{ producto.id }})">+</button>
+                        {% else %}
+                            <button class="btn-agregar-flotante" style="background-color: var(--borde); color: var(--texto-mutado); cursor: not-allowed;" disabled>X</button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endwith %}
+
+                <!-- 2. EL RESTO DE PRODUCTOS (Slider Horizontal) -->
+                {% if categoria.list|length > 1 %}
+                <div class="menu-horizontal">
+                    
+                    <!-- Usamos slice:"1:" para saltarnos el primer producto que ya mostramos gigante -->
+                    {% for producto in categoria.list|slice:"1:" %}
+                        <div class="tarjeta-producto horizontal-card">
                             
                             {% if producto.imagen %}
-                                <div class="tarjeta-imagen" style="width: 100%; height: 180px; overflow: hidden;">
-                                    <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                <div class="tarjeta-imagen" style="width: 100%; height: 160px; overflow: hidden;">
+                                    <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
                                 </div>
                             {% endif %}
 
                             <div class="tarjeta-cuerpo">
                                 <h3>{{ producto.nombre }}</h3>
-                                <p class="descripcion">{{ producto.descripcion|default:"" }}</p>
+                                <p class="descripcion">{{ producto.descripcion|default:""|truncatechars:50 }}</p>
                             </div>
                             
                             <div class="tarjeta-pie">
@@ -76,6 +117,8 @@
                         </div>
                     {% endfor %}
                 </div>
+                {% endif %}
+                
             </div>
         {% empty %}
             <div class="menu-vacio" style="text-align: center; padding: 40px; color: var(--texto-mutado);">
@@ -84,20 +127,4 @@
             </div>
         {% endfor %}
     </main>
-
-    <script>
-        function toggleGrilla(elementoTitulo) {
-            const grilla = elementoTitulo.nextElementSibling;
-            const icono = elementoTitulo.querySelector('.icono-plegar');
-            const estiloActual = window.getComputedStyle(grilla).display;
-            
-            if (estiloActual === "none") {
-                grilla.style.setProperty("display", "grid", "important");
-                icono.textContent = "▲";
-            } else {
-                grilla.style.setProperty("display", "none", "important");
-                icono.textContent = "▼";
-            }
-        }
-    </script>
 {% endblock %}

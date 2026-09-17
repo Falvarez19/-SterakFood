@@ -454,3 +454,113 @@ input[type="radio"] + label, input[type="checkbox"] + label, label:has(input[typ
 
 /* MARCO PARA LA ALERTA DE PROCESANDO PEDIDO */
 .alerta-con-marco { border: 3px solid var(--naranja-sterak) !important; border-radius: 20px !important; box-shadow: 0px 0px 20px rgba(255, 102, 0, 0.3) !important; }
+
+/* ==========================================================================
+   13. GLOW UP NIVEL DIOS (Tarjetas Hero y Sliders Horizontales)
+   ========================================================================== */
+
+/* Tarjeta Destacada Gigante (Primer producto) */
+.tarjeta-destacada {
+    position: relative;
+    background: var(--card-bg);
+    border-radius: 24px;
+    margin-bottom: 25px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+    border: 1px solid var(--borde);
+    display: flex;
+    flex-direction: column;
+}
+
+.tarjeta-destacada-img-wrapper {
+    position: relative;
+    height: 240px;
+    border-radius: 24px 24px 0 0;
+    overflow: hidden;
+}
+
+.tarjeta-destacada-img-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Efecto de degradado negro que sube desde el texto hacia la foto */
+.tarjeta-destacada-img-wrapper::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 100px;
+    background: linear-gradient(to top, var(--card-bg) 0%, transparent 100%);
+}
+
+.tarjeta-destacada-cuerpo {
+    padding: 0 20px 20px 20px;
+    position: relative;
+    z-index: 2;
+    margin-top: -30px; /* Sube el texto para morder la foto */
+}
+
+.badge-popular {
+    background-color: rgba(255, 102, 0, 0.2);
+    color: var(--naranja-sterak);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    display: inline-block;
+    margin-bottom: 8px;
+    border: 1px solid var(--naranja-sterak);
+    backdrop-filter: blur(4px);
+}
+
+/* Botón flotante redondo para agregar */
+.btn-agregar-flotante {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background-color: var(--naranja-sterak);
+    color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 900;
+    border: none;
+    box-shadow: 0 4px 15px rgba(255, 102, 0, 0.4);
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    z-index: 10;
+    line-height: 1;
+    padding-bottom: 4px; /* Centra el "+" visualmente */
+}
+
+.btn-agregar-flotante:hover {
+    transform: scale(1.1);
+    background-color: var(--naranja-brillo);
+}
+
+/* Slider Horizontal (El carrusel tipo Netflix) */
+.menu-horizontal {
+    display: flex;
+    overflow-x: auto;
+    gap: 15px;
+    padding: 5px 0 20px 0;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none; /* Oculta scrollbar en Firefox */
+    -ms-overflow-style: none;  /* Oculta scrollbar en IE */
+}
+
+.menu-horizontal::-webkit-scrollbar {
+    display: none; /* Oculta scrollbar en Chrome/Safari */
+}
+
+.horizontal-card {
+    flex: 0 0 80%; /* Ocupa el 80% en celu para que asome el siguiente plato */
+    max-width: 280px; /* Limite en PC */
+    scroll-snap-align: start;
+    margin-bottom: 0 !important; /* Anula el margen vertical */
+}
