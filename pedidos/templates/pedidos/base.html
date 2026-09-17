@@ -9,7 +9,6 @@
     <link rel="preload" as="image" href="{% static 'img/wok.gif' %}">
     <link rel="icon" href="{% static 'img/logo.png' %}" type="image/png">
     
-    <!-- Asegurate de tener el estilos.css actualizado -->
     <link rel="stylesheet" href="{% static 'css/estilos.css' %}?v=20">
     {% block extra_css %}{% endblock %}
 
@@ -26,7 +25,11 @@
 
 <body class="bloquear-scroll">
 
-    <!-- Navbar Limpia y Moderna -->
+    <div id="pantalla-carga">
+        <img src="{% static 'img/wok.gif' %}" alt="Cargando..." class="gif-carga" style="opacity: 0; transition: opacity 0.3s ease;" onload="this.style.opacity=1">
+        <div class="texto-carga">CARGANDO...</div>
+    </div>
+
     <nav class="navbar">
         <div class="nav-container">
             <a href="{% url 'pedidos:inicio' %}" class="marca">
@@ -60,7 +63,6 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Sidebar Carrito -->
     <div id="carrito-overlay" class="carrito-overlay" onclick="cerrarCarrito()"></div>
 
     <div id="carrito-sidebar" class="carrito-sidebar">
@@ -83,7 +85,6 @@
         </div>
     </div>
 
-    <!-- Modal Checkout -->
     <div id="modal-entrega" class="modal-overlay" onclick="if(event.target === this) cerrarModalEntrega()">
         <div class="modal-content">
             <button class="btn-cerrar-modal" onclick="cerrarModalEntrega()">×</button>
@@ -157,5 +158,20 @@
 
     <script src="{% static 'script/script.js' %}?v=20"></script>
     {% block extra_js %}{% endblock %}
+
+    <script>
+        window.addEventListener('load', function() {
+            const preloader = document.getElementById('pantalla-carga');
+            if (preloader) {
+                preloader.style.opacity = '0';
+                preloader.style.visibility = 'hidden';
+                document.body.classList.remove('bloquear-scroll');
+                
+                setTimeout(() => {
+                    preloader.remove();
+                }, 600);
+            }
+        });
+    </script>
 </body>
 </html>
