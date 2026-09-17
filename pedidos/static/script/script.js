@@ -1,4 +1,40 @@
 // ==========================================================================
+// MÓDULO 0: PANTALLA DE CARGA Y PORCENTAJE
+// ==========================================================================
+document.addEventListener("DOMContentLoaded", function() {
+    const porcentajeEl = document.getElementById('carga-porcentaje');
+    if (porcentajeEl) {
+        let progreso = 0;
+        
+        // El porcentaje sube aleatoriamente para simular carga real
+        const intervalo = setInterval(() => {
+            if (progreso < 90) {
+                progreso += Math.floor(Math.random() * 15) + 5;
+                if (progreso > 90) progreso = 90;
+                porcentajeEl.textContent = progreso + '%';
+            }
+        }, 80);
+
+        // Cuando la web carga al 100%, termina de subir y oculta la pantalla
+        window.addEventListener('load', function() {
+            clearInterval(intervalo);
+            porcentajeEl.textContent = '100%'; 
+            
+            setTimeout(() => {
+                const preloader = document.getElementById('pantalla-carga');
+                if (preloader) {
+                    preloader.style.opacity = '0';
+                    preloader.style.visibility = 'hidden';
+                    document.body.classList.remove('bloquear-scroll');
+                    
+                    setTimeout(() => preloader.remove(), 600);
+                }
+            }, 300); 
+        });
+    }
+});
+
+// ==========================================================================
 // MÓDULO 1: GESTIÓN DEL CARRITO DE COMPRAS Y SESIÓN
 // ==========================================================================
 
@@ -131,7 +167,6 @@ function abrirModalEntrega() {
     } else { 
         labelMesa.style.display = 'block'; 
         
-        // Reseteamos las opciones para que arranque en limpio
         document.querySelectorAll('input[name="tipo_entrega"]').forEach(r => r.checked = false);
         document.querySelectorAll('input[name="tipo_pago"]').forEach(r => r.checked = false);
         toggleFormularioMesa();
@@ -151,7 +186,6 @@ function toggleFormularioMesa() {
     const opcionPago = document.querySelector('input[name="tipo_pago"]:checked');
     const formTelefono = document.getElementById('form-telefono');
     
-    // 1. Mostrar la sección de pagos SOLO si ya eligió cómo se entrega
     if (seccionPago) {
         if (opcionEntrega) {
             seccionPago.classList.remove('oculto');
@@ -160,7 +194,6 @@ function toggleFormularioMesa() {
         }
     }
 
-    // 2. Mostrar input del número de mesa SOLO si eligió "Llevar a mi Mesa"
     if (formMesa) {
         if (opcionEntrega && opcionEntrega.value === 'mesa') {
             formMesa.classList.remove('oculto');
@@ -171,7 +204,6 @@ function toggleFormularioMesa() {
         }
     }
 
-    // 3. Mostrar input de teléfono SOLO si eligió pagar en "Efectivo en Caja"
     if (formTelefono) {
         if (opcionPago && opcionPago.value === 'efectivo') {
             formTelefono.classList.remove('oculto');
@@ -201,7 +233,7 @@ function validarYEnviar(event) {
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     
     if(!tipoEntregaElement || !tipoPagoElement) { 
-        Swal.fire({ icon: 'warning', title: 'Faltan datos', text: 'Por favor completá opciones de entrega y pago.', confirmButtonColor: '#1e7b45' }); 
+        Swal.fire({ icon: 'warning', title: 'Faltan datos', text: 'Por favor completá opciones de entrega y pago.', confirmButtonColor: '#ff6600' }); 
         return; 
     }
     
@@ -210,19 +242,19 @@ function validarYEnviar(event) {
     let numeroMesa = "";
     
     if (nombreCliente === "") { 
-        Swal.fire({ icon: 'warning', title: 'Falta tu nombre', text: 'Escribí tu nombre y apellido para identificarte.', confirmButtonColor: '#1e7b45' }); 
+        Swal.fire({ icon: 'warning', title: 'Falta tu nombre', text: 'Escribí tu nombre y apellido para identificarte.', confirmButtonColor: '#ff6600' }); 
         return; 
     }
 
     if (tipoPago === 'efectivo' && telefonoCliente === "") {
-        Swal.fire({ icon: 'warning', title: 'Teléfono requerido', text: 'Por favor dejanos tu WhatsApp para coordinar el pago.', confirmButtonColor: '#1e7b45' }); 
+        Swal.fire({ icon: 'warning', title: 'Teléfono requerido', text: 'Por favor dejanos tu WhatsApp para coordinar el pago.', confirmButtonColor: '#ff6600' }); 
         return; 
     }
 
     if (tipoEntrega === 'mesa') {
         numeroMesa = document.getElementById('numero_mesa').value.trim();
         if (numeroMesa === "") { 
-            Swal.fire({ icon: 'warning', title: 'Número de Mesa', text: 'Ingresá el número de mesa donde estás.', confirmButtonColor: '#1e7b45' }); 
+            Swal.fire({ icon: 'warning', title: 'Número de Mesa', text: 'Ingresá el número de mesa donde estás.', confirmButtonColor: '#ff6600' }); 
             return; 
         }
     }
@@ -230,7 +262,6 @@ function validarYEnviar(event) {
     let comentariosFinales = comentarios;
     if (tipoEntrega === 'mesa') {
         const checkArmar = document.getElementById('armar_mesa');
-        // 🔥 SIN EMOJI PARA QUE LA IMPRESORA NO PONGA "??" 🔥
         if (checkArmar && checkArmar.checked) {
             comentariosFinales = comentariosFinales ? comentariosFinales + " | FALTA ARMAR MESA" : "FALTA ARMAR MESA";
         }
@@ -238,17 +269,18 @@ function validarYEnviar(event) {
     
     if (comentariosFinales !== "") nombreCliente = `${nombreCliente} (Nota: ${comentariosFinales})`.substring(0, 99); 
 
-   Swal.fire({
+    // Alerta de carga limpia sin el Wok
+    Swal.fire({
         title: 'Procesando...',
         text: '¡Llevando el pedido a toda velocidad!',
-        imageUrl: '/static/img/wok.gif', 
-        imageWidth: 120,
         showConfirmButton: false,
         allowOutsideClick: false, 
         allowEscapeKey: false,
-        background: 'var(--fondo)',
-        color: 'var(--texto)',
-        // 🔥 Agregamos esto para darle el marco:
+        background: 'var(--card-bg)',
+        color: 'var(--text-color)',
+        didOpen: () => {
+            Swal.showLoading();
+        },
         customClass: {
             popup: 'alerta-con-marco'
         }
@@ -279,14 +311,13 @@ function validarYEnviar(event) {
                         title: '¡MODO / Nave!',
                         text: 'Estamos terminando de configurar la conexión con Nave. ¡Estará lista muy pronto!',
                         icon: 'info',
-                        confirmButtonColor: '#103b70'
+                        confirmButtonColor: '#ff6600'
                     });
                 }
             } else if (tipoPago === 'efectivo') {
                 let fraseUbicacion = tipoEntrega === 'mesa' ? `ando en la mesa ${numeroMesa}` : `pedí para retirar en el mostrador`;
                 let mensajeWa = `Hola soy ${document.getElementById('nombre_cliente').value.trim()}, ${fraseUbicacion}, mi número de pedido es #${datos.pedido_id} y lo quiero confirmar para acercarme a pagarlo o avísame si me cobras cuando el pedido llegue a la mesa.`;
                 
-                // ⚠️ ACORDATE DE CAMBIAR ESTE NÚMERO
                 let numeroBuffet = "5491178246455"; 
                 let linkWa = `https://wa.me/${numeroBuffet}?text=${encodeURIComponent(mensajeWa)}`;
 
@@ -346,7 +377,7 @@ function actualizarPrecioVisual(productoId) {
     
     precioElement.style.transition = 'all 0.3s ease';
     precioElement.style.transform = 'scale(1.15)';
-    precioElement.style.color = 'var(--dorado-sanmartin)';
+    precioElement.style.color = 'var(--naranja-sterak)';
     
     setTimeout(() => {
         precioElement.style.transform = 'scale(1)';
@@ -423,7 +454,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (attr.clave === 'punto' && !esPlatoDeHuevo) {
                     const avisoParrilla = document.createElement('div');
                     avisoParrilla.style.fontSize = '0.8rem';
-                    avisoParrilla.style.color = 'var(--dorado-sanmartin)';
+                    avisoParrilla.style.color = 'var(--naranja-brillo)';
                     avisoParrilla.style.fontWeight = 'bold';
                     avisoParrilla.style.marginTop = '4px';
                     avisoParrilla.innerHTML = '⏱️ La carne tiene una espera de 20 a 40 min según cocción.';
@@ -512,7 +543,7 @@ function agregarConOpciones(productoId) {
             icon: 'error', 
             title: 'Falta seleccionar opciones', 
             text: 'Por favor, seleccioná las opciones marcadas en rojo.', 
-            confirmButtonColor: '#1e7b45' 
+            confirmButtonColor: '#ff6600' 
         }); 
         return; 
     }
@@ -535,13 +566,14 @@ function agregarConOpciones(productoId) {
                         icon: 'info',
                         title: '¡Marchando a la Parrilla! 🥩',
                         text: 'Recordá que la carne tiene un tiempo de espera de 20 a 40 minutos según el punto de cocción elegido.',
-                        confirmButtonColor: '#dfb23e',
+                        confirmButtonColor: '#ff6600',
                         timer: 5000
                     });
                 }
 
                 boton.innerText = "¡Agregado! ✔";
-                boton.style.backgroundColor = "var(--verde-sanmartin)";
+                boton.style.backgroundColor = "var(--naranja-sterak)";
+                boton.style.color = "#000";
                 
                 contenedor.querySelectorAll('input').forEach(input => input.checked = false);
                 actualizarPrecioVisual(productoId);
@@ -554,7 +586,11 @@ function agregarConOpciones(productoId) {
                     btnToggle.classList.remove('abierto');
                 }
 
-                setTimeout(() => { boton.innerText = textoOriginal; boton.style.backgroundColor = ""; }, 1500);
+                setTimeout(() => { 
+                    boton.innerText = textoOriginal; 
+                    boton.style.backgroundColor = ""; 
+                    boton.style.color = ""; 
+                }, 1500);
                 
                 document.getElementById('badge-contador').innerText = data.total_items;
                 if (document.getElementById('carrito-sidebar').classList.contains('abierto')) cargarDetalleCarrito();
@@ -626,22 +662,22 @@ function procesarCambioEstado(elemento, nuevoEstado) {
             
             if(nuevoEstado === 'cancelado') {
                 tr.style.opacity = '0.5';
-                if(etiqueta) { etiqueta.innerText = 'Cancelado'; etiqueta.style.background = 'var(--error, #dc3545)'; etiqueta.style.color = 'white'; }
+                if(etiqueta) { etiqueta.innerText = 'Cancelado'; etiqueta.style.background = 'var(--error)'; etiqueta.style.color = 'white'; }
                 if(contenedorBotones) contenedorBotones.style.display = 'none'; 
             } else if (nuevoEstado === 'listo') {
-                tr.style.borderLeft = '5px solid var(--verde-sanmartin, #28a745)';
-                if(etiqueta) { etiqueta.innerText = '¡Listo!'; etiqueta.style.background = 'var(--verde-sanmartin, #28a745)'; etiqueta.style.color = 'white'; }
+                tr.style.borderLeft = '5px solid #10b981';
+                if(etiqueta) { etiqueta.innerText = '¡Listo!'; etiqueta.style.background = '#10b981'; etiqueta.style.color = 'white'; }
             } else if (nuevoEstado === 'entregado') {
                 tr.style.opacity = '0.5';
-                tr.style.borderLeft = '5px solid var(--texto-mutado, #6c757d)';
-                if(etiqueta) { etiqueta.innerText = 'Entregado'; etiqueta.style.background = 'var(--texto-mutado, #6c757d)'; etiqueta.style.color = 'white'; }
+                tr.style.borderLeft = '5px solid var(--texto-mutado)';
+                if(etiqueta) { etiqueta.innerText = 'Entregado'; etiqueta.style.background = 'var(--texto-mutado)'; etiqueta.style.color = 'white'; }
                 if(contenedorBotones) contenedorBotones.style.display = 'none'; 
             } else if (nuevoEstado === 'demorado') {
                 if(etiqueta) { etiqueta.innerText = 'Demorado'; etiqueta.style.background = '#fd7e14'; etiqueta.style.color = 'white'; }
                 elemento.innerHTML = textoOriginal;
                 elemento.style.pointerEvents = 'auto';
             } else {
-                if(etiqueta) { etiqueta.innerText = 'En Preparación'; etiqueta.style.background = 'var(--azul-sanmartin, #007bff)'; etiqueta.style.color = 'white'; }
+                if(etiqueta) { etiqueta.innerText = 'En Preparación'; etiqueta.style.background = 'var(--naranja-sterak)'; etiqueta.style.color = '#000'; }
                 elemento.innerHTML = textoOriginal;
                 elemento.style.pointerEvents = 'auto';
             }
@@ -659,7 +695,7 @@ function editarPrecioAjax(event, form) {
     const originalText = btn.innerText;
     btn.innerText = '...';
     fetch(form.action, { method: 'POST', body: new FormData(form), headers: {'X-Requested-With': 'XMLHttpRequest'} })
-    .then(() => { btn.innerText = 'OK'; btn.style.background = 'var(--verde-sanmartin)'; setTimeout(() => { btn.innerText = originalText; btn.style.background = ''; }, 1500); });
+    .then(() => { btn.innerText = 'OK'; btn.style.background = '#10b981'; setTimeout(() => { btn.innerText = originalText; btn.style.background = ''; }, 1500); });
 }
 
 function cambiarDisponibilidadAjax(event, el) {
@@ -703,7 +739,7 @@ function ejecutarAjax(event, el) {
         el.classList.add(estaAbierto ? 'btn-rojo' : 'btn-verde');
         const p = el.previousElementSibling;
         p.innerText = estaAbierto ? "🟢 ABIERTO" : "🔴 CERRADO";
-        p.style.color = estaAbierto ? "var(--verde-sanmartin)" : "var(--error)";
+        p.style.color = estaAbierto ? "var(--naranja-sterak)" : "var(--error)";
     });
 }
 
@@ -717,7 +753,7 @@ function filtrarPedidos(puestoSlug, btnActivo) {
 function actualizarPuestosAjax(event, form) {
     event.preventDefault(); 
     fetch(form.action, { method: 'POST', body: new FormData(form), headers: {'X-Requested-With': 'XMLHttpRequest'} })
-    .then(() => { form.style.backgroundColor = "rgba(40, 167, 69, 0.1)"; setTimeout(() => form.style.backgroundColor = "transparent", 800); })
+    .then(() => { form.style.backgroundColor = "rgba(255, 102, 0, 0.1)"; setTimeout(() => form.style.backgroundColor = "transparent", 800); })
     .catch(error => Swal.fire({ icon: 'error', title: 'Oops...', text: 'Hubo un error al guardar los mostradores.' }));
 }
 
@@ -802,10 +838,10 @@ function abrirCierreCaja() {
 
                         htmlMostradores += `
                         <details class="panel-accordion" style="margin-bottom: 12px; border: 1px solid var(--borde); background: var(--bg-color); border-radius: 8px;">
-                            <summary style="padding: 12px 15px; font-size: 1.05rem; border-left: 4px solid var(--dorado-sanmartin); background: transparent; cursor: pointer;">
+                            <summary style="padding: 12px 15px; font-size: 1.05rem; border-left: 4px solid var(--naranja-sterak); background: transparent; cursor: pointer;">
                                 <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; padding-right: 10px;">
                                     <span style="font-weight: 800;">🏪 ${m.nombre}</span>
-                                    <strong style="color: var(--verde-sanmartin);">$${m.total_ventas.toLocaleString('es-AR')}</strong>
+                                    <strong style="color: var(--naranja-sterak);">$${m.total_ventas.toLocaleString('es-AR')}</strong>
                                 </div>
                             </summary>
                             <div style="padding: 15px; border-top: 1px solid var(--borde);">
@@ -865,21 +901,16 @@ function confirmarCierreYLimpiar() {
 document.addEventListener('DOMContentLoaded', () => {
     const badgeContador = document.getElementById('badge-contador');
     
-    // Si el botoncito del carrito existe en esta pantalla, le preguntamos al server cuántos ítems hay
     if (badgeContador) {
         fetch('/carrito/ver/')
             .then(res => res.json())
             .then(datos => {
                 let totalItems = 0;
-                
-                // Sumamos la cantidad de cada producto que esté guardado en el carrito
                 if (datos.items && datos.items.length > 0) {
                     datos.items.forEach(item => {
                         totalItems += item.cantidad;
                     });
                 }
-                
-                // Actualizamos el globito rojo con el número real
                 badgeContador.innerText = totalItems;
             })
             .catch(err => console.log("Error al recuperar el carrito:", err));

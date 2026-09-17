@@ -6,10 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>{% block title %} Sterak Food {% endblock %}</title>
 
-    <link rel="preload" as="image" href="{% static 'img/wok.gif' %}">
     <link rel="icon" href="{% static 'img/logo.png' %}" type="image/png">
-    
-    <link rel="stylesheet" href="{% static 'css/estilos.css' %}?v=20">
+    <link rel="stylesheet" href="{% static 'css/estilos.css' %}?v=21">
     {% block extra_css %}{% endblock %}
 
     <link rel="manifest" href="/manifest.json">
@@ -25,11 +23,15 @@
 
 <body class="bloquear-scroll">
 
+    <!-- PANTALLA DE CARGA CON PORCENTAJE -->
     <div id="pantalla-carga">
-        <img src="{% static 'img/wok.gif' %}" alt="Cargando..." class="gif-carga" style="opacity: 0; transition: opacity 0.3s ease;" onload="this.style.opacity=1">
-        <div class="texto-carga">CARGANDO...</div>
+        <div class="loader-sterak"></div>
+        <div class="texto-carga">
+            CARGANDO <span id="carga-porcentaje">0%</span>
+        </div>
     </div>
 
+    <!-- Navbar Limpia y Moderna -->
     <nav class="navbar">
         <div class="nav-container">
             <a href="{% url 'pedidos:inicio' %}" class="marca">
@@ -63,6 +65,7 @@
         {% block content %}{% endblock %}
     </main>
 
+    <!-- Sidebar Carrito -->
     <div id="carrito-overlay" class="carrito-overlay" onclick="cerrarCarrito()"></div>
 
     <div id="carrito-sidebar" class="carrito-sidebar">
@@ -85,6 +88,7 @@
         </div>
     </div>
 
+    <!-- Modal Checkout -->
     <div id="modal-entrega" class="modal-overlay" onclick="if(event.target === this) cerrarModalEntrega()">
         <div class="modal-content">
             <button class="btn-cerrar-modal" onclick="cerrarModalEntrega()">×</button>
@@ -156,22 +160,7 @@
         </div>
     </div>
 
-    <script src="{% static 'script/script.js' %}?v=20"></script>
+    <script src="{% static 'script/script.js' %}?v=21"></script>
     {% block extra_js %}{% endblock %}
-
-    <script>
-        window.addEventListener('load', function() {
-            const preloader = document.getElementById('pantalla-carga');
-            if (preloader) {
-                preloader.style.opacity = '0';
-                preloader.style.visibility = 'hidden';
-                document.body.classList.remove('bloquear-scroll');
-                
-                setTimeout(() => {
-                    preloader.remove();
-                }, 600);
-            }
-        });
-    </script>
 </body>
 </html>
