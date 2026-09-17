@@ -270,7 +270,7 @@ def procesar_pedido(request):
 
     if pago == 'mercadopago':
         try:
-            # 🔥 INYECTAMOS TU TOKEN DE PRUEBA AQUÍ MISMO 🔥
+            #  INYECTAMOS TU TOKEN DE PRUEBA AQUÍ MISMO 
             mp_token = os.environ.get('MP_ACCESS_TOKEN', 'APP_USR-4556595133137299-091021-90ced7dc6e27cb6b90ea6103145a6e13-3449683431') 
             sdk = mercadopago.SDK(mp_token)
             
@@ -338,7 +338,7 @@ def webhook_mercadopago(request):
             if data.get("action") == "payment.created" or data.get("type") == "payment":
                 payment_id = data.get("data", {}).get("id")
                 
-                # 🔥 INYECTAMOS TU TOKEN DE PRUEBA AQUÍ TAMBIÉN PARA EL WEBHOOK 🔥
+                # INYECTAMOS TU TOKEN DE PRUEBA AQUÍ TAMBIÉN PARA EL WEBHOOK 
                 token_mp = os.environ.get('MP_ACCESS_TOKEN', 'APP_USR-4556595133137299-091021-90ced7dc6e27cb6b90ea6103145a6e13-3449683431')
                 
                 headers = {"Authorization": f"Bearer {token_mp}"}
