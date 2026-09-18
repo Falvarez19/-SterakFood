@@ -23,9 +23,13 @@
 
 <body class="bloquear-scroll">
 
-    <!-- PANTALLA DE CARGA CON PORCENTAJE -->
+    <!-- PANTALLA DE CARGA CON PORCENTAJE Y WOK -->
     <div id="pantalla-carga">
-        <div class="loader-sterak"></div>
+        <div class="loader-container">
+            <div class="loader-sterak"></div>
+            <!-- El Wok girando adentro del anillo -->
+            <img src="{% static 'img/wok.gif' %}" alt="Cargando" class="loader-gif">
+        </div>
         <div class="texto-carga">
             CARGANDO <span id="carga-porcentaje">0%</span>
         </div>
@@ -35,6 +39,8 @@
     <nav class="navbar">
         <div class="nav-container">
             <a href="{% url 'pedidos:inicio' %}" class="marca">
+                <!-- Vuelve el logo con el brillo naranja -->
+                <img src="{% static 'img/logo.png' %}" alt="Logo SterakFood" style="height: 45px; width: auto; object-fit: contain; filter: drop-shadow(0px 2px 4px rgba(255, 102, 0, 0.2)); margin-right: 10px;">
                 <span class="logo-texto">SterakFood</span>
             </a>
             
