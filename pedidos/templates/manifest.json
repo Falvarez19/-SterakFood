@@ -1,6 +1,6 @@
 {
-  "name": "Buffet Club San Martín",
-  "short_name": "Buffet SM",
+  "name": "Sterak Food",
+  "short_name": "SteraFood",
   "description": "Pedí tu comida sin hacer fila directo desde tu mesa.",
   "start_url": "/",
   "display": "standalone",
@@ -14,7 +14,7 @@
       "purpose": "any maskable"
     },
     {
-      "src": "/static/img/logo_app.png",
+      "src": "/static/img/logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
