@@ -48,6 +48,25 @@
                 <button id="btn-instalar-nav" class="btn-instalar-app" style="display: none;">
                     Descargar App
                 </button>
+              <div class="nav-container">
+            <a href="{% url 'pedidos:inicio' %}?puesto={{ request.GET.puesto }}" class="marca">
+                <img src="{% static 'img/logo.png' %}" alt="Escudo San Martín" class="nav-logo">
+                <span class="logo-texto">Buffet San Martín</span>
+            </a>
+            
+            <div class="nav-acciones">
+                <button id="btn-instalar-nav" class="btn-instalar-app" style="display: none;">
+                    Descargar App
+                </button>
+
+                <div class="theme-switch-wrapper">
+                    <span class="icono-clima">☀️</span>
+                    <label class="switch">
+                        <input type="checkbox" id="theme-toggle">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="icono-clima">🌙</span>
+                </div>
                 
                 {% block nav_acciones %}
                     <a href="{% url 'pedidos:inicio' %}" class="btn-nav-ghost">Menú</a>
