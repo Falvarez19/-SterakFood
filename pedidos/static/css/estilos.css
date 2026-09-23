@@ -28,6 +28,11 @@
     --gris-fondo: var(--negro-fondo);
     --texto-oscuro: var(--texto-claro);
     --blanco: var(--negro-tarjetas);
+
+    /* Variables dinámicas para el Hero Banner */
+    --hero-overlay-start: rgba(10, 11, 13, 0.8);
+    --hero-overlay-end: rgba(10, 11, 13, 1);
+    --hero-text-shadow: 2px 2px 6px rgba(0,0,0,0.8);
 }
 
 /* ==========================================================================
@@ -50,58 +55,40 @@ body {
 /* ==========================================================================
    3. NAVBAR, LOGO Y HERO BANNER
    ========================================================================== */
-.navbar {
-    background-color: var(--card-bg);
-    padding: 10px 0;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-    border-bottom: 1px solid var(--borde);
-}
-.nav-container {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.marca { display: flex; align-items: center; gap: 15px; text-decoration: none; }
-.nav-logo { height: 60px; width: auto; object-fit: contain; }
-.nav-acciones { display: flex; align-items: center; gap: 15px; }
-
-.logo-texto {
-    color: var(--naranja-sterak); 
-    font-weight: 900; 
-    font-family: sans-serif; 
-    font-size: 1.8rem; 
-    margin: 0;
-    letter-spacing: -0.5px;
-    text-transform: none; 
-    line-height: 1;
+.nav-logo {
+    height: 60px;
+    width: auto;
+    object-fit: contain;
+    /* Carga el logo con cubiertos blancos por defecto (Modo Dark) */
+    content: url('../img/logo.png'); 
 }
 
-.hero {
-    background-image: linear-gradient(rgba(10, 11, 13, 0.8), rgba(10, 11, 13, 1)), url('../img/fondo-buffet.jpg');
-    background-size: cover; background-position: center 45%; background-repeat: no-repeat;
-    color: var(--texto-claro); padding: 70px 20px; margin-bottom: 40px;
-    position: relative; border-bottom: 1px solid var(--borde);
-}
-.hero-content { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
-.hero-texto { text-align: left; }
-.hero-texto h1 { font-size: 2.8rem; margin-bottom: 5px; font-weight: 900; letter-spacing: -1px; text-shadow: 2px 2px 6px rgba(0,0,0,0.8); }
-.hero-texto p { font-size: 1.2rem; opacity: 0.9; margin: 0; }
-.hero-logo-side img { width: 140px; height: auto; filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.8)); transition: transform 0.3s ease; }
-.hero-logo-side img:hover { transform: scale(1.05); }
-
-@media (max-width: 768px) {
-    .hero-content { flex-direction: column; text-align: center; gap: 15px; }
-    .hero-texto { text-align: center; }
-    .hero-logo-side img { width: 100px; }
-    .nav-container { flex-direction: column; gap: 15px; }
+.hero-logo-side img {
+    width: 140px;
+    height: auto;
+    filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.8));
+    transition: transform 0.3s ease;
+    /* Carga el logo con cubiertos blancos por defecto para el banner grande */
+    content: url('../img/logo.png');
 }
 
+.hero-logo-side img:hover {
+    transform: scale(1.05);
+}
+
+/* ==========================================================================
+   CAMBIO DE LOGO PARA MODO CLARO
+   ========================================================================== */
+[data-theme="light"] .nav-logo {
+    /* Cambia al logo con cubiertos negros automáticamente */
+    content: url('../img/logo_2.png');
+}
+
+[data-theme="light"] .hero-logo-side img {
+    /* Cambia al logo con cubiertos negros en el banner y suaviza la sombra */
+    content: url('../img/logo_2.png');
+    filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.2)); 
+}
 /* ==========================================================================
    4. ELEMENTOS COMPARTIDOS
    ========================================================================== */
@@ -132,7 +119,6 @@ body {
     height: 24px;
 }
 
-/* Acá está la clave: !important para forzar que se oculte */
 .theme-switch-wrapper .switch input[type="checkbox"] { 
     display: none !important; 
     appearance: none !important;
@@ -424,21 +410,47 @@ input[type="radio"] + label, input[type="checkbox"] + label, label:has(input[typ
 /* ==========================================================================
    13. SLIDER HORIZONTAL (Lo Más Vendido)
    ========================================================================== */
+.menu-horizontal {
+    display: flex;
+    flex-direction: row; 
+    flex-wrap: nowrap; 
+    overflow-x: auto;
+    overflow-y: hidden; 
+    gap: 15px;
+    padding: 5px 0 20px 0;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none; 
+    -ms-overflow-style: none;  
+    align-items: stretch;
+    -webkit-overflow-scrolling: touch; 
+}
+
+.menu-horizontal::-webkit-scrollbar {
+    display: none; 
+}
+
 .horizontal-card {
-    flex: 0 0 75%; 
+    flex: 0 0 auto; 
+    width: 75%; 
     max-width: 260px; 
     scroll-snap-align: start;
     margin-bottom: 0 !important; 
-    height: auto; 
-    /* Habilita el estiramiento interno */
     display: flex; 
     flex-direction: column;
 }
 
-/* Fuerza a la tarjeta a ocupar todo el alto disponible del wrapper */
 .horizontal-card .tarjeta-producto {
-    flex: 1; 
+    flex: 1 1 auto !important; 
+    height: 100% !important; 
+    min-height: 100% !important; 
     width: 100%;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important; 
+}
+
+.horizontal-card .tarjeta-cuerpo {
+    flex-grow: 1 !important;
 }
 
 .badge-popular {
@@ -456,6 +468,17 @@ input[type="radio"] + label, input[type="checkbox"] + label, label:has(input[typ
     box-shadow: 0 2px 8px rgba(0,0,0,0.6);
 }
 
+.tarjeta-cuerpo .descripcion {
+    display: -webkit-box;
+    -webkit-line-clamp: 1; 
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   14. TEMA CLARO (LIGHT MODE)
+   ========================================================================== */
 [data-theme="light"] {
     /* Colores para el fondo, textos y bordes claros */
     --bg-color: #f8f9fa;
@@ -463,10 +486,15 @@ input[type="radio"] + label, input[type="checkbox"] + label, label:has(input[typ
     --card-bg: #ffffff;
     --borde: #e5e7eb;
     
-    /* Variables específicas de Sterak Food */
+    /* Variables específicas */
     --negro-fondo: #f8f9fa;
     --negro-tarjetas: #ffffff;
     --texto-claro: #1a1c20;
     --texto-mutado: #6b7280;
     --borde-suave: #e5e7eb;
+
+    /* Aclaramos el fondo sobre la imagen en modo día */
+    --hero-overlay-start: rgba(248, 249, 250, 0.4); 
+    --hero-overlay-end: rgba(248, 249, 250, 1);
+    --hero-text-shadow: 2px 2px 6px rgba(255, 255, 255, 0.8);
 }
