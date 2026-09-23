@@ -791,12 +791,33 @@ window.addEventListener('appinstalled', () => {
 });
 
 // ==========================================================================
-// MÓDULO 6: CONTROL DE MODO OSCURO / CLARO
+// MÓDULO 6: CONTROL DE MODO OSCURO / CLARO Y CAMBIOS DE LOGO
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
     const themeToggle = document.getElementById('theme-toggle');
     const currentTheme = localStorage.getItem('theme') || 'dark';
     document.body.setAttribute('data-theme', currentTheme);
+    
+    // 1. Seleccionamos las imágenes del logo
+    const navLogo = document.querySelector('.nav-logo');
+    const heroLogo = document.querySelector('.hero-logo-side img');
+
+    // 2. Función para cambiar la imagen según el tema
+    const actualizarLogos = (tema) => {
+        const rutaLogo = tema === 'light' ? '/static/img/logo_2.png' : '/static/img/logo.png';
+        
+        if (navLogo) navLogo.src = rutaLogo;
+        if (heroLogo) {
+            heroLogo.src = rutaLogo;
+            // Suavizamos la sombra en el banner si es de día
+            heroLogo.style.filter = tema === 'light' 
+                ? 'drop-shadow(0px 4px 8px rgba(0,0,0,0.2))' 
+                : 'drop-shadow(0px 4px 8px rgba(0,0,0,0.8))';
+        }
+    };
+
+    // 3. Aplicamos el logo apenas carga la página
+    actualizarLogos(currentTheme);
     
     if(themeToggle) {
         themeToggle.checked = (currentTheme === 'dark');
@@ -804,10 +825,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const newTheme = themeToggle.checked ? 'dark' : 'light';
             document.body.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
+            
+            // Cambiamos el logo dinámicamente al tocar el botón
+            actualizarLogos(newTheme);
         });
     }
 });
-
 // ==========================================================================
 // MÓDULO 7: CIERRE DE CAJA Y ESTADÍSTICAS POR MOSTRADOR
 // ==========================================================================
