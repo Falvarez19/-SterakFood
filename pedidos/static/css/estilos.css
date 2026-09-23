@@ -15,7 +15,7 @@
     --error: #ef4444;
     --error-fondo: rgba(239, 68, 68, 0.1);
 
-    /* Mapeo de tus variables originales para no romper el HTML y el Admin */
+    /* Mapeo de variables originales */
     --bg-color: var(--negro-fondo);
     --text-color: var(--texto-claro);
     --card-bg: var(--negro-tarjetas);
@@ -55,40 +55,85 @@ body {
 /* ==========================================================================
    3. NAVBAR, LOGO Y HERO BANNER
    ========================================================================== */
-.nav-logo {
-    height: 60px;
-    width: auto;
-    object-fit: contain;
-    /* Carga el logo con cubiertos blancos por defecto (Modo Dark) */
-    content: url('../img/logo.png'); 
+.navbar {
+    background-color: var(--card-bg);
+    padding: 10px 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    border-bottom: 1px solid var(--borde);
+}
+.nav-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.marca { display: flex; align-items: center; gap: 15px; text-decoration: none; }
+.nav-logo { height: 60px; width: auto; object-fit: contain; }
+.nav-acciones { display: flex; align-items: center; gap: 15px; }
+
+.logo-texto {
+    color: var(--naranja-sterak); 
+    font-weight: 900; 
+    font-family: sans-serif; 
+    font-size: 1.8rem; 
+    margin: 0;
+    letter-spacing: -0.5px;
+    text-transform: none; 
+    line-height: 1;
 }
 
-.hero-logo-side img {
-    width: 140px;
-    height: auto;
-    filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.8));
-    transition: transform 0.3s ease;
-    /* Carga el logo con cubiertos blancos por defecto para el banner grande */
-    content: url('../img/logo.png');
+.hero {
+    background-image: linear-gradient(var(--hero-overlay-start), var(--hero-overlay-end)), url('../img/fondo-buffet.jpg');
+    background-size: cover; background-position: center 45%; background-repeat: no-repeat;
+    color: var(--text-color); 
+    padding: 70px 20px; margin-bottom: 40px;
+    position: relative; border-bottom: 1px solid var(--borde);
 }
+.hero-content { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+.hero-texto { text-align: left; }
+.hero-texto h1 { font-size: 2.8rem; margin-bottom: 5px; font-weight: 900; letter-spacing: -1px; text-shadow: var(--hero-text-shadow); }
+.hero-texto p { font-size: 1.2rem; opacity: 0.9; margin: 0; }
+.hero-logo-side img { width: 140px; height: auto; transition: transform 0.3s ease; }
+.hero-logo-side img:hover { transform: scale(1.05); }
 
-.hero-logo-side img:hover {
-    transform: scale(1.05);
+@media (max-width: 768px) {
+    .hero-content { flex-direction: column; text-align: center; gap: 15px; }
+    .hero-texto { text-align: center; }
+    .hero-logo-side img { width: 100px; }
+    .nav-container { flex-direction: column; gap: 15px; }
 }
 
 /* ==========================================================================
-   CAMBIO DE LOGO PARA MODO CLARO
+   CAMBIO DE LOGO DARK/LIGHT (MÉTODO SEGURO)
    ========================================================================== */
-[data-theme="light"] .nav-logo {
-    /* Cambia al logo con cubiertos negros automáticamente */
-    content: url('../img/logo_2.png');
+/* Ocultar el logo claro por defecto */
+.logo-light {
+    display: none !important;
 }
 
-[data-theme="light"] .hero-logo-side img {
-    /* Cambia al logo con cubiertos negros en el banner y suaviza la sombra */
-    content: url('../img/logo_2.png');
-    filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.2)); 
+/* En modo claro: ocultar el oscuro, mostrar el claro */
+[data-theme="light"] .logo-dark {
+    display: none !important;
 }
+
+[data-theme="light"] .logo-light {
+    display: block !important;
+}
+
+/* Ajuste de sombras para el logo gigante del Hero Banner */
+.hero-logo-side .logo-dark {
+    filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.8));
+}
+
+.hero-logo-side .logo-light {
+    filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.2));
+}
+
 /* ==========================================================================
    4. ELEMENTOS COMPARTIDOS
    ========================================================================== */
