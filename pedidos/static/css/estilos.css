@@ -106,6 +106,8 @@ body {
     .hero-texto { text-align: center; }
     .hero-logo-side img { width: 100px; }
     .nav-container { flex-direction: column; gap: 15px; }
+    /* Arreglo para que los botones de navegación no se rompan en móviles */
+    .nav-acciones { flex-wrap: wrap; justify-content: center; gap: 10px; width: 100%; }
 }
 
 /* ==========================================================================
