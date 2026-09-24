@@ -106,8 +106,20 @@ body {
     .hero-texto { text-align: center; }
     .hero-logo-side img { width: 100px; }
     .nav-container { flex-direction: column; gap: 15px; }
-    /* Arreglo para que los botones de navegación no se rompan en móviles */
-    .nav-acciones { flex-wrap: wrap; justify-content: center; gap: 10px; width: 100%; }
+    
+    /* Arreglo para que los botones de navegación queden perfectamente centrados */
+    .nav-acciones { 
+        flex-wrap: wrap; 
+        justify-content: center; 
+        align-items: center;
+        gap: 15px; /* Más aire entre los botones */
+        width: 100%; 
+    }
+    
+    /* Le sacamos el margen que empujaba el carrito hacia la derecha */
+    .theme-switch-wrapper {
+        margin-right: 0 !important;
+    }
 }
 
 /* ==========================================================================
