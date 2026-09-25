@@ -1,0 +1,186 @@
+{% extends 'pedidos/base.html' %}
+
+{% block title %}Salón | ShortyFood{% endblock %}
+
+{% block nav_acciones %}
+    <a href="{% url 'pedidos:panel' %}" class="btn-nav-ghost">← Volver al Panel</a>
+{% endblock %}
+
+{% block content %}
+<style>
+    .dashboard-container { display: flex; gap: 20px; padding: 20px; align-items: flex-start; }
+    .grilla-mesas { flex-grow: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; }
+    .mesa-item { background-color: var(--bg-color, #f8f9fa); border: 1px solid var(--borde, #dee2e6); border-radius: 8px; height: 70px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; color: var(--text-color, #495057); cursor: pointer; transition: all 0.2s ease-in-out; }
+    .mesa-item:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    .mesa-ocupada { background-color: var(--azul, #0d6efd); color: white; border-color: var(--azul, #0b5ed7); }
+    .panel-comanda { width: 350px; background: var(--card-bg, white); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: sticky; top: 20px; }
+    .buscador-caja { width: 100%; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 10px; background: var(--bg-color, white); color: var(--text-color, black); }
+    .sugerencias { list-style: none; padding: 0; margin: 0; border: 1px solid #ccc; border-top: none; max-height: 150px; overflow-y: auto; display: none; position: absolute; width: calc(100% - 40px); background: var(--card-bg, white); z-index: 10; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .sugerencias li { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+    .sugerencias li:hover, .sugerencias li.activo { background-color: var(--verde-sanmartin, #198754); color: white; }
+    .lista-comanda { list-style: none; padding: 0; }
+    .lista-comanda li { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #ccc; }
+</style>
+
+<div class="container dash-container" style="margin-top: 30px;">
+    <h1 style="margin-bottom: 25px; font-size: 2rem; font-weight: 900;">Control de Salón 🍽️</h1>
+
+    <div class="dashboard-container" style="padding: 0;">
+        <!-- LADO IZQUIERDO: GRILLA DE MESAS -->
+        <div class="grilla-mesas">
+            {% for mesa in mesas %}
+                <div class="mesa-item" onclick="seleccionarMesa({{ mesa }}, this)">{{ mesa }}</div>
+            {% endfor %}
+        </div>
+
+        <!-- LADO DERECHO: PANEL DE CARGA -->
+        <div class="panel-comanda">
+            <h2 id="titulo-mesa" style="margin-top:0;">Seleccione una mesa</h2>
+            
+            <div id="area-comanda" style="display: none; position: relative;">
+                <input type="text" id="buscador" class="buscador-caja" placeholder="Código o nombre del producto..." autocomplete="off">
+                <ul id="lista-sugerencias" class="sugerencias"></ul>
+
+                <div style="margin-top: 20px;">
+                    <h3 style="font-size: 1.1rem; border-bottom: 2px solid #eee; padding-bottom: 5px;">Cuenta Actual</h3>
+                    <ul id="lista-comanda" class="lista-comanda"></ul>
+                    <h3 style="text-align: right; color: var(--verde-sanmartin, #198754); font-size: 1.4rem; margin-top: 15px;">Total: $<span id="total-cuenta">0</span></h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Recibimos los productos que mandamos desde views.py y los convertimos en datos para JS
+    const productos = {{ productos|safe }};
+    
+    let mesaActual = null;
+    let cuentasMesas = {}; // Objeto temporal para guardar qué pidió cada mesa
+
+    const buscador = document.getElementById('buscador');
+    const sugerenciasBox = document.getElementById('lista-sugerencias');
+    const listaComanda = document.getElementById('lista-comanda');
+    const totalCuenta = document.getElementById('total-cuenta');
+    const areaComanda = document.getElementById('area-comanda');
+    const tituloMesa = document.getElementById('titulo-mesa');
+
+    let indiceSeleccionado = -1;
+
+    // Se ejecuta al hacer clic en un cuadrado de mesa
+    function seleccionarMesa(numero, elementoVisual) {
+        mesaActual = numero;
+        tituloMesa.textContent = 'Mesa ' + numero;
+        areaComanda.style.display = 'block';
+        
+        // Si la mesa es nueva, le creamos la cuenta en cero
+        if (!cuentasMesas[numero]) {
+            cuentasMesas[numero] = { items: [], total: 0 };
+        }
+
+        // Remarcar visualmente la mesa seleccionada con un borde oscuro
+        document.querySelectorAll('.mesa-item').forEach(el => el.style.border = '1px solid var(--borde, #dee2e6)');
+        elementoVisual.style.border = '3px solid var(--text-color, #000)';
+
+        renderizarComanda();
+        setTimeout(() => buscador.focus(), 100);
+    }
+
+    // Lógica del buscador de productos
+    buscador.addEventListener('input', function() {
+        const texto = this.value.toLowerCase();
+        sugerenciasBox.innerHTML = '';
+        indiceSeleccionado = -1;
+
+        if (texto.length === 0) {
+            sugerenciasBox.style.display = 'none';
+            return;
+        }
+
+        const resultados = productos.filter(p => 
+            p.codigo.includes(texto) || p.nombre.toLowerCase().includes(texto)
+        );
+
+        if (resultados.length > 0) {
+            sugerenciasBox.style.display = 'block';
+            resultados.forEach((prod) => {
+                const li = document.createElement('li');
+                li.textContent = `\({prod.codigo} -\){prod.nombre} ($${prod.precio})`;
+                li.addEventListener('click', () => agregarAComanda(prod));
+                sugerenciasBox.appendChild(li);
+            });
+        } else {
+            sugerenciasBox.style.display = 'none';
+        }
+    });
+
+    // Navegación con flechas y Enter
+    buscador.addEventListener('keydown', function(e) {
+        const items = sugerenciasBox.getElementsByTagName('li');
+        
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+            if (indiceSeleccionado <(items.length - 1)) {
+                indiceSeleccionado++;
+                resaltarItem(items);
+            }
+        } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            if (indiceSeleccionado > 0) {
+                indiceSeleccionado--;
+                resaltarItem(items);
+            }
+        } else if (e.key === "Enter") {
+            e.preventDefault();
+            if (indiceSeleccionado > -1 && items.length > 0) {
+                items[indiceSeleccionado].click();
+            } else if (this.value !== "") {
+                const productoExacto = productos.find(p => p.codigo === this.value);
+                if (productoExacto) agregarAComanda(productoExacto);
+            }
+        }
+    });
+
+    function resaltarItem(items) {
+        for (let i = 0; i <items.length; i++) {
+            items[i].classList.remove('activo');
+        }
+        items[indiceSeleccionado].classList.add('activo');
+    }
+
+    // Sumar el producto a la mesa y pintar la mesa de ocupado
+    function agregarAComanda(producto) {
+        if (!mesaActual) return;
+        
+        cuentasMesas[mesaActual].items.push(producto);
+        cuentasMesas[mesaActual].total += producto.precio;
+        
+        // Colorear el cuadradito de la mesa correspondiente
+        const cajasMesas = document.querySelectorAll('.mesa-item');
+        cajasMesas[mesaActual - 1].classList.add('mesa-ocupada');
+
+        buscador.value = '';
+        sugerenciasBox.style.display = 'none';
+        buscador.focus();
+        
+        renderizarComanda();
+    }
+
+    // Actualizar la lista del panel derecho
+    function renderizarComanda() {
+        if (!mesaActual) return;
+        
+        listaComanda.innerHTML = '';
+        const cuenta = cuentasMesas[mesaActual];
+        
+        cuenta.items.forEach(item => {
+            const li = document.createElement('li');
+            // Armamos el HTML del item
+            li.innerHTML = `<span>\({item.nombre}</span> <strong>\)${item.precio}</strong>`;
+            listaComanda.appendChild(li);
+        });
+        
+        totalCuenta.textContent = cuenta.total;
+    }
+</script>
+{% endblock %}

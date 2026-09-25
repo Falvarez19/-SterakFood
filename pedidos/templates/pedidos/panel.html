@@ -36,6 +36,8 @@
         <button class="panel-tab-btn" onclick="abrirTab('pedidos', this)" id="btn-tab-pedidos">📝 Pedidos</button>
         <button class="panel-tab-btn" onclick="abrirTab('menu', this)" id="btn-tab-menu">🍔 Menú</button>
         <button class="panel-tab-btn" onclick="abrirTab('mostradores', this)" id="btn-tab-mostradores">🏪 Mostradores</button>
+        <!-- NUEVO BOTÓN AGREGADO -->
+        <a href="{% url 'pedidos:salon' %}" class="panel-tab-btn" style="text-decoration: none; display: inline-block; padding: 10px 20px;">🍽️ Salón</a>
     </div>
 
     <!-- 📝 PESTAÑA: PEDIDOS -->

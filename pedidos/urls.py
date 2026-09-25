@@ -56,6 +56,7 @@ urlpatterns = [
     path('cambiar-estado-global/', views.cambiar_estado_global, name='cambiar_estado_global'),
     path('dashboard/backup/', views.descargar_backup_secreto, name='descargar_backup'),
     path('api/resumen-ventas/', views.api_resumen_ventas, name='api_resumen_ventas'),
+    path('salon/', views.salon, name='salon'),
 
     # ==========================================
     # 5. API PARA TICKETERA LOCAL (NUEVO)

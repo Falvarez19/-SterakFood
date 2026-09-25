@@ -28,7 +28,10 @@ def inicio(request):
     
     hora_actual = timezone.localtime(timezone.now())
     es_finde = hora_actual.weekday() in [5, 6]  
-    es_horario = 12 <= hora_actual.hour < 15    
+    
+    # Modificado para no usar símbolos problemáticos en el chat
+    es_horario = hora_actual.hour in [12, 13, 14] 
+    
     descuento_activo = es_finde and es_horario
     
     puesto_activo = PuntoVenta.objects.first()
@@ -270,12 +273,10 @@ def procesar_pedido(request):
 
     if pago == 'mercadopago':
         try:
-            #  INYECTAMOS TU TOKEN DE PRUEBA AQUÍ MISMO 
             mp_token = os.environ.get('MP_ACCESS_TOKEN', 'APP_USR-4556595133137299-091021-90ced7dc6e27cb6b90ea6103145a6e13-3449683431') 
             sdk = mercadopago.SDK(mp_token)
             
             host = request.get_host()
-            # Detectamos si estamos en HTTP (local) o HTTPS (nube)
             protocolo = "https" if request.is_secure() else "http"
             
             preference_data = {
@@ -292,7 +293,6 @@ def procesar_pedido(request):
             
             res = sdk.preference().create(preference_data)
             
-            # Verificamos que se haya generado bien el ID
             if "response" in res and "id" in res["response"]:
                 mp_id = res["response"]["id"]
             else:
@@ -338,7 +338,6 @@ def webhook_mercadopago(request):
             if data.get("action") == "payment.created" or data.get("type") == "payment":
                 payment_id = data.get("data", {}).get("id")
                 
-                # INYECTAMOS TU TOKEN DE PRUEBA AQUÍ TAMBIÉN PARA EL WEBHOOK 
                 token_mp = os.environ.get('MP_ACCESS_TOKEN', 'APP_USR-4556595133137299-091021-90ced7dc6e27cb6b90ea6103145a6e13-3449683431')
                 
                 headers = {"Authorization": f"Bearer {token_mp}"}
@@ -382,10 +381,7 @@ def login_dashboard(request):
     if request.method == 'POST':
         if request.POST.get('pin') == '5968':
             request.session['dashboard_auth'] = True
-            
-            #  ESTO HACE QUE LA SESIÓN DEL PANEL EXPIRE AL CERRAR EL NAVEGADOR 
             request.session.set_expiry(0) 
-            
             return redirect('pedidos:panel_control')
         else: messages.error(request, "PIN incorrecto. Acceso denegado.")
     return render(request, 'pedidos/login_dashboard.html')
@@ -678,7 +674,7 @@ def descargar_backup_secreto(request):
     raise Http404("Hubo un error al generar el archivo de respaldo.")
 
 # ==========================================================================
-# MÓDULO 7: CIERRE DE CAJA Y ESTADÍSTICAS POR MOSTRADOR
+# MÓDULO 7: CIERRE DE CAJA Y ESTADÍSTICAS POR MOSTRADOR Y SALON
 # ==========================================================================
 def api_resumen_ventas(request):
     if not request.session.get('dashboard_auth'):
@@ -748,3 +744,26 @@ def api_resumen_ventas(request):
         'gran_total': float(gran_total),
         'mostradores': datos_mostradores
     })
+
+def salon(request):
+    from .models import Producto 
+    
+    # Traemos los productos disponibles para enviarlos al buscador JavaScript
+    productos_bd = Producto.objects.filter(disponible=True)
+    
+    # Armamos un diccionario simple usando el código_rapido que creamos
+    productos_js = [
+        {
+            # Si el producto tiene un código rápido guardado, usa ese. Si no, usa el ID automático como plan B.
+            "codigo": p.codigo_rapido if p.codigo_rapido else str(p.id), 
+            "nombre": p.nombre,
+            "precio": float(p.precio)
+        } for p in productos_bd
+    ]
+    
+    contexto = {
+        'mesas': range(1, 101), # Genera números del 1 al 100 para la grilla
+        'productos': productos_js
+    }
+    
+    return render(request, 'pedidos/salon.html', contexto)

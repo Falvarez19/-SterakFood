@@ -31,6 +31,10 @@ class Producto(models.Model):
     
     # Datos básicos
     nombre = models.CharField(max_length=200)
+    
+    # NUEVO CAMPO: Código manual para carga rápida en el salón
+    codigo_rapido = models.CharField(max_length=20, blank=True, null=True, help_text="Ej: 114 (Gaseosa), 216 (Milanesa)")
+    
     descripcion = models.TextField(blank=True, null=True)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     disponible = models.BooleanField(default=True)
@@ -50,12 +54,12 @@ class Producto(models.Model):
     # CAMPO PARA ORDENAR EL MENÚ 
     orden = models.IntegerField(default=0, help_text="Posición en el menú (1 va primero, 2 después, etc.)")
 
-    #  ESTO LE DICE A DJANGO CÓMO ORDENARLOS AUTOMÁTICAMENTE 
     class Meta:
         ordering = ['orden', 'nombre']
 
     def __str__(self):
         return self.nombre
+
 # ==========================================
 # MODELO: PEDIDO (El ticket general del cliente)
 # ==========================================
@@ -112,7 +116,7 @@ class DetallePedido(models.Model):
         nombre = self.producto.nombre if self.producto else "Producto Eliminado"
         return f"{self.cantidad} x {nombre} (Pedido #{self.pedido.id})"
     
-    # ==========================================
+# ==========================================
 # MODELO: CONFIGURACIÓN GLOBAL (Interruptor Maestro)
 # ==========================================
 class Configuracion(models.Model):
