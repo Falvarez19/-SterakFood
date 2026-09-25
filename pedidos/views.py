@@ -37,14 +37,21 @@ def inicio(request):
     puesto_activo = PuntoVenta.objects.first()
     
     if puesto_activo:
-        productos = Producto.objects.filter(disponible=True, puntos_venta=puesto_activo).select_related('categoria').order_by('categoria__nombre')
+        # AGREGAMOS EL EXCLUDE ACÁ PARA OCULTAR LA CATEGORÍA "Salon"
+        productos = Producto.objects.filter(
+            disponible=True, 
+            puntos_venta=puesto_activo
+        ).exclude(categoria__nombre='Salon').select_related('categoria').order_by('categoria__nombre')
         
         if request.session.get('puesto_carrito') != puesto_activo.slug:
             request.session['carrito'] = {} 
             request.session['puesto_carrito'] = puesto_activo.slug
             request.session.modified = True
     else:
-        productos = Producto.objects.filter(disponible=True).select_related('categoria').order_by('categoria__nombre')
+        # AGREGAMOS EL EXCLUDE ACÁ TAMBIÉN
+        productos = Producto.objects.filter(
+            disponible=True
+        ).exclude(categoria__nombre='Salon').select_related('categoria').order_by('categoria__nombre')
 
     return render(request, 'pedidos/inicio.html', {
         'puesto_activo': puesto_activo, 
