@@ -31,7 +31,7 @@
         <!-- LADO IZQUIERDO: GRILLA DE MESAS -->
         <div class="grilla-mesas">
             {% for mesa in mesas %}
-                <div class="mesa-item" onclick="seleccionarMesa({{ mesa }}, this)">{{ mesa }}</div>
+                <div class="mesa-item" onclick="seleccionarMesa('{{ mesa }}', this)">{{ mesa }}</div>
             {% endfor %}
         </div>
 
@@ -41,7 +41,7 @@
             
             <div id="area-comanda" style="display: none;">
                 
-                <!-- NUEVOS RECUADROS: CANTIDAD + ITEM -->
+                <!-- RECUADROS: CANTIDAD + ITEM -->
                 <div style="display: flex; gap: 8px; margin-bottom: 10px; position: relative;">
                     <div style="width: 70px;">
                         <label style="font-size: 0.75rem; font-weight: bold; display: block; color: var(--texto-mutado);">CANT</label>
@@ -121,7 +121,6 @@
         setTimeout(() => inputCant.focus(), 100);
     }
 
-    // Salto rápido de CANT al buscador al presionar Enter en cantidad
     inputCant.addEventListener('keydown', function(e) {
         if (e.key === "Enter") {
             e.preventDefault();
@@ -148,7 +147,7 @@
             sugerenciasBox.style.display = 'block';
             resultados.forEach((prod) => {
                 const li = document.createElement('li');
-                li.textContent = `\({prod.codigo} -\){prod.nombre} ($${prod.precio})`;
+                li.textContent = prod.codigo + " - " + prod.nombre + " ($" + prod.precio + ")";
                 li.addEventListener('click', () => confirmarAgregado(prod));
                 sugerenciasBox.appendChild(li);
             });
@@ -161,7 +160,7 @@
         const items = sugerenciasBox.getElementsByTagName('li');
         if (e.key === "ArrowDown") {
             e.preventDefault();
-            if (indiceSeleccionado <(items.length - 1)) { indiceSeleccionado++; resaltarItem(items); }
+            if (indiceSeleccionado < (items.length - 1)) { indiceSeleccionado++; resaltarItem(items); }
         } else if (e.key === "ArrowUp") {
             e.preventDefault();
             if (indiceSeleccionado > 0) { indiceSeleccionado--; resaltarItem(items); }
@@ -179,7 +178,7 @@
     });
 
     function resaltarItem(items) {
-        for (let i = 0; i <items.length; i++) { items[i].classList.remove('activo'); }
+        for (let i = 0; i < items.length; i++) { items[i].classList.remove('activo'); }
         if (items[indiceSeleccionado]) { items[indiceSeleccionado].classList.add('activo'); }
     }
 
@@ -189,7 +188,6 @@
 
         agregarAComanda(producto, cantidad);
 
-        // Limpiamos y devolvemos el foco al recuadro de cantidad para seguir cargando rápido
         buscador.value = '';
         sugerenciasBox.style.display = 'none';
         inputCant.value = '1';
@@ -279,136 +277,137 @@
             const li = document.createElement('li');
             li.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
-                    <input type="checkbox" \({item.seleccionado ? 'checked' : ''} onchange="toggleSeleccion(\){index})" style="cursor: pointer; transform: scale(1.1);">
+                    <input type="checkbox" ${item.seleccionado ? 'checked' : ''} onchange="toggleSeleccion(${index})" style="cursor: pointer; transform: scale(1.1);">
                     <strong>${item.nombre}</strong><br>
                     <span style="font-size: 0.75rem; color: var(--texto-mutado);">$${item.precio} c/u</span>
                 </div>
-            </div>
-            <div style="display: flex; align-items: center; gap: 4px;">
-                <button type="button" class="btn-cant" onclick="cambiarCantidad(${index}, -1)">-</button>
-                <span style="font-weight: bold; min-width: 15px; text-align: center; font-size: 0.9rem;">${item.cantidad}</span>
-                <button type="button" class="btn-cant" onclick="cambiarCantidad(${index}, 1)">+</button>
-                <span style="font-weight: bold; min-width: 45px; text-align: right; font-size: 0.9rem;">$${subtotalItem}</span>
-            </div>
-        `;
-        listaComanda.appendChild(li);
-    });
-    
-    totalCuenta.textContent = cuenta.total;
-    calcularSubtotalSeleccionado();
-}
-
-function cobrarSeleccionados() {
-    if (!mesaActual) return;
-    const cuenta = cuentasMesas[mesaActual];
-    
-    const itemsAProcesar = cuenta.items.filter(i => i.seleccionado);
-    if (itemsAProcesar.length === 0) {
-        Swal.fire({ icon: 'warning', title: 'Nada seleccionado', text: 'Tildá al menos un producto de la lista para cobrar la parte correspondiente.' });
-        return;
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <button type="button" class="btn-cant" onclick="cambiarCantidad(${index}, -1)">-</button>
+                    <span style="font-weight: bold; min-width: 15px; text-align: center; font-size: 0.9rem;">${item.cantidad}</span>
+                    <button type="button" class="btn-cant" onclick="cambiarCantidad(${index}, 1)">+</button>
+                    <span style="font-weight: bold; min-width: 45px; text-align: right; font-size: 0.9rem;">$${subtotalItem}</span>
+                </div>
+            `;
+            listaComanda.appendChild(li);
+        });
+        
+        totalCuenta.textContent = cuenta.total;
+        calcularSubtotalSeleccionado();
     }
 
-    let subtotalParcial = itemsAProcesar.reduce((acc, i) => acc + (i.precio * i.cantidad), 0);
+    function cobrarSeleccionados() {
+        if (!mesaActual) return;
+        const cuenta = cuentasMesas[mesaActual];
+        
+        const itemsAProcesar = cuenta.items.filter(i => i.seleccionado);
+        if (itemsAProcesar.length === 0) {
+            Swal.fire({ icon: 'warning', title: 'Nada seleccionado', text: 'Tildá al menos un producto de la lista para cobrar la parte correspondiente.' });
+            return;
+        }
 
-    Swal.fire({
-        title: `¿Cobrar selección parcial?`,
-        text: `Total parcial a cobrar: $${subtotalParcial}`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#198754',
-        confirmButtonText: 'Sí, cobrar y sacar ticket'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            imprimirTicketParcial(itemsAProcesar, subtotalParcial);
+        let subtotalParcial = itemsAProcesar.reduce((acc, i) => acc + (i.precio * i.cantidad), 0);
 
-            cuenta.items = cuenta.items.filter(i => !i.seleccionado);
-            recalcularTotal();
-            renderizarComanda();
+        Swal.fire({
+            title: '¿Cobrar selección parcial?',
+            text: 'Total parcial a cobrar: $' + subtotalParcial,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#198754',
+            confirmButtonText: 'Sí, cobrar y sacar ticket'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                imprimirTicketParcial(itemsAProcesar, subtotalParcial);
 
-            if (cuenta.items.length === 0) {
+                cuenta.items = cuenta.items.filter(i => !i.seleccionado);
+                recalcularTotal();
+                renderizarComanda();
+
+                if (cuenta.items.length === 0) {
+                    const cajasMesas = document.querySelectorAll('.mesa-item');
+                    if (cajasMesas[mesaActual - 1]) {
+                        cajasMesas[mesaActual - 1].classList.remove('mesa-ocupada');
+                    }
+                    areaComanda.style.display = 'none';
+                    tituloMesa.textContent = 'Seleccione una mesa';
+                }
+
+                Swal.fire({ icon: 'success', title: '¡Parte cobrada con éxito!', timer: 1500, showConfirmButton: false });
+            }
+        });
+    }
+
+    function imprimirTicketParcial(itemsParciales, totalParcial) {
+        const ventanaPrint = window.open('', '_print', 'height=600,width=400');
+        ventanaPrint.document.write('<head><title>Ticket Parcial - Mesa ' + mesaActual + '</title><body style="font-family: monospace; padding: 20px;">');
+        ventanaPrint.document.write('<h3 style="text-align:center; margin:0;">SterakFood - Mesa ' + mesaActual + '</h3>');
+        ventanaPrint.document.write('<p style="text-align:center; font-size:0.8rem; margin-top:2px;">(Pago Parcial / Desglose)</p>');
+        ventanaPrint.document.write('<hr>');
+        ventanaPrint.document.write('<ul style="list-style: none; padding: 0;">');
+        itemsParciales.forEach(i => {
+            ventanaPrint.document.write('<li style="display: flex; justify-content: space-between; margin-bottom: 5px;">' + i.cantidad + 'x ' + i.nombre + ' **$' + (i.precio * i.cantidad) + '**</li>');
+        });
+        ventanaPrint.document.write('</ul>');
+        ventanaPrint.document.write('<hr>');
+        ventanaPrint.document.write('<h3 style="text-align:right;">Subtotal Pagado: $' + totalParcial + '</h3>');
+        ventanaPrint.document.write('</body></html>');
+        ventanaPrint.document.close();
+        ventanaPrint.focus();
+        setTimeout(() => { ventanaPrint.print(); ventanaPrint.close(); }, 300);
+    }
+
+    function imprimirTicket() {
+        if (!mesaActual) return;
+        const cuenta = cuentasMesas[mesaActual];
+        if (cuenta.items.length === 0) {
+            Swal.fire({ icon: 'info', title: 'Mesa Vacía', text: 'No hay productos cargados en esta mesa.' });
+            return;
+        }
+
+        const ventanaPrint = window.open('', '_print', 'height=600,width=400');
+        ventanaPrint.document.write('<head><title>Ticket Mesa ' + mesaActual + '</title><body style="font-family: monospace; padding: 20px;">');
+        ventanaPrint.document.write('<h3 style="text-align:center; margin:0;">SterakFood - Mesa ' + mesaActual + '</h3>');
+        ventanaPrint.document.write('<hr>');
+        ventanaPrint.document.write('<ul style="list-style: none; padding: 0;">');
+        cuenta.items.forEach(i => {
+            ventanaPrint.document.write('<li style="display: flex; justify-content: space-between; margin-bottom: 5px;">' + i.cantidad + 'x ' + i.nombre + ' **$' + (i.precio * i.cantidad) + '**</li>');
+        });
+        ventanaPrint.document.write('</ul>');
+        ventanaPrint.document.write('<hr>');
+        ventanaPrint.document.write('<h3 style="text-align:right;">Total Pendiente: $' + cuenta.total + '</h3>');
+        ventanaPrint.document.write('</body></html>');
+        ventanaPrint.document.close();
+        ventanaPrint.focus();
+        setTimeout(() => { ventanaPrint.print(); ventanaPrint.close(); }, 300);
+    }
+
+    function cobrarMesaCompleta() {
+        if (!mesaActual) return;
+        const cuenta = cuentasMesas[mesaActual];
+        if (cuenta.items.length === 0) return;
+
+        Swal.fire({
+            title: '¿Cobrar TODO de la Mesa ' + mesaActual + '?',
+            text: 'Total restante: $' + cuenta.total,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#198754',
+            confirmButtonText: 'Sí, cobrar todo y liberar mesa'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                cuentasMesas[mesaActual] = { items: [], total: 0 };
+                
                 const cajasMesas = document.querySelectorAll('.mesa-item');
                 if (cajasMesas[mesaActual - 1]) {
                     cajasMesas[mesaActual - 1].classList.remove('mesa-ocupada');
                 }
+                
+                renderizarComanda();
                 areaComanda.style.display = 'none';
                 tituloMesa.textContent = 'Seleccione una mesa';
+                
+                Swal.fire({ icon: 'success', title: '¡Mesa cobrada por completo!', timer: 1500, showConfirmButton: false });
             }
-
-            Swal.fire({ icon: 'success', title: '¡Parte cobrada con éxito!', timer: 1500, showConfirmButton: false });
-        }
-    });
-}
-
-function imprimirTicketParcial(itemsParciales, totalParcial) {
-    const ventanaPrint = window.open('', '_print', 'height=600,width=400');
-    ventanaPrint.document.write('<head><title>Ticket Parcial - Mesa ' + mesaActual + '</title><body style="font-family: monospace; padding: 20px;">');
-    ventanaPrint.document.write('<h3 style="text-align:center; margin:0;">SterakFood - Mesa ' + mesaActual + '</h3>');
-    ventanaPrint.document.write('<p style="text-align:center; font-size:0.8rem; margin-top:2px;">(Pago Parcial / Desglose)</p>');
-    ventanaPrint.document.write('<hr>');
-    ventanaPrint.document.write('<ul style="list-style: none; padding: 0;">');
-    itemsParciales.forEach(i => {
-        ventanaPrint.document.write('<li style="display: flex; justify-content: space-between; margin-bottom: 5px;">' + i.cantidad + 'x ' + i.nombre + ' **$' + (i.precio * i.cantidad) + '**</li>');
-    });
-    ventanaPrint.document.write('</ul>');
-    ventanaPrint.document.write('<hr>');
-    ventanaPrint.document.write('<h3 style="text-align:right;">Subtotal Pagado: $' + totalParcial + '</h3>');
-    ventanaPrint.document.write('</body></html>');
-    ventanaPrint.document.close();
-    ventanaPrint.focus();
-    setTimeout(() => { ventanaPrint.print(); ventanaPrint.close(); }, 300);
-}
-
-function imprimirTicket() {
-    if (!mesaActual) return;
-    const cuenta = cuentasMesas[mesaActual];
-    if (cuenta.items.length === 0) {
-        Swal.fire({ icon: 'info', title: 'Mesa Vacía', text: 'No hay productos cargados en esta mesa.' });
-        return;
+        });
     }
-
-    const ventanaPrint = window.open('', '_print', 'height=600,width=400');
-    ventanaPrint.document.write('<head><title>Ticket Mesa ' + mesaActual + '</title><body style="font-family: monospace; padding: 20px;">');
-    ventanaPrint.document.write('<h3 style="text-align:center; margin:0;">SterakFood - Mesa ' + mesaActual + '</h3>');
-    ventanaPrint.document.write('<hr>');
-    ventanaPrint.document.write('<ul style="list-style: none; padding: 0;">');
-    cuenta.items.forEach(i => {
-        ventanaPrint.document.write('<li style="display: flex; justify-content: space-between; margin-bottom: 5px;">' + i.cantidad + 'x ' + i.nombre + ' **$' + (i.precio * i.cantidad) + '**</li>');
-    });
-    ventanaPrint.document.write('</ul>');
-    ventanaPrint.document.write('<hr>');
-    ventanaPrint.document.write('<h3 style="text-align:right;">Total Pendiente: $' + cuenta.total + '</h3>');
-    ventanaPrint.document.write('</body></html>');
-    ventanaPrint.document.close();
-    ventanaPrint.focus();
-    setTimeout(() => { ventanaPrint.print(); ventanaPrint.close(); }, 300);
-}
-
-function cobrarMesaCompleta() {
-    if (!mesaActual) return;
-    const cuenta = cuentasMesas[mesaActual];
-    if (cuenta.items.length === 0) return;
-
-    Swal.fire({
-        title: `¿Cobrar TODO de la Mesa ${mesaActual}?`,
-        text: `Total restante: $${cuenta.total}`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#198754',
-        confirmButtonText: 'Sí, cobrar todo y liberar mesa'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            cuentasMesas[mesaActual] = { items: [], total: 0 };
-            
-            const cajasMesas = document.querySelectorAll('.mesa-item');
-            if (cajasMesas[mesaActual - 1]) {
-                cajasMesas[mesaActual - 1].classList.remove('mesa-ocupada');
-            }
-            
-            renderizarComanda();
-            areaComanda.style.display = 'none';
-            tituloMesa.textContent = 'Seleccione una mesa';
-            
-            Swal.fire({ icon: 'success', title: '¡Mesa cobrada por completo!', timer: 1500, showConfirmButton: false });
-        }
-    });
-}
+</script>
+{% endblock %}
