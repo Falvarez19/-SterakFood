@@ -166,7 +166,7 @@
         renderizarComanda();
     }
 
-    // Actualizar la lista del panel derecho
+// Actualizar la lista del panel derecho
     function renderizarComanda() {
         if (!mesaActual) return;
         
@@ -175,8 +175,23 @@
         
         cuenta.items.forEach(item => {
             const li = document.createElement('li');
-            // Armamos el HTML del item
-            li.innerHTML = `<span>\({item.nombre}</span> <strong>\)${item.precio}</strong>`;
+            // Armamos el HTML del item usando suma de textos para evitar errores
+            li.innerHTML = "<span>" + item.nombre + "</span> <strong>$" + item.precio + "</strong>";
+            listaComanda.appendChild(li);
+        });
+        
+        totalCuenta.textContent = cuenta.total;
+    }// Actualizar la lista del panel derecho
+    function renderizarComanda() {
+        if (!mesaActual) return;
+        
+        listaComanda.innerHTML = '';
+        const cuenta = cuentasMesas[mesaActual];
+        
+        cuenta.items.forEach(item => {
+            const li = document.createElement('li');
+            // Armamos el HTML del item usando suma de textos para evitar errores
+            li.innerHTML = "<span>" + item.nombre + "</span> <strong>$" + item.precio + "</strong>";
             listaComanda.appendChild(li);
         });
         
