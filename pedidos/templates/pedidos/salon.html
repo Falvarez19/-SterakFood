@@ -52,11 +52,11 @@
 </div>
 
 <script>
-    // Recibimos los productos que mandamos desde views.py y los convertimos en datos para JS
+    // Recibimos los productos enviados desde views.py
     const productos = {{ productos|safe }};
     
     let mesaActual = null;
-    let cuentasMesas = {}; // Objeto temporal para guardar qué pidió cada mesa
+    let cuentasMesas = {}; 
 
     const buscador = document.getElementById('buscador');
     const sugerenciasBox = document.getElementById('lista-sugerencias');
@@ -67,18 +67,15 @@
 
     let indiceSeleccionado = -1;
 
-    // Se ejecuta al hacer clic en un cuadrado de mesa
     function seleccionarMesa(numero, elementoVisual) {
         mesaActual = numero;
         tituloMesa.textContent = 'Mesa ' + numero;
         areaComanda.style.display = 'block';
         
-        // Si la mesa es nueva, le creamos la cuenta en cero
         if (!cuentasMesas[numero]) {
             cuentasMesas[numero] = { items: [], total: 0 };
         }
 
-        // Remarcar visualmente la mesa seleccionada con un borde oscuro
         document.querySelectorAll('.mesa-item').forEach(el => el.style.border = '1px solid var(--borde, #dee2e6)');
         elementoVisual.style.border = '3px solid var(--text-color, #000)';
 
@@ -86,7 +83,7 @@
         setTimeout(() => buscador.focus(), 100);
     }
 
-    // Lógica del buscador de productos
+    // Lógica del buscador con formato seguro
     buscador.addEventListener('input', function() {
         const texto = this.value.toLowerCase();
         sugerenciasBox.innerHTML = '';
@@ -98,14 +95,15 @@
         }
 
         const resultados = productos.filter(p => 
-            p.codigo.includes(texto) || p.nombre.toLowerCase().includes(texto)
+            p.codigo.toLowerCase().includes(texto) || p.nombre.toLowerCase().includes(texto)
         );
 
         if (resultados.length > 0) {
             sugerenciasBox.style.display = 'block';
             resultados.forEach((prod) => {
                 const li = document.createElement('li');
-                li.textContent = `\({prod.codigo} -\){prod.nombre} ($${prod.precio})`;
+                // CORREGIDO: Usamos suma de cadenas para evitar errores de renderizado
+                li.textContent = prod.codigo + " - " + prod.nombre + " ($" + prod.precio + ")";
                 li.addEventListener('click', () => agregarAComanda(prod));
                 sugerenciasBox.appendChild(li);
             });
@@ -114,7 +112,6 @@
         }
     });
 
-    // Navegación con flechas y Enter
     buscador.addEventListener('keydown', function(e) {
         const items = sugerenciasBox.getElementsByTagName('li');
         
@@ -145,19 +142,21 @@
         for (let i = 0; i <items.length; i++) {
             items[i].classList.remove('activo');
         }
-        items[indiceSeleccionado].classList.add('activo');
+        if (items[indiceSeleccionado]) {
+            items[indiceSeleccionado].classList.add('activo');
+        }
     }
 
-    // Sumar el producto a la mesa y pintar la mesa de ocupado
     function agregarAComanda(producto) {
         if (!mesaActual) return;
         
         cuentasMesas[mesaActual].items.push(producto);
         cuentasMesas[mesaActual].total += producto.precio;
         
-        // Colorear el cuadradito de la mesa correspondiente
         const cajasMesas = document.querySelectorAll('.mesa-item');
-        cajasMesas[mesaActual - 1].classList.add('mesa-ocupada');
+        if (cajasMesas[mesaActual - 1]) {
+            cajasMesas[mesaActual - 1].classList.add('mesa-ocupada');
+        }
 
         buscador.value = '';
         sugerenciasBox.style.display = 'none';
@@ -166,7 +165,6 @@
         renderizarComanda();
     }
 
-// Actualizar la lista del panel derecho
     function renderizarComanda() {
         if (!mesaActual) return;
         
@@ -175,22 +173,6 @@
         
         cuenta.items.forEach(item => {
             const li = document.createElement('li');
-            // Armamos el HTML del item usando suma de textos para evitar errores
-            li.innerHTML = "<span>" + item.nombre + "</span> <strong>$" + item.precio + "</strong>";
-            listaComanda.appendChild(li);
-        });
-        
-        totalCuenta.textContent = cuenta.total;
-    }// Actualizar la lista del panel derecho
-    function renderizarComanda() {
-        if (!mesaActual) return;
-        
-        listaComanda.innerHTML = '';
-        const cuenta = cuentasMesas[mesaActual];
-        
-        cuenta.items.forEach(item => {
-            const li = document.createElement('li');
-            // Armamos el HTML del item usando suma de textos para evitar errores
             li.innerHTML = "<span>" + item.nombre + "</span> <strong>$" + item.precio + "</strong>";
             listaComanda.appendChild(li);
         });
