@@ -13,14 +13,14 @@
     .mesa-item { background-color: var(--bg-color, #f8f9fa); border: 1px solid var(--borde, #dee2e6); border-radius: 8px; height: 70px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; color: var(--text-color, #495057); cursor: pointer; transition: all 0.2s ease-in-out; }
     .mesa-item:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
     .mesa-ocupada { background-color: var(--azul, #0d6efd); color: white; border-color: var(--azul, #0b5ed7); }
-    .panel-comanda { width: 380px; background: var(--card-bg, white); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: sticky; top: 20px; }
-    .buscador-caja { width: 100%; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 10px; background: var(--bg-color, white); color: var(--text-color, black); }
-    .sugerencias { list-style: none; padding: 0; margin: 0; border: 1px solid #ccc; border-top: none; max-height: 150px; overflow-y: auto; display: none; position: absolute; width: calc(100% - 40px); background: var(--card-bg, white); z-index: 10; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .panel-comanda { width: 390px; background: var(--card-bg, white); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: sticky; top: 20px; }
+    .caja-input { padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; background: var(--bg-color, white); color: var(--text-color, black); }
+    .sugerencias { list-style: none; padding: 0; margin: 0; border: 1px solid #ccc; border-top: none; max-height: 150px; overflow-y: auto; display: none; position: absolute; width: 100%; background: var(--card-bg, white); z-index: 10; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     .sugerencias li { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
     .sugerencias li:hover, .sugerencias li.activo { background-color: var(--verde-sanmartin, #198754); color: white; }
-    .lista-comanda { list-style: none; padding: 0; max-height: 200px; overflow-y: auto; }
-    .lista-comanda li { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed #ccc; font-size: 0.95rem; }
-    .btn-cant { background: var(--borde); border: none; width: 25px; height: 25px; border-radius: 4px; font-weight: bold; cursor: pointer; color: var(--text-color); }
+    .lista-comanda { list-style: none; padding: 0; max-height: 180px; overflow-y: auto; }
+    .lista-comanda li { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed #ccc; font-size: 0.9rem; }
+    .btn-cant { background: var(--borde); border: none; width: 22px; height: 22px; border-radius: 4px; font-weight: bold; cursor: pointer; color: var(--text-color); font-size: 0.8rem; }
     .btn-cant:hover { background: var(--naranja-sterak); color: #000; }
 </style>
 
@@ -39,35 +39,47 @@
         <div class="panel-comanda">
             <h2 id="titulo-mesa" style="margin-top:0;">Seleccione una mesa</h2>
             
-            <div id="area-comanda" style="display: none; position: relative;">
-                <input type="text" id="buscador" class="buscador-caja" placeholder="Código o nombre del producto..." autocomplete="off">
-                <ul id="lista-sugerencias" class="sugerencias"></ul>
+            <div id="area-comanda" style="display: none;">
+                
+                <!-- NUEVOS RECUADROS: CANTIDAD + ITEM -->
+                <div style="display: flex; gap: 8px; margin-bottom: 10px; position: relative;">
+                    <div style="width: 70px;">
+                        <label style="font-size: 0.75rem; font-weight: bold; display: block; color: var(--texto-mutado);">CANT</label>
+                        <input type="number" id="input-cant" class="caja-input" value="1" min="1" style="width: 100%; text-align: center; font-weight: bold;">
+                    </div>
+                    <div style="flex: 1; position: relative;">
+                        <label style="font-size: 0.75rem; font-weight: bold; display: block; color: var(--texto-mutado);">CÓDIGO O PRODUCTO</label>
+                        <input type="text" id="buscador" class="caja-input" placeholder="Ej: 114 ó Coca..." autocomplete="off" style="width: 100%;">
+                        <ul id="lista-sugerencias" class="sugerencias"></ul>
+                    </div>
+                </div>
 
                 <div style="margin-top: 15px;">
-                    <h3 style="font-size: 1.1rem; border-bottom: 2px solid #eee; padding-bottom: 5px;">Cuenta Actual</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 5px;">
+                        <h3 style="font-size: 1.05rem; margin: 0;">Cuenta de la Mesa</h3>
+                        <span style="font-size: 0.8rem; color: var(--texto-mutado);">Tildá para pagos parciales</span>
+                    </div>
+                    
                     <ul id="lista-comanda" class="lista-comanda"></ul>
                     
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; border-top: 2px solid var(--borde); padding-top: 10px;">
-                        <span style="font-weight: bold; font-size: 1.2rem;">Total:</span>
-                        <span style="color: var(--verde-sanmartin, #198754); font-size: 1.4rem; font-weight: bold;">$<span id="total-cuenta">0</span></span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px solid var(--borde); padding-top: 8px;">
+                        <span style="font-weight: bold; font-size: 1.1rem;">Total Restante:</span>
+                        <span style="color: var(--verde-sanmartin, #198754); font-size: 1.3rem; font-weight: bold;">$<span id="total-cuenta">0</span></span>
                     </div>
 
-                    <!-- SECCIÓN 2: DESGLOSAR / DIVIDIR CUENTA -->
-                    <div style="background: var(--bg-color); padding: 10px; border-radius: 6px; margin-top: 15px; border: 1px solid var(--borde);">
-                        <span style="font-size: 0.85rem; font-weight: bold; display: block; margin-bottom: 5px;">👥 Dividir Cuenta:</span>
-                        <div style="display: flex; gap: 5px;">
-                            <button type="button" class="btn-cant" onclick="dividirCuenta(1)" style="flex: 1;">1p</button>
-                            <button type="button" class="btn-cant" onclick="dividirCuenta(2)" style="flex: 1;">2p</button>
-                            <button type="button" class="btn-cant" onclick="dividirCuenta(3)" style="flex: 1;">3p</button>
-                            <button type="button" class="btn-cant" onclick="dividirCuenta(4)" style="flex: 1;">4p</button>
+                    <!-- PANEL DE PAGO PARCIAL / DESGLOSE -->
+                    <div style="background: var(--bg-color); padding: 10px; border-radius: 6px; margin-top: 10px; border: 1px solid var(--borde);">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 8px;">
+                            <span>Seleccionado a pagar:</span>
+                            <strong style="color: var(--naranja-sterak);" id="total-seleccionado">$0</strong>
                         </div>
-                        <div id="resultado-division" style="font-size: 0.9rem; margin-top: 6px; text-align: center; color: var(--naranja-sterak); font-weight: bold;"></div>
+                        <button type="button" onclick="cobrarSeleccionados()" class="btn-panel btn-verde" style="width: 100%; padding: 8px; font-weight: bold; font-size: 0.9rem;">💳 Cobrar / Imprimir Selección</button>
                     </div>
 
-                    <!-- SECCIÓN 1: BOTONES DE ACCIÓN (Imprimir / Cobrar) -->
-                    <div style="display: flex; gap: 10px; margin-top: 15px;">
-                        <button type="button" onclick="imprimirTicket()" class="btn-panel btn-gris" style="flex: 1; padding: 10px; font-weight: bold;">🖨️ Imprimir</button>
-                        <button type="button" onclick="cobrarMesa()" class="btn-panel btn-verde" style="flex: 1; padding: 10px; font-weight: bold;">✅ Cobrar</button>
+                    <!-- BOTONES GLOBALES DE LA MESA -->
+                    <div style="display: flex; gap: 8px; margin-top: 12px;">
+                        <button type="button" onclick="imprimirTicket()" class="btn-panel btn-gris" style="flex: 1; padding: 8px; font-size: 0.9rem; font-weight: bold;">🖨️ Ticket Mesa</button>
+                        <button type="button" onclick="cobrarMesaCompleta()" class="btn-panel btn-verde" style="flex: 1; padding: 8px; font-size: 0.9rem; font-weight: bold;">✅ Cobrar Todo</button>
                     </div>
                 </div>
             </div>
@@ -81,13 +93,14 @@
     let mesaActual = null;
     let cuentasMesas = {}; 
 
+    const inputCant = document.getElementById('input-cant');
     const buscador = document.getElementById('buscador');
     const sugerenciasBox = document.getElementById('lista-sugerencias');
     const listaComanda = document.getElementById('lista-comanda');
     const totalCuenta = document.getElementById('total-cuenta');
+    const totalSeleccionado = document.getElementById('total-seleccionado');
     const areaComanda = document.getElementById('area-comanda');
     const tituloMesa = document.getElementById('titulo-mesa');
-    const resultadoDivision = document.getElementById('resultado-division');
 
     let indiceSeleccionado = -1;
 
@@ -95,7 +108,7 @@
         mesaActual = numero;
         tituloMesa.textContent = 'Mesa ' + numero;
         areaComanda.style.display = 'block';
-        resultadoDivision.textContent = '';
+        inputCant.value = '1';
         
         if (!cuentasMesas[numero]) {
             cuentasMesas[numero] = { items: [], total: 0 };
@@ -105,11 +118,20 @@
         elementoVisual.style.border = '3px solid var(--text-color, #000)';
 
         renderizarComanda();
-        setTimeout(() => buscador.focus(), 100);
+        setTimeout(() => inputCant.focus(), 100);
     }
 
+    // Salto rápido de CANT al buscador al presionar Enter en cantidad
+    inputCant.addEventListener('keydown', function(e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            buscador.focus();
+            buscador.select();
+        }
+    });
+
     buscador.addEventListener('input', function() {
-        const texto = this.value.toLowerCase();
+        const texto = this.value.toLowerCase().trim();
         sugerenciasBox.innerHTML = '';
         indiceSeleccionado = -1;
 
@@ -126,8 +148,8 @@
             sugerenciasBox.style.display = 'block';
             resultados.forEach((prod) => {
                 const li = document.createElement('li');
-                li.textContent = prod.codigo + " - " + prod.nombre + " ($" + prod.precio + ")";
-                li.addEventListener('click', () => agregarAComanda(prod));
+                li.textContent = `\({prod.codigo} -\){prod.nombre} ($${prod.precio})`;
+                li.addEventListener('click', () => confirmarAgregado(prod));
                 sugerenciasBox.appendChild(li);
             });
         } else {
@@ -147,9 +169,11 @@
             e.preventDefault();
             if (indiceSeleccionado > -1 && items.length > 0) {
                 items[indiceSeleccionado].click();
-            } else if (this.value !== "") {
-                const productoExacto = productos.find(p => p.codigo === this.value);
-                if (productoExacto) agregarAComanda(productoExacto);
+            } else if (this.value.trim() !== "") {
+                const productoExacto = productos.find(p => p.codigo.toLowerCase() === this.value.trim().toLowerCase() || p.nombre.toLowerCase() === this.value.trim().toLowerCase());
+                if (productoExacto) {
+                    confirmarAgregado(productoExacto);
+                }
             }
         }
     });
@@ -159,21 +183,35 @@
         if (items[indiceSeleccionado]) { items[indiceSeleccionado].classList.add('activo'); }
     }
 
-    // Agregar producto (agrupa si ya existe para manejar cantidades)
-    function agregarAComanda(producto) {
+    function confirmarAgregado(producto) {
+        let cantidad = parseInt(inputCant.value);
+        if (isNaN(cantidad) || cantidad <= 0) cantidad = 1;
+
+        agregarAComanda(producto, cantidad);
+
+        // Limpiamos y devolvemos el foco al recuadro de cantidad para seguir cargando rápido
+        buscador.value = '';
+        sugerenciasBox.style.display = 'none';
+        inputCant.value = '1';
+        inputCant.focus();
+        inputCant.select();
+    }
+
+    function agregarAComanda(producto, cantidadAAgregar) {
         if (!mesaActual) return;
         
         const cuenta = cuentasMesas[mesaActual];
         const existente = cuenta.items.find(i => i.codigo === producto.codigo);
 
         if (existente) {
-            existente.cantidad += 1;
+            existente.cantidad += cantidadAAgregar;
         } else {
             cuenta.items.push({
                 codigo: producto.codigo,
                 nombre: producto.nombre,
                 precio: producto.precio,
-                cantidad: 1
+                cantidad: cantidadAAgregar,
+                seleccionado: false 
             });
         }
         
@@ -184,13 +222,9 @@
             cajasMesas[mesaActual - 1].classList.add('mesa-ocupada');
         }
 
-        buscador.value = '';
-        sugerenciasBox.style.display = 'none';
-        buscador.focus();
         renderizarComanda();
     }
 
-    // Cambiar cantidad con botones + / - (Feature 3)
     function cambiarCantidad(index, delta) {
         if (!mesaActual) return;
         const cuenta = cuentasMesas[mesaActual];
@@ -204,13 +238,29 @@
         recalcularTotal();
         renderizarComanda();
 
-        // Si la mesa se quedó sin ítems, le sacamos el color de ocupada
         if (cuenta.items.length === 0) {
             const cajasMesas = document.querySelectorAll('.mesa-item');
             if (cajasMesas[mesaActual - 1]) {
                 cajasMesas[mesaActual - 1].classList.remove('mesa-ocupada');
             }
         }
+    }
+
+    function toggleSeleccion(index) {
+        if (!mesaActual) return;
+        const cuenta = cuentasMesas[mesaActual];
+        cuenta.items[index].seleccionado = !cuenta.items[index].seleccionado;
+        calcularSubtotalSeleccionado();
+    }
+
+    function calcularSubtotalSeleccionado() {
+        if (!mesaActual) return;
+        const cuenta = cuentasMesas[mesaActual];
+        let sub = 0;
+        cuenta.items.forEach(i => {
+            if (i.seleccionado) sub += (i.precio * i.cantidad);
+        });
+        totalSeleccionado.textContent = "$" + sub;
     }
 
     function recalcularTotal() {
@@ -228,96 +278,137 @@
             const subtotalItem = item.precio * item.cantidad;
             const li = document.createElement('li');
             li.innerHTML = `
-                <div style="flex: 1;">
+                <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                    <input type="checkbox" \({item.seleccionado ? 'checked' : ''} onchange="toggleSeleccion(\){index})" style="cursor: pointer; transform: scale(1.1);">
                     <strong>${item.nombre}</strong><br>
-                    <span style="font-size: 0.8rem; color: var(--texto-mutado);">$${item.precio} c/u</span>
+                    <span style="font-size: 0.75rem; color: var(--texto-mutado);">$${item.precio} c/u</span>
                 </div>
-                <div style="display: flex; align-items: center; gap: 5px;">
-                    <button type="button" class="btn-cant" onclick="cambiarCantidad(${index}, -1)">-</button>
-                    <span style="font-weight: bold; min-width: 20px; text-align: center;">${item.cantidad}</span>
-                    <button type="button" class="btn-cant" onclick="cambiarCantidad(${index}, 1)">+</button>
-                    <span style="font-weight: bold; min-width: 50px; text-align: right;">$${subtotalItem}</span>
-                </div>
-            `;
-            listaComanda.appendChild(li);
-        });
-        
-        totalCuenta.textContent = cuenta.total;
-        resultadoDivision.textContent = '';
+            </div>
+            <div style="display: flex; align-items: center; gap: 4px;">
+                <button type="button" class="btn-cant" onclick="cambiarCantidad(${index}, -1)">-</button>
+                <span style="font-weight: bold; min-width: 15px; text-align: center; font-size: 0.9rem;">${item.cantidad}</span>
+                <button type="button" class="btn-cant" onclick="cambiarCantidad(${index}, 1)">+</button>
+                <span style="font-weight: bold; min-width: 45px; text-align: right; font-size: 0.9rem;">$${subtotalItem}</span>
+            </div>
+        `;
+        listaComanda.appendChild(li);
+    });
+    
+    totalCuenta.textContent = cuenta.total;
+    calcularSubtotalSeleccionado();
+}
+
+function cobrarSeleccionados() {
+    if (!mesaActual) return;
+    const cuenta = cuentasMesas[mesaActual];
+    
+    const itemsAProcesar = cuenta.items.filter(i => i.seleccionado);
+    if (itemsAProcesar.length === 0) {
+        Swal.fire({ icon: 'warning', title: 'Nada seleccionado', text: 'Tildá al menos un producto de la lista para cobrar la parte correspondiente.' });
+        return;
     }
 
-    // Dividir cuenta (Feature 2)
-    function dividirCuenta(personas) {
-        if (!mesaActual) return;
-        const cuenta = cuentasMesas[mesaActual];
-        if (cuenta.total <= 0) return;
+    let subtotalParcial = itemsAProcesar.reduce((acc, i) => acc + (i.precio * i.cantidad), 0);
 
-        const porPersona = (cuenta.total / personas).toFixed(2);
-        resultadoDivision.textContent = `\({personas} personas pagan:\)${porPersona} c/u`;
-    }
+    Swal.fire({
+        title: `¿Cobrar selección parcial?`,
+        text: `Total parcial a cobrar: $${subtotalParcial}`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#198754',
+        confirmButtonText: 'Sí, cobrar y sacar ticket'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            imprimirTicketParcial(itemsAProcesar, subtotalParcial);
 
-    // Imprimir ticket (Feature 1)
-    function imprimirTicket() {
-        if (!mesaActual) return;
-        const cuenta = cuentasMesas[mesaActual];
-        if (cuenta.items.length === 0) {
-            Swal.fire({ icon: 'info', title: 'Mesa Vacía', text: 'No hay productos cargados en esta mesa.' });
-            return;
-        }
+            cuenta.items = cuenta.items.filter(i => !i.seleccionado);
+            recalcularTotal();
+            renderizarComanda();
 
-        let contenidoTicket = `--- TICKET MESA ${mesaActual} ---\n`;
-        cuenta.items.forEach(i => {
-            contenidoTicket += `\({i.cantidad}x\){i.nombre} - $${i.precio * i.cantidad}\n`;
-        });
-        contenidoTicket += `------------------------\nTOTAL: $${cuenta.total}`;
-
-        // Ventana emergente de impresión limpia
-        const ventanaPrint = window.open('', '_print', 'height=600,width=400');
-        ventanaPrint.document.write('<head><title>Ticket Mesa ' + mesaActual + '</title><body style="font-family: monospace; padding: 20px;">');
-        ventanaPrint.document.write('<h2 style="text-align:center;">SterakFood - Mesa ' + mesaActual + '</h2>');
-        ventanaPrint.document.write('<hr>');
-        ventanaPrint.document.write('<ul style="list-style: none; padding: 0;">');
-        cuenta.items.forEach(i => {
-            ventanaPrint.document.write('<li style="display: flex; justify-content: space-between; margin-bottom: 5px;">' + i.cantidad + 'x ' + i.nombre + ' **$' + (i.precio * i.cantidad) + '**</li>');
-        });
-        ventanaPrint.document.write('</ul>');
-        ventanaPrint.document.write('<hr>');
-        ventanaPrint.document.write('<h3 style="text-align:right;">Total: $' + cuenta.total + '</h3>');
-        ventanaPrint.document.write('</body></html>');
-        ventanaPrint.document.close();
-        ventanaPrint.focus();
-        setTimeout(() => { ventanaPrint.print(); ventanaPrint.close(); }, 300);
-    }
-
-    // Cobrar mesa (Limpia la mesa y el estado)
-    function cobrarMesa() {
-        if (!mesaActual) return;
-        const cuenta = cuentasMesas[mesaActual];
-        if (cuenta.items.length === 0) return;
-
-        Swal.fire({
-            title: `¿Cobrar Mesa ${mesaActual}?`,
-            text: `Total a cobrar: $${cuenta.total}`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#198754',
-            confirmButtonText: 'Sí, cobrar y liberar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                cuentasMesas[mesaActual] = { items: [], total: 0 };
-                
+            if (cuenta.items.length === 0) {
                 const cajasMesas = document.querySelectorAll('.mesa-item');
                 if (cajasMesas[mesaActual - 1]) {
                     cajasMesas[mesaActual - 1].classList.remove('mesa-ocupada');
                 }
-                
-                renderizarComanda();
                 areaComanda.style.display = 'none';
                 tituloMesa.textContent = 'Seleccione una mesa';
-                
-                Swal.fire({ icon: 'success', title: '¡Mesa cobrada!', timer: 1500, showConfirmButton: false });
             }
-        });
+
+            Swal.fire({ icon: 'success', title: '¡Parte cobrada con éxito!', timer: 1500, showConfirmButton: false });
+        }
+    });
+}
+
+function imprimirTicketParcial(itemsParciales, totalParcial) {
+    const ventanaPrint = window.open('', '_print', 'height=600,width=400');
+    ventanaPrint.document.write('<head><title>Ticket Parcial - Mesa ' + mesaActual + '</title><body style="font-family: monospace; padding: 20px;">');
+    ventanaPrint.document.write('<h3 style="text-align:center; margin:0;">SterakFood - Mesa ' + mesaActual + '</h3>');
+    ventanaPrint.document.write('<p style="text-align:center; font-size:0.8rem; margin-top:2px;">(Pago Parcial / Desglose)</p>');
+    ventanaPrint.document.write('<hr>');
+    ventanaPrint.document.write('<ul style="list-style: none; padding: 0;">');
+    itemsParciales.forEach(i => {
+        ventanaPrint.document.write('<li style="display: flex; justify-content: space-between; margin-bottom: 5px;">' + i.cantidad + 'x ' + i.nombre + ' **$' + (i.precio * i.cantidad) + '**</li>');
+    });
+    ventanaPrint.document.write('</ul>');
+    ventanaPrint.document.write('<hr>');
+    ventanaPrint.document.write('<h3 style="text-align:right;">Subtotal Pagado: $' + totalParcial + '</h3>');
+    ventanaPrint.document.write('</body></html>');
+    ventanaPrint.document.close();
+    ventanaPrint.focus();
+    setTimeout(() => { ventanaPrint.print(); ventanaPrint.close(); }, 300);
+}
+
+function imprimirTicket() {
+    if (!mesaActual) return;
+    const cuenta = cuentasMesas[mesaActual];
+    if (cuenta.items.length === 0) {
+        Swal.fire({ icon: 'info', title: 'Mesa Vacía', text: 'No hay productos cargados en esta mesa.' });
+        return;
     }
-</script>
-{% endblock %}
+
+    const ventanaPrint = window.open('', '_print', 'height=600,width=400');
+    ventanaPrint.document.write('<head><title>Ticket Mesa ' + mesaActual + '</title><body style="font-family: monospace; padding: 20px;">');
+    ventanaPrint.document.write('<h3 style="text-align:center; margin:0;">SterakFood - Mesa ' + mesaActual + '</h3>');
+    ventanaPrint.document.write('<hr>');
+    ventanaPrint.document.write('<ul style="list-style: none; padding: 0;">');
+    cuenta.items.forEach(i => {
+        ventanaPrint.document.write('<li style="display: flex; justify-content: space-between; margin-bottom: 5px;">' + i.cantidad + 'x ' + i.nombre + ' **$' + (i.precio * i.cantidad) + '**</li>');
+    });
+    ventanaPrint.document.write('</ul>');
+    ventanaPrint.document.write('<hr>');
+    ventanaPrint.document.write('<h3 style="text-align:right;">Total Pendiente: $' + cuenta.total + '</h3>');
+    ventanaPrint.document.write('</body></html>');
+    ventanaPrint.document.close();
+    ventanaPrint.focus();
+    setTimeout(() => { ventanaPrint.print(); ventanaPrint.close(); }, 300);
+}
+
+function cobrarMesaCompleta() {
+    if (!mesaActual) return;
+    const cuenta = cuentasMesas[mesaActual];
+    if (cuenta.items.length === 0) return;
+
+    Swal.fire({
+        title: `¿Cobrar TODO de la Mesa ${mesaActual}?`,
+        text: `Total restante: $${cuenta.total}`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#198754',
+        confirmButtonText: 'Sí, cobrar todo y liberar mesa'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            cuentasMesas[mesaActual] = { items: [], total: 0 };
+            
+            const cajasMesas = document.querySelectorAll('.mesa-item');
+            if (cajasMesas[mesaActual - 1]) {
+                cajasMesas[mesaActual - 1].classList.remove('mesa-ocupada');
+            }
+            
+            renderizarComanda();
+            areaComanda.style.display = 'none';
+            tituloMesa.textContent = 'Seleccione una mesa';
+            
+            Swal.fire({ icon: 'success', title: '¡Mesa cobrada por completo!', timer: 1500, showConfirmButton: false });
+        }
+    });
+}
