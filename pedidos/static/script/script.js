@@ -941,96 +941,72 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==========================================================================
-// MÓDULO 9: POS DE SALÓN - VERSIÓN FINAL + COMANDA FLOTANTE
+// MÓDULO 9: POS DE SALÓN - LISTA COMPACTA + VENTANA FLOTANTE
 // ==========================================================================
 (function () {
-
     'use strict';
 
-
-    var root =
-        document.getElementById(
-            'salon-pos'
-        );
-
+    var root = document.getElementById('salon-pos');
 
     if (!root) {
         return;
     }
 
-
-    // ======================================================================
-    // PRODUCTOS
-    // ======================================================================
-
-    var productosData =
-        document.getElementById(
-            'salon-productos-data'
-        );
-
-
+    var productosData = document.getElementById('salon-productos-data');
     var productos = [];
 
-
     try {
-
-        productos =
-            JSON.parse(
-                productosData
-                    ? productosData.textContent
-                    : '[]'
-            );
-
+        productos = JSON.parse(
+            productosData
+                ? productosData.textContent
+                : '[]'
+        );
     } catch (error) {
-
         console.error(
-            'No se pudieron leer los productos:',
+            'No se pudieron leer los productos del salón:',
             error
         );
 
         productos = [];
-
     }
 
+    productos = productos.map(
+        function (producto) {
 
-    productos =
-        productos.map(
-            function (producto) {
+            return {
+                id:
+                    Number(
+                        producto.id
+                        ||
+                        0
+                    ),
 
-                return {
+                codigo:
+                    String(
+                        producto.codigo
+                        ||
+                        producto.id
+                        ||
+                        ''
+                    ),
 
-                    id:
-                        Number(
-                            producto.id || 0
-                        ),
+                nombre:
+                    String(
+                        producto.nombre
+                        ||
+                        'Producto'
+                    ),
 
-                    codigo:
-                        String(
-                            producto.codigo
-                            ||
-                            producto.id
-                            ||
-                            ''
-                        ),
+                precio:
+                    Number(
+                        producto.precio
+                        ||
+                        0
+                    )
+            };
 
-                    nombre:
-                        String(
-                            producto.nombre
-                            ||
-                            'Producto'
-                        ),
-
-                    precio:
-                        Number(
-                            producto.precio
-                            ||
-                            0
-                        )
-
-                };
-
-            }
-        );
+        }
+    );
 
 
     // ======================================================================
@@ -1038,17 +1014,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // ======================================================================
 
     var STORAGE_KEY =
-        'sterakfood_salon_cuentas_v3';
+        'sterakfood_salon_cuentas_v5';
 
 
     var STORAGE_ANTERIORES = [
-
+        'sterakfood_salon_cuentas_v4',
+        'sterakfood_salon_cuentas_v3',
         'sterakfood_salon_cuentas_v2',
-
         'sterakfood_salon_cuentas_v1',
-
         'shortyfood_pos_salon_v2'
-
     ];
 
 
@@ -1060,7 +1034,9 @@ document.addEventListener('DOMContentLoaded', () => {
         cargarCuentas();
 
 
-    var mesaActual = null;
+    var mesaActual =
+        cargarUltimaMesa();
+
 
     var sugerencias = [];
 
@@ -1129,6 +1105,12 @@ document.addEventListener('DOMContentLoaded', () => {
         );
 
 
+    var listaVacia =
+        document.getElementById(
+            'salon-lista-vacia'
+        );
+
+
     var totalCuenta =
         document.getElementById(
             'total-cuenta'
@@ -1166,8 +1148,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     var modalComanda =
-        document.querySelector(
-            '.salon-pos__comanda-panel'
+        document.getElementById(
+            'salon-comanda-modal'
         );
 
 
@@ -1183,8 +1165,14 @@ document.addEventListener('DOMContentLoaded', () => {
         );
 
 
+    var btnCerrarComandaInferior =
+        document.getElementById(
+            'btn-cerrar-comanda-inferior'
+        );
+
+
     // ======================================================================
-    // STORAGE
+    // CARGAR / GUARDAR
     // ======================================================================
 
     function cargarCuentas() {
@@ -1211,7 +1199,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     );
 
 
-                if (!guardado) {
+                if (
+                    !guardado
+                ) {
                     continue;
                 }
 
@@ -1225,7 +1215,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (
                     datos
                     &&
-                    typeof datos === 'object'
+                    typeof datos
+                    ===
+                    'object'
                 ) {
 
                     if (
@@ -1265,6 +1257,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
+    function cargarUltimaMesa() {
+
+        try {
+
+            var guardada =
+                localStorage.getItem(
+                    MESA_ACTUAL_KEY
+                );
+
+
+            if (
+                guardada
+            ) {
+
+                return String(
+                    guardada
+                );
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                'No se pudo recuperar la última mesa:',
+                error
+            );
+
+        }
+
+
+        return null;
+
+    }
+
+
     function guardar() {
 
         try {
@@ -1277,7 +1304,9 @@ document.addEventListener('DOMContentLoaded', () => {
             );
 
 
-            if (mesaActual) {
+            if (
+                mesaActual
+            ) {
 
                 localStorage.setItem(
                     MESA_ACTUAL_KEY,
@@ -1301,7 +1330,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ======================================================================
-    // CUENTA
+    // CUENTAS
     // ======================================================================
 
     function normalizarCuenta(
@@ -1329,11 +1358,8 @@ document.addEventListener('DOMContentLoaded', () => {
             cuentas[
                 clave
             ] = {
-
                 items: [],
-
                 total: 0
-
             };
 
         }
@@ -1344,7 +1370,8 @@ document.addEventListener('DOMContentLoaded', () => {
         ].items =
             cuentas[
                 clave
-            ].items.filter(
+            ].items
+            .filter(
                 function (item) {
 
                     return (
@@ -1360,7 +1387,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     );
 
                 }
-            ).map(
+            )
+            .map(
                 function (item) {
 
                     var cantidad =
@@ -1368,6 +1396,14 @@ document.addEventListener('DOMContentLoaded', () => {
                             item.cantidad
                             ||
                             1
+                        );
+
+
+                    var cantPagar =
+                        Number(
+                            item.cant_pagar
+                            ||
+                            cantidad
                         );
 
 
@@ -1381,14 +1417,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             1;
 
                     }
-
-
-                    var cantPagar =
-                        Number(
-                            item.cant_pagar
-                            ||
-                            cantidad
-                        );
 
 
                     if (
@@ -1480,8 +1508,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function cuentaActual() {
 
-        if (!mesaActual) {
+        if (
+            !mesaActual
+        ) {
+
             return null;
+
         }
 
 
@@ -1506,18 +1538,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     return (
                         total
                         +
-                        (
-                            Number(
-                                item.precio
-                                ||
-                                0
-                            )
-                            *
-                            Number(
-                                item.cantidad
-                                ||
-                                0
-                            )
+                        Number(
+                            item.precio
+                            ||
+                            0
+                        )
+                        *
+                        Number(
+                            item.cantidad
+                            ||
+                            0
                         )
                     );
 
@@ -1546,13 +1576,11 @@ document.addEventListener('DOMContentLoaded', () => {
             ).toLocaleString(
                 'es-AR',
                 {
-
                     minimumFractionDigits:
                         0,
 
                     maximumFractionDigits:
                         2
-
                 }
             )
         );
@@ -1594,7 +1622,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ======================================================================
-    // VENTANA FLOTANTE DE LA COMANDA
+    // MODAL
     // ======================================================================
 
     function abrirComanda() {
@@ -1618,16 +1646,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 'is-open'
             );
 
+
+            modalOverlay.setAttribute(
+                'aria-hidden',
+                'false'
+            );
+
         }
 
 
         document.body.style.overflow =
             'hidden';
 
+
+        window.setTimeout(
+            function () {
+
+                if (
+                    buscador
+                ) {
+
+                    buscador.focus();
+
+                }
+
+            },
+            80
+        );
+
     }
 
 
     function cerrarComanda() {
+
+        guardar();
+
 
         if (
             modalComanda
@@ -1648,6 +1701,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 'is-open'
             );
 
+
+            modalOverlay.setAttribute(
+                'aria-hidden',
+                'true'
+            );
+
         }
 
 
@@ -1664,9 +1723,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function seleccionarMesa(
         numero
     ) {
-
-        guardar();
-
 
         mesaActual =
             String(
@@ -1704,24 +1760,13 @@ document.addEventListener('DOMContentLoaded', () => {
             false;
 
 
-        abrirComanda();
-
+        guardar();
 
         actualizarMesas();
 
         render();
 
-        guardar();
-
-
-        window.setTimeout(
-            function () {
-
-                buscador.focus();
-
-            },
-            60
-        );
+        abrirComanda();
 
     }
 
@@ -1747,7 +1792,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     ];
 
 
-                var items = [];
+                var items =
+                    [];
 
 
                 if (
@@ -1786,10 +1832,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     0;
 
 
-                var unidades =
-                    0;
-
-
                 var total =
                     0;
 
@@ -1797,30 +1839,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 items.forEach(
                     function (item) {
 
-                        var cantidad =
+                        total +=
+                            Number(
+                                item.precio
+                                ||
+                                0
+                            )
+                            *
                             Number(
                                 item.cantidad
                                 ||
                                 0
                             );
-
-
-                        var precio =
-                            Number(
-                                item.precio
-                                ||
-                                0
-                            );
-
-
-                        unidades +=
-                            cantidad;
-
-
-                        total +=
-                            precio
-                            *
-                            cantidad;
 
                     }
                 );
@@ -1873,27 +1903,27 @@ document.addEventListener('DOMContentLoaded', () => {
                         +
                         '</span>'
                         +
-                        '<span class="salon-pos__mesa-items">'
-                        +
-                        unidades
-                        +
-                        (
-                            unidades
-                            ===
-                            1
-                                ? ' unidad'
-                                : ' unidades'
-                        )
-                        +
-                        '</span>'
-                        +
-                        '<strong class="salon-pos__mesa-total">'
+                        '<span class="salon-pos__mesa-total">'
                         +
                         dinero(
                             total
                         )
                         +
-                        '</strong>';
+                        '</span>'
+                        +
+                        '<span class="salon-pos__mesa-items">'
+                        +
+                        items.length
+                        +
+                        (
+                            items.length
+                            ===
+                            1
+                                ? ' producto'
+                                : ' productos'
+                        )
+                        +
+                        '</span>';
 
                 } else {
 
@@ -1932,8 +1962,12 @@ document.addEventListener('DOMContentLoaded', () => {
             cuentaActual();
 
 
-        if (!cuenta) {
+        if (
+            !cuenta
+        ) {
+
             return;
+
         }
 
 
@@ -1995,7 +2029,9 @@ document.addEventListener('DOMContentLoaded', () => {
             );
 
 
-        if (existente) {
+        if (
+            existente
+        ) {
 
             existente.cantidad +=
                 cantidad;
@@ -2012,30 +2048,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } else {
 
-            cuenta.items.push({
+            cuenta.items.push(
+                {
 
-                producto_id:
-                    producto.id,
+                    producto_id:
+                        producto.id,
 
-                codigo:
-                    producto.codigo,
+                    codigo:
+                        producto.codigo,
 
-                nombre:
-                    producto.nombre,
+                    nombre:
+                        producto.nombre,
 
-                precio:
-                    producto.precio,
+                    precio:
+                        producto.precio,
 
-                cantidad:
-                    cantidad,
+                    cantidad:
+                        cantidad,
 
-                seleccionado:
-                    false,
+                    seleccionado:
+                        false,
 
-                cant_pagar:
-                    cantidad
+                    cant_pagar:
+                        cantidad
 
-            });
+                }
+            );
 
         }
 
@@ -2085,14 +2123,21 @@ document.addEventListener('DOMContentLoaded', () => {
             .toLowerCase();
 
 
-        if (!texto) {
+        if (
+            !texto
+        ) {
+
             return [];
+
         }
 
 
-        var exactos = [];
+        var exactos =
+            [];
 
-        var otros = [];
+
+        var otros =
+            [];
 
 
         productos.forEach(
@@ -2103,13 +2148,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 var codigo =
                     String(
                         producto.codigo
-                    ).toLowerCase();
+                    )
+                    .toLowerCase();
 
 
                 var nombre =
                     String(
                         producto.nombre
-                    ).toLowerCase();
+                    )
+                    .toLowerCase();
 
 
                 if (
@@ -2168,19 +2215,23 @@ document.addEventListener('DOMContentLoaded', () => {
         );
 
 
-        return exactos.concat(
-            otros
-        ).slice(
-            0,
-            8
-        );
+        return exactos
+            .concat(
+                otros
+            )
+            .slice(
+                0,
+                8
+            );
 
     }
 
 
     function cerrarSugerencias() {
 
-        sugerencias = [];
+        sugerencias =
+            [];
+
 
         sugerenciaActiva =
             -1;
@@ -2285,7 +2336,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ======================================================================
-    // SELECCIÓN
+    // SELECCIÓN PARA PAGO
     // ======================================================================
 
     function resumenSeleccion(
@@ -2358,13 +2409,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         return {
-
             cantidad:
                 cantidad,
 
             total:
                 total
-
         };
 
     }
@@ -2440,6 +2489,15 @@ document.addEventListener('DOMContentLoaded', () => {
             ];
 
 
+        if (
+            !item.seleccionado
+        ) {
+
+            return;
+
+        }
+
+
         var cantidad =
             Number(
                 item.cant_pagar
@@ -2486,7 +2544,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ======================================================================
-    // CAMBIAR CANTIDAD EN MESA
+    // CANTIDAD EN LA MESA
     // ======================================================================
 
     function cambiarCantidad(
@@ -2532,18 +2590,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 1
             );
 
-        } else {
+        } else if (
+            item.cant_pagar
+            >
+            item.cantidad
+        ) {
 
-            if (
-                item.cant_pagar
-                >
-                item.cantidad
-            ) {
-
-                item.cant_pagar =
-                    item.cantidad;
-
-            }
+            item.cant_pagar =
+                item.cantidad;
 
         }
 
@@ -2563,7 +2617,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ======================================================================
-    // RENDER
+    // RENDER DE LA LISTA
     // ======================================================================
 
     function render() {
@@ -2572,8 +2626,12 @@ document.addEventListener('DOMContentLoaded', () => {
             cuentaActual();
 
 
-        if (!cuenta) {
+        if (
+            !cuenta
+        ) {
+
             return;
+
         }
 
 
@@ -2587,15 +2645,17 @@ document.addEventListener('DOMContentLoaded', () => {
         ) {
 
             listaComanda.innerHTML =
-                '<li class="salon-pos__lista-vacia">'
-                +
-                    '<strong>Mesa vacía</strong>'
-                    +
-                    '<span>Buscá un producto arriba y presioná Enter.</span>'
-                +
-                '</li>';
+                '';
+
+
+            listaVacia.hidden =
+                false;
 
         } else {
+
+            listaVacia.hidden =
+                true;
+
 
             var html =
                 '';
@@ -2614,7 +2674,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
                     html +=
-                        '<li class="salon-pos__item-comanda'
+                        '<div class="salon-pos__fila-pos'
                         +
                         clase
                         +
@@ -2626,73 +2686,59 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
                     html +=
-                        '<div class="salon-pos__item-top">';
+                        '<div class="salon-pos__fila-cant" data-no-toggle="1">'
+                        +
+                            '<button type="button" data-action="restar" data-index="'
+                            +
+                            index
+                            +
+                            '">−</button>'
+                            +
+                            '<strong>'
+                            +
+                            item.cantidad
+                            +
+                            '</strong>'
+                            +
+                            '<button type="button" data-action="sumar" data-index="'
+                            +
+                            index
+                            +
+                            '">+</button>'
+                        +
+                        '</div>';
 
 
                     html +=
-                        '<div class="salon-pos__item-info">'
+                        '<div class="salon-pos__fila-codigo">'
                         +
-                            '<div class="salon-pos__item-name">'
+                        escapar(
+                            item.codigo
+                        )
+                        +
+                        '</div>';
+
+
+                    html +=
+                        '<div class="salon-pos__fila-descripcion">'
+                        +
+                            '<strong>'
                             +
                             escapar(
                                 item.nombre
                             )
                             +
-                            '</div>'
+                            '</strong>'
                             +
-                            '<div class="salon-pos__item-price">'
+                            '<small>'
                             +
                             dinero(
                                 item.precio
                             )
                             +
-                            ' c/u · Código '
+                            ' c/u'
                             +
-                            escapar(
-                                item.codigo
-                            )
-                            +
-                            '</div>'
-                        +
-                        '</div>';
-
-
-                    html +=
-                        '<div class="salon-pos__item-side" data-no-toggle="1">'
-                        +
-                            '<span class="salon-pos__en-mesa">'
-                            +
-                            'EN MESA'
-                            +
-                            '</span>'
-                            +
-                            '<div class="salon-pos__cantidad-control">'
-                            +
-                                '<button type="button" class="salon-pos__cantidad-btn" data-action="restar" data-index="'
-                                +
-                                index
-                                +
-                                '">−</button>'
-                                +
-                                '<strong class="salon-pos__cantidad-numero">'
-                                +
-                                item.cantidad
-                                +
-                                '</strong>'
-                                +
-                                '<button type="button" class="salon-pos__cantidad-btn" data-action="sumar" data-index="'
-                                +
-                                index
-                                +
-                                '">+</button>'
-                            +
-                            '</div>'
-                        +
-                        '</div>';
-
-
-                    html +=
-                        '</div>';
+                            '</small>';
 
 
                     if (
@@ -2700,39 +2746,33 @@ document.addEventListener('DOMContentLoaded', () => {
                     ) {
 
                         html +=
-                            '<div class="salon-pos__cobro-inline" data-no-toggle="1">'
+                            '<div class="salon-pos__pago-inline" data-no-toggle="1">'
                             +
-                                '<span class="salon-pos__cobro-label">'
+                                '<span>Cobrar</span>'
                                 +
-                                'COBRAR'
-                                +
-                                '</span>'
-                                +
-                                '<button type="button" class="salon-pos__mini-btn" data-action="pagar-menos" data-index="'
+                                '<button type="button" data-action="pagar-menos" data-index="'
                                 +
                                 index
                                 +
                                 '">−</button>'
                                 +
-                                '<strong class="salon-pos__cobro-numero">'
+                                '<strong>'
                                 +
                                 item.cant_pagar
                                 +
                                 '</strong>'
                                 +
-                                '<button type="button" class="salon-pos__mini-btn" data-action="pagar-mas" data-index="'
+                                '<button type="button" data-action="pagar-mas" data-index="'
                                 +
                                 index
                                 +
                                 '">+</button>'
                                 +
-                                '<span class="salon-pos__cobro-de">'
-                                +
-                                'de '
+                                '<small>de '
                                 +
                                 item.cantidad
                                 +
-                                '</span>'
+                                '</small>'
                             +
                             '</div>';
 
@@ -2740,7 +2780,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
                     html +=
-                        '</li>';
+                        '</div>';
+
+
+                    html +=
+                        '<div class="salon-pos__fila-total">'
+                        +
+                        dinero(
+                            item.precio
+                            *
+                            item.cantidad
+                        )
+                        +
+                        '</div>';
+
+
+                    html +=
+                        '</div>';
 
                 }
             );
@@ -2797,7 +2853,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
             btnAccion.textContent =
-                'Cobrar selección · '
+                '💵 Pagar selección · '
                 +
                 dinero(
                     resumen.total
@@ -2822,7 +2878,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         +
                         mesaActual
                         +
-                        ' · total restante'
+                        ' · '
+                        +
+                        cuenta.items.length
+                        +
+                        (
+                            cuenta.items.length
+                            ===
+                            1
+                                ? ' producto'
+                                : ' productos'
+                        )
                     )
                     : 'Mesa sin productos';
 
@@ -2838,13 +2904,13 @@ document.addEventListener('DOMContentLoaded', () => {
             btnAccion.textContent =
                 cuenta.items.length
                     ? (
-                        'Cobrar mesa · '
+                        '💵 Pagar mesa · '
                         +
                         dinero(
                             cuenta.total
                         )
                     )
-                    : 'Cobrar mesa';
+                    : '💵 Pagar mesa';
 
 
             btnAccion.classList.add(
@@ -2879,7 +2945,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ======================================================================
-    // CSRF
+    // TICKET
     // ======================================================================
 
     function obtenerCsrf() {
@@ -2896,10 +2962,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     }
 
-
-    // ======================================================================
-    // ITEMS DEL TICKET
-    // ======================================================================
 
     function obtenerItemsTicket(
         cuenta,
@@ -2936,24 +2998,26 @@ document.addEventListener('DOMContentLoaded', () => {
                         );
 
 
-                items.push({
+                items.push(
+                    {
 
-                    producto_id:
-                        item.producto_id,
+                        producto_id:
+                            item.producto_id,
 
-                    codigo:
-                        item.codigo,
+                        codigo:
+                            item.codigo,
 
-                    nombre:
-                        item.nombre,
+                        nombre:
+                            item.nombre,
 
-                    precio:
-                        item.precio,
+                        precio:
+                            item.precio,
 
-                    cantidad:
-                        cantidad
+                        cantidad:
+                            cantidad
 
-                });
+                    }
+                );
 
             }
         );
@@ -2964,10 +3028,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    // ======================================================================
-    // ENVIAR A DJANGO / TICKETERA
-    // ======================================================================
-
     function enviarTicket(
         items,
         tipo
@@ -2977,6 +3037,19 @@ document.addEventListener('DOMContentLoaded', () => {
             root.getAttribute(
                 'data-print-url'
             );
+
+
+        if (
+            !url
+        ) {
+
+            return Promise.reject(
+                new Error(
+                    'No se encontró la URL de impresión.'
+                )
+            );
+
+        }
 
 
         enviando =
@@ -2993,29 +3066,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 method:
                     'POST',
 
-                headers: {
+                headers:
+                    {
 
-                    'Content-Type':
-                        'application/json',
+                        'Content-Type':
+                            'application/json',
 
-                    'X-CSRFToken':
-                        obtenerCsrf()
+                        'X-CSRFToken':
+                            obtenerCsrf()
 
-                },
+                    },
 
                 body:
-                    JSON.stringify({
+                    JSON.stringify(
+                        {
 
-                        mesa:
-                            mesaActual,
+                            mesa:
+                                mesaActual,
 
-                        tipo:
-                            tipo,
+                            tipo:
+                                tipo,
 
-                        items:
-                            items
+                            items:
+                                items
 
-                    })
+                        }
+                    )
 
             }
         )
@@ -3034,7 +3110,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     )
                     .then(
-                        function (data) {
+                        function (
+                            data
+                        ) {
 
                             if (
                                 !response.ok
@@ -3066,6 +3144,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 enviando =
                     false;
 
+
                 render();
 
             }
@@ -3078,33 +3157,31 @@ document.addEventListener('DOMContentLoaded', () => {
         error
     ) {
 
-        Swal.fire({
+        Swal.fire(
+            {
 
-            icon:
-                'error',
+                icon:
+                    'error',
 
-            title:
-                'No se pudo completar',
+                title:
+                    'No se pudo completar',
 
-            text:
-                error.message
-                ||
-                'Ocurrió un error.',
+                text:
+                    error.message
+                    ||
+                    'Ocurrió un error.',
 
-            background:
-                '#12151b',
+                background:
+                    '#12151b',
 
-            color:
-                '#f5f7fa'
+                color:
+                    '#f5f7fa'
 
-        });
+            }
+        );
 
     }
 
-
-    // ======================================================================
-    // IMPRIMIR
-    // ======================================================================
 
     function imprimirMesa() {
 
@@ -3126,39 +3203,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         enviarTicket(
-
             obtenerItemsTicket(
                 cuenta,
                 false
             ),
-
             'cuenta_mesa'
-
         )
         .then(
             function () {
 
-                Swal.fire({
+                Swal.fire(
+                    {
 
-                    icon:
-                        'success',
+                        icon:
+                            'success',
 
-                    title:
-                        'Ticket enviado',
+                        title:
+                            'Ticket enviado',
 
-                    timer:
-                        1200,
+                        timer:
+                            1200,
 
-                    showConfirmButton:
-                        false,
+                        showConfirmButton:
+                            false,
 
-                    background:
-                        '#12151b',
+                        background:
+                            '#12151b',
 
-                    color:
-                        '#f5f7fa'
+                        color:
+                            '#f5f7fa'
 
-                });
+                    }
+                );
 
             }
         )
@@ -3201,49 +3277,51 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
 
-        Swal.fire({
+        Swal.fire(
+            {
 
-            title:
-                'Cobrar '
-                +
-                dinero(
-                    resumen.total
-                )
-                +
-                '?',
+                title:
+                    'Cobrar '
+                    +
+                    dinero(
+                        resumen.total
+                    )
+                    +
+                    '?',
 
-            text:
-                'Se descontará solamente la selección de la Mesa '
-                +
-                mesaActual
-                +
-                '.',
+                text:
+                    'Se descontará la selección de la Mesa '
+                    +
+                    mesaActual
+                    +
+                    '.',
 
-            icon:
-                'question',
+                icon:
+                    'question',
 
-            showCancelButton:
-                true,
+                showCancelButton:
+                    true,
 
-            confirmButtonColor:
-                '#f59e0b',
+                confirmButtonColor:
+                    '#f59e0b',
 
-            cancelButtonColor:
-                '#59616e',
+                cancelButtonColor:
+                    '#59616e',
 
-            confirmButtonText:
-                'Sí, cobrar',
+                confirmButtonText:
+                    'Sí, cobrar',
 
-            cancelButtonText:
-                'Cancelar',
+                cancelButtonText:
+                    'Cancelar',
 
-            background:
-                '#12151b',
+                background:
+                    '#12151b',
 
-            color:
-                '#f5f7fa'
+                color:
+                    '#f5f7fa'
 
-        })
+            }
+        )
         .then(
             function (
                 resultado
@@ -3330,27 +3408,29 @@ document.addEventListener('DOMContentLoaded', () => {
                         render();
 
 
-                        Swal.fire({
+                        Swal.fire(
+                            {
 
-                            icon:
-                                'success',
+                                icon:
+                                    'success',
 
-                            title:
-                                'Pago parcial cobrado',
+                                title:
+                                    'Pago parcial cobrado',
 
-                            timer:
-                                1200,
+                                timer:
+                                    1200,
 
-                            showConfirmButton:
-                                false,
+                                showConfirmButton:
+                                    false,
 
-                            background:
-                                '#12151b',
+                                background:
+                                    '#12151b',
 
-                            color:
-                                '#f5f7fa'
+                                color:
+                                    '#f5f7fa'
 
-                        });
+                            }
+                        );
 
                     }
                 )
@@ -3365,7 +3445,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ======================================================================
-    // COBRAR MESA COMPLETA
+    // COBRO COMPLETO
     // ======================================================================
 
     function cobrarMesa() {
@@ -3389,47 +3469,49 @@ document.addEventListener('DOMContentLoaded', () => {
             mesaActual;
 
 
-        Swal.fire({
+        Swal.fire(
+            {
 
-            title:
-                'Cobrar Mesa '
-                +
-                numeroMesa
-                +
-                '?',
+                title:
+                    'Cobrar Mesa '
+                    +
+                    numeroMesa
+                    +
+                    '?',
 
-            text:
-                'Total: '
-                +
-                dinero(
-                    cuenta.total
-                ),
+                text:
+                    'Total: '
+                    +
+                    dinero(
+                        cuenta.total
+                    ),
 
-            icon:
-                'question',
+                icon:
+                    'question',
 
-            showCancelButton:
-                true,
+                showCancelButton:
+                    true,
 
-            confirmButtonColor:
-                '#22c55e',
+                confirmButtonColor:
+                    '#22c55e',
 
-            cancelButtonColor:
-                '#59616e',
+                cancelButtonColor:
+                    '#59616e',
 
-            confirmButtonText:
-                'Sí, cobrar y liberar',
+                confirmButtonText:
+                    'Sí, cobrar y liberar',
 
-            cancelButtonText:
-                'Cancelar',
+                cancelButtonText:
+                    'Cancelar',
 
-            background:
-                '#12151b',
+                background:
+                    '#12151b',
 
-            color:
-                '#f5f7fa'
+                color:
+                    '#f5f7fa'
 
-        })
+            }
+        )
         .then(
             function (
                 resultado
@@ -3445,14 +3527,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
                 enviarTicket(
-
                     obtenerItemsTicket(
                         cuenta,
                         false
                     ),
-
                     'mesa_completa'
-
                 )
                 .then(
                     function () {
@@ -3461,9 +3540,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             numeroMesa
                         ] = {
 
-                            items: [],
+                            items:
+                                [],
 
-                            total: 0
+                            total:
+                                0
 
                         };
 
@@ -3475,27 +3556,29 @@ document.addEventListener('DOMContentLoaded', () => {
                         render();
 
 
-                        Swal.fire({
+                        Swal.fire(
+                            {
 
-                            icon:
-                                'success',
+                                icon:
+                                    'success',
 
-                            title:
-                                'Mesa liberada',
+                                title:
+                                    'Mesa liberada',
 
-                            timer:
-                                1200,
+                                timer:
+                                    1200,
 
-                            showConfirmButton:
-                                false,
+                                showConfirmButton:
+                                    false,
 
-                            background:
-                                '#12151b',
+                                background:
+                                    '#12151b',
 
-                            color:
-                                '#f5f7fa'
+                                color:
+                                    '#f5f7fa'
 
-                        });
+                            }
+                        );
 
                     }
                 )
@@ -3514,7 +3597,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // ======================================================================
 
     botonesMesa.forEach(
-        function (boton) {
+        function (
+            boton
+        ) {
 
             boton.addEventListener(
                 'click',
@@ -3561,7 +3646,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     buscador.addEventListener(
         'keydown',
-        function (event) {
+        function (
+            event
+        ) {
 
             if (
                 event.key
@@ -3572,6 +3659,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ) {
 
                 event.preventDefault();
+
 
                 sugerenciaActiva++;
 
@@ -3604,6 +3692,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ) {
 
                 event.preventDefault();
+
 
                 sugerenciaActiva--;
 
@@ -3679,7 +3768,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     listaSugerencias.addEventListener(
         'click',
-        function (event) {
+        function (
+            event
+        ) {
 
             var item =
                 event.target.closest(
@@ -3687,8 +3778,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 );
 
 
-            if (!item) {
+            if (
+                !item
+            ) {
+
                 return;
+
             }
 
 
@@ -3719,12 +3814,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ======================================================================
-    // EVENTOS DE PRODUCTOS
+    // EVENTOS DE LA LISTA
     // ======================================================================
 
     listaComanda.addEventListener(
         'click',
-        function (event) {
+        function (
+            event
+        ) {
 
             var boton =
                 event.target.closest(
@@ -3732,7 +3829,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 );
 
 
-            if (boton) {
+            if (
+                boton
+            ) {
 
                 event.stopPropagation();
 
@@ -3825,11 +3924,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             var fila =
                 event.target.closest(
-                    '.salon-pos__item-comanda'
+                    '.salon-pos__fila-pos'
                 );
 
 
-            if (fila) {
+            if (
+                fila
+            ) {
 
                 toggleSeleccion(
                     Number(
@@ -3892,10 +3993,6 @@ document.addEventListener('DOMContentLoaded', () => {
     );
 
 
-    // ======================================================================
-    // TICKET
-    // ======================================================================
-
     btnTicket.addEventListener(
         'click',
         imprimirMesa
@@ -3903,29 +4000,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ======================================================================
-    // CERRAR SUGERENCIAS
-    // ======================================================================
-
-    document.addEventListener(
-        'click',
-        function (event) {
-
-            if (
-                !event.target.closest(
-                    '.salon-pos__field--buscador'
-                )
-            ) {
-
-                cerrarSugerencias();
-
-            }
-
-        }
-    );
-
-
-    // ======================================================================
-    // EVENTOS DE LA VENTANA FLOTANTE
+    // CERRAR MODAL
     // ======================================================================
 
     if (
@@ -3933,6 +4008,18 @@ document.addEventListener('DOMContentLoaded', () => {
     ) {
 
         btnCerrarComanda.addEventListener(
+            'click',
+            cerrarComanda
+        );
+
+    }
+
+
+    if (
+        btnCerrarComandaInferior
+    ) {
+
+        btnCerrarComandaInferior.addEventListener(
             'click',
             cerrarComanda
         );
@@ -3954,15 +4041,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener(
         'keydown',
-        function (event) {
+        function (
+            event
+        ) {
 
             if (
                 event.key
-                ===
+                !==
                 'Escape'
             ) {
 
+                return;
+
+            }
+
+
+            if (
+                listaSugerencias.classList.contains(
+                    'is-visible'
+                )
+            ) {
+
+                cerrarSugerencias();
+
+            } else {
+
                 cerrarComanda();
+
+            }
+
+        }
+    );
+
+
+    document.addEventListener(
+        'click',
+        function (
+            event
+        ) {
+
+            if (
+                !event.target.closest(
+                    '.salon-pos__field--buscador'
+                )
+            ) {
+
+                cerrarSugerencias();
 
             }
 
@@ -3976,21 +4100,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.addEventListener(
         'pagehide',
-        function () {
-
-            guardar();
-
-        }
+        guardar
     );
 
 
     window.addEventListener(
         'beforeunload',
-        function () {
-
-            guardar();
-
-        }
+        guardar
     );
 
 
@@ -3998,41 +4114,53 @@ document.addEventListener('DOMContentLoaded', () => {
     // INICIO
     // ======================================================================
 
-    actualizarMesas();
+    if (
+        mesaActual
+        &&
+        document.querySelector(
+            '.salon-pos__mesa[data-mesa="'
+            +
+            mesaActual
+            +
+            '"]'
+        )
+    ) {
 
-
-    try {
-
-        var ultimaMesa =
-            localStorage.getItem(
-                MESA_ACTUAL_KEY
-            );
-
-
-        if (
-            ultimaMesa
-            &&
-            document.querySelector(
-                '.salon-pos__mesa[data-mesa="'
-                +
-                ultimaMesa
-                +
-                '"]'
-            )
-        ) {
-
-            seleccionarMesa(
-                ultimaMesa
-            );
-
-        }
-
-    } catch (error) {
-
-        console.warn(
-            'No se pudo restaurar la última mesa:',
-            error
+        normalizarCuenta(
+            mesaActual
         );
+
+
+        tituloMesa.textContent =
+            'Mesa '
+            +
+            mesaActual;
+
+
+        estadoMesa.textContent =
+            'MESA '
+            +
+            mesaActual;
+
+
+        mensajeSeleccionar.hidden =
+            true;
+
+
+        mensajeSeleccionar.classList.add(
+            'is-hidden'
+        );
+
+
+        areaComanda.hidden =
+            false;
+
+
+        render();
+
+    } else {
+
+        actualizarMesas();
 
     }
 

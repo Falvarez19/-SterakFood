@@ -88,20 +88,12 @@
     </section>
 
 
-    <!-- =====================================================
-         OVERLAY
-         ===================================================== -->
-
     <div
         id="salon-modal-overlay"
         class="salon-pos__modal-overlay"
         aria-hidden="true"
     ></div>
 
-
-    <!-- =====================================================
-         COMANDA FLOTANTE
-         ===================================================== -->
 
     <aside
         id="salon-comanda-modal"
@@ -110,8 +102,6 @@
         aria-modal="true"
         aria-labelledby="titulo-mesa"
     >
-
-        <!-- HEADER -->
 
         <div class="salon-pos__comanda-header salon-pos__comanda-header--pos">
 
@@ -165,8 +155,6 @@
         </div>
 
 
-        <!-- SIN MESA -->
-
         <div
             id="mensaje-seleccionar-mesa"
             class="salon-pos__empty-state"
@@ -191,15 +179,11 @@
         </div>
 
 
-        <!-- COMANDA -->
-
         <div
             id="area-comanda"
             class="salon-pos__area-comanda"
             hidden
         >
-
-            <!-- BUSCADOR -->
 
             <div class="salon-pos__carga-rapida salon-pos__carga-rapida--pos">
 
@@ -225,17 +209,16 @@
                 <div class="salon-pos__field salon-pos__field--buscador">
 
                     <label for="buscador">
-                        CÓDIGO / PRODUCTO
+                        CÓDIGO O PRODUCTO
                     </label>
 
                     <input
                         type="text"
                         id="buscador"
                         class="salon-pos__input"
-                        placeholder="Ej: 157 o Coca..."
+                        placeholder="157 o Coca..."
                         autocomplete="off"
                     >
-
 
                     <ul
                         id="lista-sugerencias"
@@ -248,44 +231,33 @@
             </div>
 
 
-            <!-- TABLA -->
+            <div class="salon-pos__lista-wrap">
 
-            <div class="salon-pos__tabla-wrap">
+                <div class="salon-pos__lista-head">
 
-                <table class="salon-pos__tabla">
+                    <span class="col-cant">
+                        Cant.
+                    </span>
 
-                    <thead>
+                    <span class="col-codigo">
+                        Código
+                    </span>
 
-                        <tr>
+                    <span class="col-descripcion">
+                        Descripción
+                    </span>
 
-                            <th class="col-cant">
-                                Cant.
-                            </th>
+                    <span class="col-total">
+                        Total
+                    </span>
 
-                            <th class="col-codigo">
-                                Código
-                            </th>
-
-                            <th>
-                                Descripción
-                            </th>
-
-                            <th class="col-unitario">
-                                Unitario
-                            </th>
-
-                            <th class="col-total">
-                                Total
-                            </th>
-
-                        </tr>
-
-                    </thead>
+                </div>
 
 
-                    <tbody id="lista-comanda"></tbody>
-
-                </table>
+                <div
+                    id="lista-comanda"
+                    class="salon-pos__lista-pos"
+                ></div>
 
 
                 <div
@@ -305,8 +277,6 @@
 
             </div>
 
-
-            <!-- RESUMEN -->
 
             <div class="salon-pos__estado-seleccion">
 
@@ -340,8 +310,6 @@
 
             </div>
 
-
-            <!-- BOTONES -->
 
             <div class="salon-pos__actionbar salon-pos__actionbar--pos">
 
