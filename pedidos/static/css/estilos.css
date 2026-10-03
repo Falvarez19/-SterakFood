@@ -2207,3 +2207,273 @@ input[type="radio"] + label, input[type="checkbox"] + label, label:has(input[typ
     }
 
 }
+
+/* ==========================================================================
+   POS SALÓN - COMANDA FLOTANTE + SCROLL INTERNO
+   ========================================================================== */
+
+/* Panel derecho tipo ventana flotante */
+.salon-pos__comanda-panel {
+    position: sticky;
+    top: 100px;
+
+    height: calc(100vh - 120px);
+    max-height: calc(100vh - 120px);
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+
+    border: 1px solid var(--salon-border);
+    border-radius: 22px;
+
+    background: #11151b;
+
+    box-shadow:
+        0 18px 50px rgba(0, 0, 0, 0.35);
+
+    padding: 22px;
+}
+
+
+/* Cabecera siempre visible */
+.salon-pos__comanda-header {
+    flex: 0 0 auto;
+}
+
+
+/* Área interna */
+.salon-pos__area-comanda:not([hidden]) {
+    display: flex;
+    flex-direction: column;
+
+    flex: 1 1 auto;
+
+    min-height: 0;
+    overflow: hidden;
+}
+
+
+/* Buscador siempre arriba */
+.salon-pos__carga-rapida {
+    flex: 0 0 auto;
+
+    margin-bottom: 12px;
+}
+
+
+/* Título de cuenta siempre visible */
+.salon-pos__cuenta-header--compacta {
+    flex: 0 0 auto;
+
+    margin-bottom: 10px;
+}
+
+
+/* ==========================================================================
+   LISTA DE PRODUCTOS SCROLLEABLE
+   ========================================================================== */
+
+.salon-pos__lista-comanda {
+    flex: 1 1 auto;
+
+    min-height: 0;
+
+    max-height: none !important;
+
+    overflow-y: auto !important;
+    overflow-x: hidden;
+
+    overscroll-behavior: contain;
+
+    scroll-behavior: smooth;
+
+    padding:
+        4px
+        7px
+        12px
+        0;
+
+    margin:
+        0;
+
+    gap: 8px;
+}
+
+
+/* Scrollbar prolijo */
+.salon-pos__lista-comanda::-webkit-scrollbar {
+    width: 8px;
+}
+
+
+.salon-pos__lista-comanda::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+
+.salon-pos__lista-comanda::-webkit-scrollbar-thumb {
+    background: #343a44;
+
+    border-radius: 20px;
+}
+
+
+.salon-pos__lista-comanda::-webkit-scrollbar-thumb:hover {
+    background: var(--salon-orange);
+}
+
+
+/* Firefox */
+.salon-pos__lista-comanda {
+    scrollbar-width: thin;
+    scrollbar-color:
+        #343a44
+        transparent;
+}
+
+
+/* ==========================================================================
+   PRODUCTOS MÁS COMPACTOS
+   ========================================================================== */
+
+.salon-pos__item-comanda {
+    flex: 0 0 auto;
+
+    padding: 10px 13px;
+
+    border-radius: 12px;
+}
+
+
+.salon-pos__item-name {
+    font-size: 0.93rem;
+}
+
+
+.salon-pos__item-price {
+    font-size: 0.69rem;
+}
+
+
+/* ==========================================================================
+   BARRA INFERIOR SIEMPRE VISIBLE
+   ========================================================================== */
+
+.salon-pos__actionbar {
+    position: relative !important;
+
+    flex: 0 0 auto;
+
+    bottom: auto;
+
+    z-index: 20;
+
+    margin:
+        0 -22px -22px;
+
+    padding:
+        12px
+        22px
+        18px;
+
+    border-top:
+        1px solid var(--salon-border);
+
+    background: #11151b;
+
+    box-shadow:
+        0 -12px 30px
+        rgba(0, 0, 0, 0.22);
+}
+
+
+/* ==========================================================================
+   PANTALLAS MÁS BAJAS
+   ========================================================================== */
+
+@media (max-height: 800px) {
+
+    .salon-pos__comanda-panel {
+        top: 92px;
+
+        height: calc(100vh - 105px);
+
+        max-height: calc(100vh - 105px);
+
+        padding-top: 16px;
+    }
+
+
+    .salon-pos__comanda-header {
+        margin-bottom: 8px;
+    }
+
+
+    .salon-pos__comanda-header h2 {
+        margin-top: 4px;
+        margin-bottom: 5px;
+    }
+
+
+    .salon-pos__carga-rapida {
+        margin-bottom: 8px;
+    }
+
+
+    .salon-pos__cuenta-header--compacta {
+        padding-top: 9px;
+        padding-bottom: 8px;
+
+        margin-bottom: 7px;
+    }
+
+}
+
+
+/* ==========================================================================
+   TABLET / CELULAR
+   ========================================================================== */
+
+@media (max-width: 1080px) {
+
+    .salon-pos__comanda-panel {
+        position: relative;
+
+        top: auto;
+
+        height: 680px;
+        max-height: 80vh;
+    }
+
+}
+
+
+@media (max-width: 680px) {
+
+    .salon-pos__comanda-panel {
+        height: calc(100vh - 110px);
+        max-height: calc(100vh - 110px);
+
+        padding:
+            16px;
+    }
+
+
+    .salon-pos__actionbar {
+        margin:
+            0 -16px -16px;
+
+        padding:
+            11px
+            16px
+            15px;
+    }
+
+
+    .salon-pos__lista-comanda {
+        padding-right: 5px;
+    }
+
+}
