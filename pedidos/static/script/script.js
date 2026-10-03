@@ -939,3 +939,2787 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(err => console.log("Error al recuperar el carrito:", err));
     }
 });
+
+// ==========================================================================
+// MÓDULO 9: POS DE SALÓN
+// ==========================================================================
+
+(function () {
+    'use strict';
+
+    var salonRoot = document.getElementById('salon-pos');
+
+    if (!salonRoot) {
+        return;
+    }
+
+
+    // =========================================================
+    // PRODUCTOS DESDE DJANGO
+    // =========================================================
+
+    var productosData = document.getElementById('salon-productos-data');
+    var productosSalon = [];
+
+    if (productosData) {
+
+        try {
+
+            productosSalon = JSON.parse(
+                productosData.textContent || '[]'
+            );
+
+        } catch (error) {
+
+            console.error(
+                'No se pudieron leer los productos del salón:',
+                error
+            );
+
+            productosSalon = [];
+
+        }
+
+    }
+
+
+    // =========================================================
+    // ESTADO
+    // =========================================================
+
+    var STORAGE_KEY = 'sterakfood_salon_cuentas_v1';
+
+    var mesaActual = null;
+
+    var cuentasMesas = cargarCuentasSalon();
+
+    var indiceSugerencia = -1;
+
+    var resultadosSugerencias = [];
+
+
+    // =========================================================
+    // ELEMENTOS
+    // =========================================================
+
+    var botonesMesa = Array.prototype.slice.call(
+        document.querySelectorAll('.salon-pos__mesa')
+    );
+
+    var tituloMesa =
+        document.getElementById('titulo-mesa');
+
+    var estadoMesa =
+        document.getElementById('estado-mesa');
+
+    var mensajeSeleccionar =
+        document.getElementById('mensaje-seleccionar-mesa');
+
+    var areaComanda =
+        document.getElementById('area-comanda');
+
+    var inputCant =
+        document.getElementById('input-cant');
+
+    var buscador =
+        document.getElementById('buscador');
+
+    var sugerenciasBox =
+        document.getElementById('lista-sugerencias');
+
+    var listaComanda =
+        document.getElementById('lista-comanda');
+
+    var totalCuenta =
+        document.getElementById('total-cuenta');
+
+    var totalSeleccionado =
+        document.getElementById('total-seleccionado');
+
+    var cantidadLineas =
+        document.getElementById('cantidad-lineas');
+
+    var btnCobrarParcial =
+        document.getElementById('btn-cobrar-parcial');
+
+    var btnImprimirMesa =
+        document.getElementById('btn-imprimir-mesa');
+
+    var btnCobrarMesa =
+        document.getElementById('btn-cobrar-mesa');
+
+
+    // =========================================================
+    // INICIO
+    // =========================================================
+
+    normalizarProductosSalon();
+
+    actualizarEstadosMesas();
+
+    registrarEventosSalon();
+
+
+    // =========================================================
+    // NORMALIZAR PRODUCTOS
+    // =========================================================
+
+    function normalizarProductosSalon() {
+
+        productosSalon = productosSalon.map(
+            function (producto) {
+
+                return {
+
+                    codigo: String(
+                        producto.codigo || ''
+                    ),
+
+                    nombre: String(
+                        producto.nombre || ''
+                    ),
+
+                    precio: Number(
+                        producto.precio || 0
+                    )
+
+                };
+
+            }
+        );
+
+    }
+
+
+    // =========================================================
+    // EVENTOS
+    // =========================================================
+
+    function registrarEventosSalon() {
+
+        botonesMesa.forEach(
+            function (boton) {
+
+                boton.addEventListener(
+                    'click',
+                    function () {
+
+                        seleccionarMesa(
+                            Number(
+                                boton.getAttribute('data-mesa')
+                            )
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+        // ENTER EN CANT -> BUSCADOR
+
+        inputCant.addEventListener(
+            'keydown',
+            function (event) {
+
+                if (event.key === 'Enter') {
+
+                    event.preventDefault();
+
+                    buscador.focus();
+
+                    buscador.select();
+
+                }
+
+            }
+        );
+
+
+        buscador.addEventListener(
+            'input',
+            function () {
+
+                actualizarSugerencias();
+
+            }
+        );
+
+
+        buscador.addEventListener(
+            'keydown',
+            function (event) {
+
+                manejarTecladoBuscador(event);
+
+            }
+        );
+
+
+        document.addEventListener(
+            'click',
+            function (event) {
+
+                if (
+                    !event.target.closest(
+                        '.salon-pos__field--buscador'
+                    )
+                ) {
+
+                    cerrarSugerencias();
+
+                }
+
+            }
+        );
+
+
+        btnCobrarParcial.addEventListener(
+            'click',
+            cobrarSeleccionParcial
+        );
+
+
+        btnImprimirMesa.addEventListener(
+            'click',
+            imprimirTicketMesa
+        );
+
+
+        btnCobrarMesa.addEventListener(
+            'click',
+            cobrarMesaCompletaSalon
+        );
+
+    }
+
+
+    // =========================================================
+    // CUENTA ACTUAL
+    // =========================================================
+
+    function obtenerCuentaActual() {
+
+        if (!mesaActual) {
+            return null;
+        }
+
+
+        if (!cuentasMesas[mesaActual]) {
+
+            cuentasMesas[mesaActual] = {
+
+                items: [],
+
+                total: 0
+
+            };
+
+        }
+
+
+        return cuentasMesas[mesaActual];
+
+    }
+
+
+    // =========================================================
+    // SELECCIONAR MESA
+    // =========================================================
+
+    function seleccionarMesa(numeroMesa) {
+
+        mesaActual = numeroMesa;
+
+        obtenerCuentaActual();
+
+
+        tituloMesa.textContent =
+            'Mesa ' + numeroMesa;
+
+
+        estadoMesa.textContent =
+            'MESA ' + numeroMesa;
+
+
+        estadoMesa.classList.add(
+            'is-activa'
+        );
+
+
+        mensajeSeleccionar.hidden = true;
+
+        areaComanda.hidden = false;
+
+
+        inputCant.value = '1';
+
+        buscador.value = '';
+
+
+        cerrarSugerencias();
+
+        actualizarEstadosMesas();
+
+        renderizarComandaSalon();
+
+
+        window.setTimeout(
+            function () {
+
+                inputCant.focus();
+
+                inputCant.select();
+
+            },
+            50
+        );
+
+    }
+
+
+    // =========================================================
+    // ESTADOS DE MESAS
+    // =========================================================
+
+    function actualizarEstadosMesas() {
+
+        botonesMesa.forEach(
+            function (boton) {
+
+                var numero = Number(
+                    boton.getAttribute('data-mesa')
+                );
+
+
+                var cuenta =
+                    cuentasMesas[numero];
+
+
+                var estaOcupada =
+                    Boolean(
+                        cuenta &&
+                        cuenta.items &&
+                        cuenta.items.length > 0
+                    );
+
+
+                boton.classList.toggle(
+                    'mesa-ocupada',
+                    estaOcupada
+                );
+
+
+                boton.classList.toggle(
+                    'mesa-seleccionada',
+                    numero === mesaActual
+                );
+
+            }
+        );
+
+    }
+
+
+    // =========================================================
+    // BUSCADOR
+    // =========================================================
+
+    function actualizarSugerencias() {
+
+        var texto =
+            buscador.value
+                .trim()
+                .toLowerCase();
+
+
+        indiceSugerencia = -1;
+
+        resultadosSugerencias = [];
+
+
+        limpiarNodo(
+            sugerenciasBox
+        );
+
+
+        if (!texto) {
+
+            cerrarSugerencias();
+
+            return;
+
+        }
+
+
+        resultadosSugerencias =
+            productosSalon.filter(
+                function (producto) {
+
+                    return (
+                        producto.codigo
+                            .toLowerCase()
+                            .indexOf(texto) !== -1
+                        ||
+                        producto.nombre
+                            .toLowerCase()
+                            .indexOf(texto) !== -1
+                    );
+
+                }
+            ).slice(
+                0,
+                15
+            );
+
+
+        if (
+            resultadosSugerencias.length === 0
+        ) {
+
+            cerrarSugerencias();
+
+            return;
+
+        }
+
+
+        resultadosSugerencias.forEach(
+            function (producto, index) {
+
+                var li =
+                    document.createElement('li');
+
+
+                li.setAttribute(
+                    'role',
+                    'option'
+                );
+
+
+                li.setAttribute(
+                    'data-index',
+                    String(index)
+                );
+
+
+                var codigo =
+                    document.createElement('span');
+
+
+                codigo.className =
+                    'sugerencia-codigo';
+
+
+                codigo.textContent =
+                    producto.codigo + ' · ';
+
+
+                var nombre =
+                    document.createElement('span');
+
+
+                nombre.textContent =
+                    producto.nombre;
+
+
+                var precio =
+                    document.createElement('span');
+
+
+                precio.className =
+                    'sugerencia-precio';
+
+
+                precio.textContent =
+                    formatMonto(
+                        producto.precio
+                    );
+
+
+                li.appendChild(
+                    codigo
+                );
+
+
+                li.appendChild(
+                    nombre
+                );
+
+
+                li.appendChild(
+                    precio
+                );
+
+
+                li.addEventListener(
+                    'mousedown',
+                    function (event) {
+
+                        event.preventDefault();
+
+                        confirmarAgregadoSalon(
+                            producto
+                        );
+
+                    }
+                );
+
+
+                sugerenciasBox.appendChild(
+                    li
+                );
+
+            }
+        );
+
+
+        sugerenciasBox.classList.add(
+            'is-open'
+        );
+
+    }
+
+
+    // =========================================================
+    // TECLADO DEL BUSCADOR
+    // =========================================================
+
+    function manejarTecladoBuscador(event) {
+
+        var items =
+            sugerenciasBox.querySelectorAll(
+                'li'
+            );
+
+
+        if (
+            event.key === 'ArrowDown'
+        ) {
+
+            event.preventDefault();
+
+
+            if (
+                items.length === 0
+            ) {
+
+                return;
+
+            }
+
+
+            indiceSugerencia++;
+
+
+            if (
+                indiceSugerencia >=
+                items.length
+            ) {
+
+                indiceSugerencia = 0;
+
+            }
+
+
+            resaltarSugerencia(
+                items
+            );
+
+
+            return;
+
+        }
+
+
+        if (
+            event.key === 'ArrowUp'
+        ) {
+
+            event.preventDefault();
+
+
+            if (
+                items.length === 0
+            ) {
+
+                return;
+
+            }
+
+
+            indiceSugerencia--;
+
+
+            if (
+                indiceSugerencia < 0
+            ) {
+
+                indiceSugerencia =
+                    items.length - 1;
+
+            }
+
+
+            resaltarSugerencia(
+                items
+            );
+
+
+            return;
+
+        }
+
+
+        if (
+            event.key === 'Escape'
+        ) {
+
+            cerrarSugerencias();
+
+            return;
+
+        }
+
+
+        if (
+            event.key === 'Enter'
+        ) {
+
+            event.preventDefault();
+
+
+            if (
+                indiceSugerencia >= 0 &&
+                resultadosSugerencias[
+                    indiceSugerencia
+                ]
+            ) {
+
+                confirmarAgregadoSalon(
+                    resultadosSugerencias[
+                        indiceSugerencia
+                    ]
+                );
+
+                return;
+
+            }
+
+
+            var texto =
+                buscador.value
+                    .trim()
+                    .toLowerCase();
+
+
+            var exacto =
+                productosSalon.find(
+                    function (producto) {
+
+                        return (
+                            producto.codigo
+                                .toLowerCase() === texto
+                            ||
+                            producto.nombre
+                                .toLowerCase() === texto
+                        );
+
+                    }
+                );
+
+
+            if (exacto) {
+
+                confirmarAgregadoSalon(
+                    exacto
+                );
+
+                return;
+
+            }
+
+
+            if (
+                resultadosSugerencias.length === 1
+            ) {
+
+                confirmarAgregadoSalon(
+                    resultadosSugerencias[0]
+                );
+
+            }
+
+        }
+
+    }
+
+
+    function resaltarSugerencia(items) {
+
+        Array.prototype.forEach.call(
+            items,
+            function (item, index) {
+
+                item.classList.toggle(
+                    'activo',
+                    index === indiceSugerencia
+                );
+
+            }
+        );
+
+
+        if (
+            items[indiceSugerencia]
+        ) {
+
+            items[
+                indiceSugerencia
+            ].scrollIntoView({
+
+                block: 'nearest'
+
+            });
+
+        }
+
+    }
+
+
+    function cerrarSugerencias() {
+
+        sugerenciasBox.classList.remove(
+            'is-open'
+        );
+
+
+        limpiarNodo(
+            sugerenciasBox
+        );
+
+
+        indiceSugerencia = -1;
+
+        resultadosSugerencias = [];
+
+    }
+
+
+    // =========================================================
+    // AGREGAR PRODUCTO
+    // =========================================================
+
+    function confirmarAgregadoSalon(producto) {
+
+        if (!mesaActual) {
+            return;
+        }
+
+
+        var cantidad =
+            parseInt(
+                inputCant.value,
+                10
+            );
+
+
+        if (
+            isNaN(cantidad) ||
+            cantidad < 1
+        ) {
+
+            cantidad = 1;
+
+        }
+
+
+        agregarProductoAComanda(
+            producto,
+            cantidad
+        );
+
+
+        inputCant.value = '1';
+
+        buscador.value = '';
+
+
+        cerrarSugerencias();
+
+
+        inputCant.focus();
+
+        inputCant.select();
+
+    }
+
+
+    function agregarProductoAComanda(
+        producto,
+        cantidad
+    ) {
+
+        var cuenta =
+            obtenerCuentaActual();
+
+
+        var existente =
+            cuenta.items.find(
+                function (item) {
+
+                    return (
+                        item.codigo ===
+                        producto.codigo
+                    );
+
+                }
+            );
+
+
+        if (existente) {
+
+            existente.cantidad +=
+                cantidad;
+
+        } else {
+
+            cuenta.items.push({
+
+                codigo:
+                    producto.codigo,
+
+                nombre:
+                    producto.nombre,
+
+                precio:
+                    Number(
+                        producto.precio
+                    ),
+
+                cantidad:
+                    cantidad,
+
+                seleccionado:
+                    false,
+
+                cant_pagar:
+                    cantidad
+
+            });
+
+        }
+
+
+        recalcularCuenta(
+            cuenta
+        );
+
+
+        guardarCuentasSalon();
+
+        actualizarEstadosMesas();
+
+        renderizarComandaSalon();
+
+    }
+
+
+    // =========================================================
+    // CAMBIAR CANTIDAD + / -
+    // =========================================================
+
+    function cambiarCantidadSalon(
+        index,
+        delta
+    ) {
+
+        var cuenta =
+            obtenerCuentaActual();
+
+
+        if (
+            !cuenta ||
+            !cuenta.items[index]
+        ) {
+
+            return;
+
+        }
+
+
+        var item =
+            cuenta.items[index];
+
+
+        item.cantidad += delta;
+
+
+        if (
+            item.cantidad <= 0
+        ) {
+
+            cuenta.items.splice(
+                index,
+                1
+            );
+
+        } else {
+
+            if (
+                !item.cant_pagar ||
+                item.cant_pagar < 1
+            ) {
+
+                item.cant_pagar = 1;
+
+            }
+
+
+            if (
+                item.cant_pagar >
+                item.cantidad
+            ) {
+
+                item.cant_pagar =
+                    item.cantidad;
+
+            }
+
+        }
+
+
+        recalcularCuenta(
+            cuenta
+        );
+
+
+        guardarCuentasSalon();
+
+        actualizarEstadosMesas();
+
+        renderizarComandaSalon();
+
+    }
+
+
+    // =========================================================
+    // SELECCIÓN PAGO PARCIAL
+    // =========================================================
+
+    function toggleSeleccionSalon(
+        index,
+        checked
+    ) {
+
+        var cuenta =
+            obtenerCuentaActual();
+
+
+        if (
+            !cuenta ||
+            !cuenta.items[index]
+        ) {
+
+            return;
+
+        }
+
+
+        var item =
+            cuenta.items[index];
+
+
+        item.seleccionado =
+            checked;
+
+
+        if (checked) {
+
+            item.cant_pagar =
+                item.cantidad;
+
+        }
+
+
+        guardarCuentasSalon();
+
+        renderizarComandaSalon();
+
+    }
+
+
+    function actualizarCantPagarSalon(
+        index,
+        valor,
+        input
+    ) {
+
+        var cuenta =
+            obtenerCuentaActual();
+
+
+        if (
+            !cuenta ||
+            !cuenta.items[index]
+        ) {
+
+            return;
+
+        }
+
+
+        var item =
+            cuenta.items[index];
+
+
+        var cantidad =
+            parseInt(
+                valor,
+                10
+            );
+
+
+        if (
+            isNaN(cantidad) ||
+            cantidad < 1
+        ) {
+
+            cantidad = 1;
+
+        }
+
+
+        if (
+            cantidad >
+            item.cantidad
+        ) {
+
+            cantidad =
+                item.cantidad;
+
+        }
+
+
+        item.cant_pagar =
+            cantidad;
+
+
+        input.value =
+            String(cantidad);
+
+
+        guardarCuentasSalon();
+
+        actualizarTotalSeleccionado();
+
+    }
+
+
+    // =========================================================
+    // RECALCULAR TOTAL
+    // =========================================================
+
+    function recalcularCuenta(cuenta) {
+
+        cuenta.total =
+            cuenta.items.reduce(
+                function (
+                    acumulado,
+                    item
+                ) {
+
+                    return (
+                        acumulado +
+                        Number(
+                            item.precio
+                        ) *
+                        Number(
+                            item.cantidad
+                        )
+                    );
+
+                },
+                0
+            );
+
+    }
+
+
+    // =========================================================
+    // RENDER COMANDA
+    // =========================================================
+
+    function renderizarComandaSalon() {
+
+        var cuenta =
+            obtenerCuentaActual();
+
+
+        if (!cuenta) {
+            return;
+        }
+
+
+        limpiarNodo(
+            listaComanda
+        );
+
+
+        if (
+            cuenta.items.length === 0
+        ) {
+
+            var vacio =
+                document.createElement(
+                    'li'
+                );
+
+
+            vacio.className =
+                'salon-pos__lista-vacia';
+
+
+            vacio.textContent =
+                'Todavía no hay productos cargados en esta mesa.';
+
+
+            listaComanda.appendChild(
+                vacio
+            );
+
+        } else {
+
+            cuenta.items.forEach(
+                function (
+                    item,
+                    index
+                ) {
+
+                    listaComanda.appendChild(
+                        crearItemComanda(
+                            item,
+                            index
+                        )
+                    );
+
+                }
+            );
+
+        }
+
+
+        totalCuenta.textContent =
+            formatMonto(
+                cuenta.total
+            );
+
+
+        cantidadLineas.textContent =
+            cuenta.items.length === 1
+                ? '1 ítem'
+                : cuenta.items.length +
+                  ' ítems';
+
+
+        actualizarTotalSeleccionado();
+
+        actualizarBotonesAccion();
+
+    }
+
+
+    // =========================================================
+    // CREAR FILA DE PRODUCTO
+    // =========================================================
+
+    function crearItemComanda(
+        item,
+        index
+    ) {
+
+        var li =
+            document.createElement(
+                'li'
+            );
+
+
+        li.className =
+            'salon-pos__item-comanda';
+
+
+        if (
+            item.seleccionado
+        ) {
+
+            li.classList.add(
+                'is-seleccionado'
+            );
+
+        }
+
+
+        // IZQUIERDA
+
+        var izquierda =
+            document.createElement(
+                'div'
+            );
+
+
+        izquierda.className =
+            'salon-pos__item-left';
+
+
+        // CHECKBOX
+
+        var check =
+            document.createElement(
+                'input'
+            );
+
+
+        check.type =
+            'checkbox';
+
+
+        check.className =
+            'salon-pos__check';
+
+
+        check.checked =
+            Boolean(
+                item.seleccionado
+            );
+
+
+        check.setAttribute(
+            'aria-label',
+            'Seleccionar ' +
+            item.nombre +
+            ' para pago parcial'
+        );
+
+
+        check.addEventListener(
+            'change',
+            function () {
+
+                toggleSeleccionSalon(
+                    index,
+                    check.checked
+                );
+
+            }
+        );
+
+
+        // INFO
+
+        var info =
+            document.createElement(
+                'div'
+            );
+
+
+        info.className =
+            'salon-pos__item-info';
+
+
+        var nombre =
+            document.createElement(
+                'div'
+            );
+
+
+        nombre.className =
+            'salon-pos__item-name';
+
+
+        nombre.textContent =
+            item.nombre;
+
+
+        var precioUnitario =
+            document.createElement(
+                'div'
+            );
+
+
+        precioUnitario.className =
+            'salon-pos__item-price';
+
+
+        precioUnitario.textContent =
+            formatMonto(
+                item.precio
+            ) +
+            ' c/u · Código ' +
+            item.codigo;
+
+
+        info.appendChild(
+            nombre
+        );
+
+
+        info.appendChild(
+            precioUnitario
+        );
+
+
+        // ¿CUÁNTAS PAGA?
+
+        if (
+            item.seleccionado &&
+            item.cantidad > 1
+        ) {
+
+            var parcial =
+                document.createElement(
+                    'div'
+                );
+
+
+            parcial.className =
+                'salon-pos__parcial-cantidad';
+
+
+            var label =
+                document.createElement(
+                    'label'
+                );
+
+
+            label.textContent =
+                '¿Cuántas paga?';
+
+
+            var inputParcial =
+                document.createElement(
+                    'input'
+                );
+
+
+            inputParcial.type =
+                'number';
+
+
+            inputParcial.className =
+                'salon-pos__input-parcial';
+
+
+            inputParcial.min =
+                '1';
+
+
+            inputParcial.max =
+                String(
+                    item.cantidad
+                );
+
+
+            inputParcial.step =
+                '1';
+
+
+            inputParcial.value =
+                String(
+                    item.cant_pagar ||
+                    item.cantidad
+                );
+
+
+            inputParcial.setAttribute(
+                'aria-label',
+                'Cantidad que paga de ' +
+                item.nombre
+            );
+
+
+            inputParcial.addEventListener(
+                'change',
+                function () {
+
+                    actualizarCantPagarSalon(
+                        index,
+                        inputParcial.value,
+                        inputParcial
+                    );
+
+                }
+            );
+
+
+            inputParcial.addEventListener(
+                'input',
+                function () {
+
+                    var cantidadTemporal =
+                        parseInt(
+                            inputParcial.value,
+                            10
+                        );
+
+
+                    if (
+                        !isNaN(
+                            cantidadTemporal
+                        ) &&
+                        cantidadTemporal >= 1 &&
+                        cantidadTemporal <=
+                            item.cantidad
+                    ) {
+
+                        item.cant_pagar =
+                            cantidadTemporal;
+
+
+                        actualizarTotalSeleccionado();
+
+                    }
+
+                }
+            );
+
+
+            parcial.appendChild(
+                label
+            );
+
+
+            parcial.appendChild(
+                inputParcial
+            );
+
+
+            info.appendChild(
+                parcial
+            );
+
+        }
+
+
+        izquierda.appendChild(
+            check
+        );
+
+
+        izquierda.appendChild(
+            info
+        );
+
+
+        // DERECHA
+
+        var derecha =
+            document.createElement(
+                'div'
+            );
+
+
+        derecha.className =
+            'salon-pos__item-right';
+
+
+        var controlCantidad =
+            document.createElement(
+                'div'
+            );
+
+
+        controlCantidad.className =
+            'salon-pos__cantidad-control';
+
+
+        // BOTÓN MENOS
+
+        var btnMenos =
+            document.createElement(
+                'button'
+            );
+
+
+        btnMenos.type =
+            'button';
+
+
+        btnMenos.className =
+            'salon-pos__cantidad-btn';
+
+
+        btnMenos.textContent =
+            '−';
+
+
+        btnMenos.setAttribute(
+            'aria-label',
+            'Restar una unidad de ' +
+            item.nombre
+        );
+
+
+        btnMenos.addEventListener(
+            'click',
+            function () {
+
+                cambiarCantidadSalon(
+                    index,
+                    -1
+                );
+
+            }
+        );
+
+
+        // CANTIDAD
+
+        var cantidad =
+            document.createElement(
+                'span'
+            );
+
+
+        cantidad.className =
+            'salon-pos__cantidad-numero';
+
+
+        cantidad.textContent =
+            String(
+                item.cantidad
+            );
+
+
+        // BOTÓN MÁS
+
+        var btnMas =
+            document.createElement(
+                'button'
+            );
+
+
+        btnMas.type =
+            'button';
+
+
+        btnMas.className =
+            'salon-pos__cantidad-btn';
+
+
+        btnMas.textContent =
+            '+';
+
+
+        btnMas.setAttribute(
+            'aria-label',
+            'Sumar una unidad de ' +
+            item.nombre
+        );
+
+
+        btnMas.addEventListener(
+            'click',
+            function () {
+
+                cambiarCantidadSalon(
+                    index,
+                    1
+                );
+
+            }
+        );
+
+
+        controlCantidad.appendChild(
+            btnMenos
+        );
+
+
+        controlCantidad.appendChild(
+            cantidad
+        );
+
+
+        controlCantidad.appendChild(
+            btnMas
+        );
+
+
+        var subtotal =
+            document.createElement(
+                'div'
+            );
+
+
+        subtotal.className =
+            'salon-pos__item-subtotal';
+
+
+        subtotal.textContent =
+            formatMonto(
+                Number(
+                    item.precio
+                ) *
+                Number(
+                    item.cantidad
+                )
+            );
+
+
+        derecha.appendChild(
+            controlCantidad
+        );
+
+
+        derecha.appendChild(
+            subtotal
+        );
+
+
+        li.appendChild(
+            izquierda
+        );
+
+
+        li.appendChild(
+            derecha
+        );
+
+
+        return li;
+
+    }
+
+
+    // =========================================================
+    // TOTAL SELECCIONADO
+    // =========================================================
+
+    function actualizarTotalSeleccionado() {
+
+        var cuenta =
+            obtenerCuentaActual();
+
+
+        if (!cuenta) {
+
+            totalSeleccionado.textContent =
+                formatMonto(0);
+
+            return;
+
+        }
+
+
+        var subtotal =
+            cuenta.items.reduce(
+                function (
+                    acumulado,
+                    item
+                ) {
+
+                    if (
+                        !item.seleccionado
+                    ) {
+
+                        return acumulado;
+
+                    }
+
+
+                    var cantidadPagar =
+                        item.cantidad > 1
+                            ? Number(
+                                item.cant_pagar ||
+                                item.cantidad
+                            )
+                            : 1;
+
+
+                    return (
+                        acumulado +
+                        Number(
+                            item.precio
+                        ) *
+                        cantidadPagar
+                    );
+
+                },
+                0
+            );
+
+
+        totalSeleccionado.textContent =
+            formatMonto(
+                subtotal
+            );
+
+    }
+
+
+    // =========================================================
+    // BOTONES DE ACCIÓN
+    // =========================================================
+
+    function actualizarBotonesAccion() {
+
+        var cuenta =
+            obtenerCuentaActual();
+
+
+        var tieneItems =
+            Boolean(
+                cuenta &&
+                cuenta.items.length > 0
+            );
+
+
+        var tieneSeleccion =
+            Boolean(
+                cuenta &&
+                cuenta.items.some(
+                    function (item) {
+
+                        return (
+                            item.seleccionado
+                        );
+
+                    }
+                )
+            );
+
+
+        btnImprimirMesa.disabled =
+            !tieneItems;
+
+
+        btnCobrarMesa.disabled =
+            !tieneItems;
+
+
+        btnCobrarParcial.disabled =
+            !tieneSeleccion;
+
+    }
+
+
+    // =========================================================
+    // COBRAR SELECCIÓN PARCIAL
+    // =========================================================
+
+    function cobrarSeleccionParcial() {
+
+        var cuenta =
+            obtenerCuentaActual();
+
+
+        if (!cuenta) {
+            return;
+        }
+
+
+        var itemsSeleccionados =
+            cuenta.items.filter(
+                function (item) {
+
+                    return (
+                        item.seleccionado
+                    );
+
+                }
+            );
+
+
+        if (
+            itemsSeleccionados.length === 0
+        ) {
+
+            Swal.fire({
+
+                icon:
+                    'warning',
+
+                title:
+                    'Nada seleccionado',
+
+                text:
+                    'Tildá al menos un producto para cobrar una parte de la mesa.',
+
+                background:
+                    '#12151b',
+
+                color:
+                    '#f5f7fa'
+
+            });
+
+
+            return;
+
+        }
+
+
+        var itemsTicket =
+            itemsSeleccionados.map(
+                function (item) {
+
+                    var cantidadCobrar =
+                        item.cantidad > 1
+                            ? Number(
+                                item.cant_pagar ||
+                                item.cantidad
+                            )
+                            : 1;
+
+
+                    if (
+                        cantidadCobrar < 1
+                    ) {
+
+                        cantidadCobrar = 1;
+
+                    }
+
+
+                    if (
+                        cantidadCobrar >
+                        item.cantidad
+                    ) {
+
+                        cantidadCobrar =
+                            item.cantidad;
+
+                    }
+
+
+                    return {
+
+                        codigo:
+                            item.codigo,
+
+                        nombre:
+                            item.nombre,
+
+                        precio:
+                            Number(
+                                item.precio
+                            ),
+
+                        cantidad_cobrada:
+                            cantidadCobrar
+
+                    };
+
+                }
+            );
+
+
+        var subtotal =
+            itemsTicket.reduce(
+                function (
+                    acumulado,
+                    item
+                ) {
+
+                    return (
+                        acumulado +
+                        item.precio *
+                        item.cantidad_cobrada
+                    );
+
+                },
+                0
+            );
+
+
+        Swal.fire({
+
+            title:
+                '¿Cobrar selección parcial?',
+
+            text:
+                'Monto a cobrar: ' +
+                formatMonto(
+                    subtotal
+                ),
+
+            icon:
+                'question',
+
+            showCancelButton:
+                true,
+
+            confirmButtonColor:
+                '#22c55e',
+
+            cancelButtonColor:
+                '#59616e',
+
+            confirmButtonText:
+                'Sí, cobrar e imprimir',
+
+            cancelButtonText:
+                'Cancelar',
+
+            background:
+                '#12151b',
+
+            color:
+                '#f5f7fa'
+
+        }).then(
+            function (resultado) {
+
+                if (
+                    !resultado.isConfirmed
+                ) {
+
+                    return;
+
+                }
+
+
+                imprimirTicketParcialSalon(
+                    itemsTicket,
+                    subtotal
+                );
+
+
+                cuenta.items.forEach(
+                    function (item) {
+
+                        if (
+                            !item.seleccionado
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        var cantidadCobrar =
+                            item.cantidad > 1
+                                ? Number(
+                                    item.cant_pagar ||
+                                    item.cantidad
+                                )
+                                : 1;
+
+
+                        if (
+                            cantidadCobrar < 1
+                        ) {
+
+                            cantidadCobrar = 1;
+
+                        }
+
+
+                        if (
+                            cantidadCobrar >
+                            item.cantidad
+                        ) {
+
+                            cantidadCobrar =
+                                item.cantidad;
+
+                        }
+
+
+                        item.cantidad -=
+                            cantidadCobrar;
+
+
+                        item.seleccionado =
+                            false;
+
+
+                        item.cant_pagar =
+                            item.cantidad > 0
+                                ? item.cantidad
+                                : 0;
+
+                    }
+                );
+
+
+                cuenta.items =
+                    cuenta.items.filter(
+                        function (item) {
+
+                            return (
+                                item.cantidad > 0
+                            );
+
+                        }
+                    );
+
+
+                recalcularCuenta(
+                    cuenta
+                );
+
+
+                guardarCuentasSalon();
+
+                actualizarEstadosMesas();
+
+                renderizarComandaSalon();
+
+
+                Swal.fire({
+
+                    icon:
+                        'success',
+
+                    title:
+                        'Pago parcial cobrado',
+
+                    text:
+                        'Quedó pendiente en la mesa solamente lo que no se cobró.',
+
+                    timer:
+                        1700,
+
+                    showConfirmButton:
+                        false,
+
+                    background:
+                        '#12151b',
+
+                    color:
+                        '#f5f7fa'
+
+                });
+
+            }
+        );
+
+    }
+
+
+    // =========================================================
+    // TICKET PARCIAL
+    // =========================================================
+
+    function imprimirTicketParcialSalon(
+        items,
+        total
+    ) {
+
+        abrirTicketImpresion(
+            items,
+            total,
+            'PAGO PARCIAL'
+        );
+
+    }
+
+
+    // =========================================================
+    // IMPRIMIR CUENTA COMPLETA
+    // =========================================================
+
+    function imprimirTicketMesa() {
+
+        var cuenta =
+            obtenerCuentaActual();
+
+
+        if (
+            !cuenta ||
+            cuenta.items.length === 0
+        ) {
+
+            Swal.fire({
+
+                icon:
+                    'info',
+
+                title:
+                    'Mesa vacía',
+
+                text:
+                    'No hay productos para imprimir.',
+
+                background:
+                    '#12151b',
+
+                color:
+                    '#f5f7fa'
+
+            });
+
+
+            return;
+
+        }
+
+
+        var items =
+            cuenta.items.map(
+                function (item) {
+
+                    return {
+
+                        codigo:
+                            item.codigo,
+
+                        nombre:
+                            item.nombre,
+
+                        precio:
+                            Number(
+                                item.precio
+                            ),
+
+                        cantidad_cobrada:
+                            Number(
+                                item.cantidad
+                            )
+
+                    };
+
+                }
+            );
+
+
+        abrirTicketImpresion(
+            items,
+            cuenta.total,
+            'CUENTA DE MESA'
+        );
+
+    }
+
+
+    // =========================================================
+    // COBRAR MESA COMPLETA
+    // =========================================================
+
+    function cobrarMesaCompletaSalon() {
+
+        var cuenta =
+            obtenerCuentaActual();
+
+
+        if (
+            !cuenta ||
+            cuenta.items.length === 0
+        ) {
+
+            return;
+
+        }
+
+
+        var numeroMesa =
+            mesaActual;
+
+
+        var total =
+            cuenta.total;
+
+
+        Swal.fire({
+
+            title:
+                '¿Cobrar toda la Mesa ' +
+                numeroMesa +
+                '?',
+
+            text:
+                'Total a cobrar: ' +
+                formatMonto(
+                    total
+                ),
+
+            icon:
+                'question',
+
+            showCancelButton:
+                true,
+
+            confirmButtonColor:
+                '#22c55e',
+
+            cancelButtonColor:
+                '#59616e',
+
+            confirmButtonText:
+                'Sí, cobrar y liberar mesa',
+
+            cancelButtonText:
+                'Cancelar',
+
+            background:
+                '#12151b',
+
+            color:
+                '#f5f7fa'
+
+        }).then(
+            function (resultado) {
+
+                if (
+                    !resultado.isConfirmed
+                ) {
+
+                    return;
+
+                }
+
+
+                cuentasMesas[
+                    numeroMesa
+                ] = {
+
+                    items: [],
+
+                    total: 0
+
+                };
+
+
+                guardarCuentasSalon();
+
+                actualizarEstadosMesas();
+
+                renderizarComandaSalon();
+
+
+                Swal.fire({
+
+                    icon:
+                        'success',
+
+                    title:
+                        'Mesa cobrada',
+
+                    text:
+                        'La Mesa ' +
+                        numeroMesa +
+                        ' quedó liberada.',
+
+                    timer:
+                        1600,
+
+                    showConfirmButton:
+                        false,
+
+                    background:
+                        '#12151b',
+
+                    color:
+                        '#f5f7fa'
+
+                });
+
+            }
+        );
+
+    }
+
+
+    // =========================================================
+    // IMPRESIÓN
+    // =========================================================
+
+    function abrirTicketImpresion(
+        items,
+        total,
+        tipoTicket
+    ) {
+
+        var ventana =
+            window.open(
+                '',
+                '_blank',
+                'width=420,height=700'
+            );
+
+
+        if (!ventana) {
+
+            Swal.fire({
+
+                icon:
+                    'warning',
+
+                title:
+                    'Ventana bloqueada',
+
+                text:
+                    'Permití las ventanas emergentes del navegador para imprimir el ticket.',
+
+                background:
+                    '#12151b',
+
+                color:
+                    '#f5f7fa'
+
+            });
+
+
+            return;
+
+        }
+
+
+        var filas = '';
+
+
+        items.forEach(
+            function (item) {
+
+                var cantidad =
+                    Number(
+                        item.cantidad_cobrada ||
+                        0
+                    );
+
+
+                var subtotal =
+                    Number(
+                        item.precio
+                    ) *
+                    cantidad;
+
+
+                filas +=
+                    '<tr>';
+
+
+                filas +=
+                    '<td>' +
+                    escaparHtml(
+                        String(
+                            cantidad
+                        )
+                    ) +
+                    'x</td>';
+
+
+                filas +=
+                    '<td>' +
+                    escaparHtml(
+                        item.nombre
+                    ) +
+                    '</td>';
+
+
+                filas +=
+                    '<td>' +
+                    escaparHtml(
+                        formatMonto(
+                            subtotal
+                        )
+                    ) +
+                    '</td>';
+
+
+                filas +=
+                    '</tr>';
+
+            }
+        );
+
+
+        var html = '';
+
+
+        html +=
+            '<!DOCTYPE html>';
+
+
+        html +=
+            '<html lang="es">';
+
+
+        html +=
+            '<head>';
+
+
+        html +=
+            '<meta charset="UTF-8">';
+
+
+        html +=
+            '<title>Ticket Mesa ' +
+            escaparHtml(
+                String(
+                    mesaActual
+                )
+            ) +
+            '</title>';
+
+
+        html +=
+            '<link rel="stylesheet" href="/static/css/estilos.css">';
+
+
+        html +=
+            '</head>';
+
+
+        html +=
+            '<body>';
+
+
+        html +=
+            '<main class="salon-ticket">';
+
+
+        html +=
+            '<h2 class="salon-ticket__brand">SterakFood</h2>';
+
+
+        html +=
+            '<div class="salon-ticket__meta">Mesa ' +
+            escaparHtml(
+                String(
+                    mesaActual
+                )
+            ) +
+            '</div>';
+
+
+        html +=
+            '<div class="salon-ticket__type">' +
+            escaparHtml(
+                tipoTicket
+            ) +
+            '</div>';
+
+
+        html +=
+            '<hr>';
+
+
+        html +=
+            '<table class="salon-ticket__table">' +
+            filas +
+            '</table>';
+
+
+        html +=
+            '<hr>';
+
+
+        html +=
+            '<div class="salon-ticket__total">';
+
+
+        html +=
+            '<span>TOTAL</span>';
+
+
+        html +=
+            '<span>' +
+            escaparHtml(
+                formatMonto(
+                    total
+                )
+            ) +
+            '</span>';
+
+
+        html +=
+            '</div>';
+
+
+        html +=
+            '<p class="salon-ticket__thanks">Gracias por su compra</p>';
+
+
+        html +=
+            '</main>';
+
+
+        html +=
+            '</body>';
+
+
+        html +=
+            '</html>';
+
+
+        ventana.document.open();
+
+        ventana.document.write(
+            html
+        );
+
+        ventana.document.close();
+
+        ventana.focus();
+
+
+        window.setTimeout(
+            function () {
+
+                ventana.print();
+
+            },
+            250
+        );
+
+    }
+
+
+    // =========================================================
+    // FORMATEAR DINERO
+    // =========================================================
+
+    function formatMonto(valor) {
+
+        var numero =
+            Number(
+                valor || 0
+            );
+
+
+        return (
+            '$' +
+            numero.toLocaleString(
+                'es-AR',
+                {
+
+                    minimumFractionDigits:
+                        2,
+
+                    maximumFractionDigits:
+                        2
+
+                }
+            )
+        );
+
+    }
+
+
+    // =========================================================
+    // LIMPIAR NODO
+    // =========================================================
+
+    function limpiarNodo(nodo) {
+
+        while (
+            nodo.firstChild
+        ) {
+
+            nodo.removeChild(
+                nodo.firstChild
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // ESCAPAR HTML
+    // =========================================================
+
+    function escaparHtml(texto) {
+
+        return String(
+            texto
+        )
+            .replace(
+                /&/g,
+                '&amp;'
+            )
+            .replace(
+                /</g,
+                '&lt;'
+            )
+            .replace(
+                />/g,
+                '&gt;'
+            )
+            .replace(
+                /"/g,
+                '&quot;'
+            )
+            .replace(
+                /'/g,
+                '&#039;'
+            );
+
+    }
+
+
+    // =========================================================
+    // GUARDAR CUENTAS
+    // =========================================================
+
+    function guardarCuentasSalon() {
+
+        try {
+
+            localStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify(
+                    cuentasMesas
+                )
+            );
+
+        } catch (error) {
+
+            console.warn(
+                'No se pudo guardar el estado local del salón:',
+                error
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // RECUPERAR CUENTAS
+    // =========================================================
+
+    function cargarCuentasSalon() {
+
+        try {
+
+            var guardado =
+                localStorage.getItem(
+                    STORAGE_KEY
+                );
+
+
+            if (!guardado) {
+
+                return {};
+
+            }
+
+
+            var cuentas =
+                JSON.parse(
+                    guardado
+                );
+
+
+            if (
+                !cuentas ||
+                typeof cuentas !== 'object'
+            ) {
+
+                return {};
+
+            }
+
+
+            Object.keys(
+                cuentas
+            ).forEach(
+                function (mesa) {
+
+                    var cuenta =
+                        cuentas[mesa];
+
+
+                    if (
+                        !cuenta ||
+                        !Array.isArray(
+                            cuenta.items
+                        )
+                    ) {
+
+                        delete cuentas[
+                            mesa
+                        ];
+
+                        return;
+
+                    }
+
+
+                    cuenta.items =
+                        cuenta.items
+                            .filter(
+                                function (item) {
+
+                                    return (
+                                        item &&
+                                        Number(
+                                            item.cantidad
+                                        ) > 0
+                                    );
+
+                                }
+                            )
+                            .map(
+                                function (item) {
+
+                                    return {
+
+                                        codigo:
+                                            String(
+                                                item.codigo ||
+                                                ''
+                                            ),
+
+                                        nombre:
+                                            String(
+                                                item.nombre ||
+                                                ''
+                                            ),
+
+                                        precio:
+                                            Number(
+                                                item.precio ||
+                                                0
+                                            ),
+
+                                        cantidad:
+                                            Number(
+                                                item.cantidad ||
+                                                0
+                                            ),
+
+                                        seleccionado:
+                                            false,
+
+                                        cant_pagar:
+                                            Number(
+                                                item.cantidad ||
+                                                0
+                                            )
+
+                                    };
+
+                                }
+                            );
+
+
+                    recalcularCuenta(
+                        cuenta
+                    );
+
+                }
+            );
+
+
+            return cuentas;
+
+        } catch (error) {
+
+            console.warn(
+                'No se pudo recuperar el estado local del salón:',
+                error
+            );
+
+
+            return {};
+
+        }
+
+    }
+
+})();

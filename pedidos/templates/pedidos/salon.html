@@ -1,471 +1,294 @@
 {% extends 'pedidos/base.html' %}
 
-{% block title %}Salón | ShortyFood{% endblock %}
+{% block title %}Salón | SterakFood{% endblock %}
 
 {% block nav_acciones %}
-    <a href="{% url 'pedidos:panel_control' %}" class="btn-nav-ghost">← Volver al Panel</a>
+    <a href="{% url 'pedidos:panel_control' %}" class="btn-nav-ghost">
+        ← Volver al Panel
+    </a>
 {% endblock %}
 
 {% block content %}
-<style>
-    .dashboard-container { display: flex; gap: 20px; padding: 20px; align-items: flex-start; }
-    .grilla-mesas { flex-grow: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; }
-    .mesa-item { background-color: var(--bg-color, #f8f9fa); border: 1px solid var(--borde, #dee2e6); border-radius: 8px; height: 70px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; color: var(--text-color, #495057); cursor: pointer; transition: all 0.2s ease-in-out; }
-    .mesa-item:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-    .mesa-ocupada { background-color: var(--azul, #0d6efd); color: white; border-color: var(--azul, #0b5ed7); }
-    .panel-comanda { width: 390px; background: var(--card-bg, white); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: sticky; top: 20px; }
-    .caja-input { padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; background: var(--bg-color, white); color: var(--text-color, black); }
-    .sugerencias { list-style: none; padding: 0; margin: 0; border: 1px solid #ccc; border-top: none; max-height: 150px; overflow-y: auto; display: none; position: absolute; width: 100%; background: var(--card-bg, white); z-index: 10; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    .sugerencias li { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
-    .sugerencias li:hover, .sugerencias li.activo { background-color: var(--verde-sanmartin, #198754); color: white; }
-    .lista-comanda { list-style: none; padding: 0; max-height: 180px; overflow-y: auto; }
-    .lista-comanda li { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed #ccc; font-size: 0.9rem; }
-    .btn-cant { background: var(--borde); border: none; width: 22px; height: 22px; border-radius: 4px; font-weight: bold; cursor: pointer; color: var(--text-color); font-size: 0.8rem; }
-    .btn-cant:hover { background: var(--naranja-sterak); color: #000; }
-    .input-pago-parcial { background: var(--card-bg); border: 1px solid var(--naranja-sterak); color: var(--text-color); width: 45px; text-align: center; border-radius: 4px; font-weight: bold; margin-left: 5px; }
-</style>
 
-<div class="container dash-container" style="margin-top: 30px;">
-    <h1 style="margin-bottom: 25px; font-size: 2rem; font-weight: 900;">Control de Salón 🍽️</h1>
+<section id="salon-pos" class="salon-pos">
 
-    <div class="dashboard-container" style="padding: 0;">
-        <!-- LADO IZQUIERDO: GRILLA DE MESAS -->
-        <div class="grilla-mesas">
-            {% for mesa in mesas %}
-                <div class="mesa-item" onclick="seleccionarMesa({{ mesa }}, this)">{{ mesa }}</div>
-            {% endfor %}
+    <div class="salon-pos__header">
+
+        <div>
+            <h1>Control de Salón 🍽️</h1>
+            <p>Seleccioná una mesa y cargá los productos de la comanda.</p>
         </div>
 
-        <!-- LADO DERECHO: PANEL DE CARGA Y COMANDA -->
-        <div class="panel-comanda">
-            <h2 id="titulo-mesa" style="margin-top:0;">Seleccione una mesa</h2>
-            
-            <div id="area-comanda" style="display: none;">
-                
-                <div style="display: flex; gap: 8px; margin-bottom: 10px; position: relative;">
-                    <div style="width: 70px;">
-                        <label style="font-size: 0.75rem; font-weight: bold; display: block; color: var(--texto-mutado);">CANT</label>
-                        <input type="number" id="input-cant" class="caja-input" value="1" min="1" style="width: 100%; text-align: center; font-weight: bold;">
-                    </div>
-                    <div style="flex: 1; position: relative;">
-                        <label style="font-size: 0.75rem; font-weight: bold; display: block; color: var(--texto-mutado);">CÓDIGO O PRODUCTO</label>
-                        <input type="text" id="buscador" class="caja-input" placeholder="Ej: 114 ó Coca..." autocomplete="off" style="width: 100%;">
-                        <ul id="lista-sugerencias" class="sugerencias"></ul>
-                    </div>
-                </div>
+        <div class="salon-pos__leyenda" aria-label="Estados de las mesas">
 
-                <div style="margin-top: 15px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 5px;">
-                        <h3 style="font-size: 1.05rem; margin: 0;">Cuenta de la Mesa</h3>
-                        <span style="font-size: 0.8rem; color: var(--texto-mutado);">Tildá para pagos parciales</span>
-                    </div>
-                    
-                    <ul id="lista-comanda" class="lista-comanda"></ul>
-                    
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px solid var(--borde); padding-top: 8px;">
-                        <span style="font-weight: bold; font-size: 1.1rem;">Total Restante:</span>
-                        <span style="color: var(--verde-sanmartin, #198754); font-size: 1.3rem; font-weight: bold;">$<span id="total-cuenta">0</span></span>
-                    </div>
+            <span>
+                <i class="salon-pos__estado salon-pos__estado--libre"></i>
+                Libre
+            </span>
 
-                    <div style="background: var(--bg-color); padding: 10px; border-radius: 6px; margin-top: 10px; border: 1px solid var(--borde);">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 8px;">
-                            <span>Seleccionado a pagar:</span>
-                            <strong style="color: var(--naranja-sterak);" id="total-seleccionado">$0</strong>
-                        </div>
-                        <button type="button" onclick="cobrarSeleccionados()" class="btn-panel btn-verde" style="width: 100%; padding: 8px; font-weight: bold; font-size: 0.9rem;">💳 Cobrar / Imprimir Selección</button>
-                    </div>
+            <span>
+                <i class="salon-pos__estado salon-pos__estado--ocupada"></i>
+                Ocupada
+            </span>
 
-                    <div style="display: flex; gap: 8px; margin-top: 12px;">
-                        <button type="button" onclick="imprimirTicket()" class="btn-panel btn-gris" style="flex: 1; padding: 8px; font-size: 0.9rem; font-weight: bold;">🖨️ Ticket Mesa</button>
-                        <button type="button" onclick="cobrarMesaCompleta()" class="btn-panel btn-verde" style="flex: 1; padding: 8px; font-size: 0.9rem; font-weight: bold;">✅ Cobrar Todo</button>
-                    </div>
-                </div>
-            </div>
+            <span>
+                <i class="salon-pos__estado salon-pos__estado--actual"></i>
+                Seleccionada
+            </span>
+
         </div>
+
     </div>
-</div>
 
-<script>
-    const productos = {{ productos|safe }};
-    
-    let mesaActual = null;
-    let cuentasMesas = {}; 
 
-    const inputCant = document.getElementById('input-cant');
-    const buscador = document.getElementById('buscador');
-    const sugerenciasBox = document.getElementById('lista-sugerencias');
-    const listaComanda = document.getElementById('lista-comanda');
-    const totalCuenta = document.getElementById('total-cuenta');
-    const totalSeleccionado = document.getElementById('total-seleccionado');
-    const areaComanda = document.getElementById('area-comanda');
-    const tituloMesa = document.getElementById('titulo-mesa');
+    <div class="salon-pos__layout">
 
-    let indiceSeleccionado = -1;
+        <!-- =====================================================
+             MESAS
+             ===================================================== -->
 
-    function seleccionarMesa(numero, elementoVisual) {
-        mesaActual = numero;
-        tituloMesa.textContent = 'Mesa ' + numero;
-        areaComanda.style.display = 'block';
-        inputCant.value = '1';
-        
-        if (!cuentasMesas[numero]) {
-            cuentasMesas[numero] = { items: [], total: 0 };
-        }
+        <section class="salon-pos__card salon-pos__mesas-panel">
 
-        document.querySelectorAll('.mesa-item').forEach(el => el.style.border = '1px solid var(--borde, #dee2e6)');
-        elementoVisual.style.border = '3px solid var(--text-color, #000)';
+            <div class="salon-pos__section-header">
+                <h2>Mesas</h2>
+                <span>1 a 100</span>
+            </div>
 
-        renderizarComanda();
-        setTimeout(() => inputCant.focus(), 100);
-    }
+            <div id="grilla-mesas" class="salon-pos__grilla-mesas">
 
-    inputCant.addEventListener('keydown', function(e) {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            buscador.focus();
-            buscador.select();
-        }
-    });
+                {% for mesa in mesas %}
 
-    buscador.addEventListener('input', function() {
-        const texto = this.value.toLowerCase().trim();
-        sugerenciasBox.innerHTML = '';
-        indiceSeleccionado = -1;
+                    <button
+                        type="button"
+                        class="salon-pos__mesa"
+                        data-mesa="{{ mesa }}"
+                        aria-label="Abrir mesa {{ mesa }}"
+                    >
+                        {{ mesa }}
+                    </button>
 
-        if (texto.length === 0) {
-            sugerenciasBox.style.display = 'none';
-            return;
-        }
+                {% endfor %}
 
-        const resultados = productos.filter(p => 
-            p.codigo.toLowerCase().includes(texto) || p.nombre.toLowerCase().includes(texto)
-        );
+            </div>
 
-        if (resultados.length > 0) {
-            sugerenciasBox.style.display = 'block';
-            resultados.forEach((prod) => {
-                const li = document.createElement('li');
-                li.textContent = prod.codigo + " - " + prod.nombre + " ($" + prod.precio + ")";
-                li.addEventListener('click', () => confirmarAgregado(prod));
-                sugerenciasBox.appendChild(li);
-            });
-        } else {
-            sugerenciasBox.style.display = 'none';
-        }
-    });
+        </section>
 
-    buscador.addEventListener('keydown', function(e) {
-        const items = sugerenciasBox.getElementsByTagName('li');
-        if (e.key === "ArrowDown") {
-            e.preventDefault();
-            if (indiceSeleccionado <(items.length - 1)) { indiceSeleccionado++; resaltarItem(items); }
-        } else if (e.key === "ArrowUp") {
-            e.preventDefault();
-            if (indiceSeleccionado > 0) { indiceSeleccionado--; resaltarItem(items); }
-        } else if (e.key === "Enter") {
-            e.preventDefault();
-            if (indiceSeleccionado > -1 && items.length > 0) {
-                items[indiceSeleccionado].click();
-            } else if (this.value.trim() !== "") {
-                const productoExacto = productos.find(p => p.codigo.toLowerCase() === this.value.trim().toLowerCase() || p.nombre.toLowerCase() === this.value.trim().toLowerCase());
-                if (productoExacto) {
-                    confirmarAgregado(productoExacto);
-                }
-            }
-        }
-    });
 
-    function resaltarItem(items) {
-        for (let i = 0; i <items.length; i++) { items[i].classList.remove('activo'); }
-        if (items[indiceSeleccionado]) { items[indiceSeleccionado].classList.add('activo'); }
-    }
+        <!-- =====================================================
+             COMANDA
+             ===================================================== -->
 
-    function confirmarAgregado(producto) {
-        let cantidad = parseInt(inputCant.value);
-        if (isNaN(cantidad) || cantidad <= 0) cantidad = 1;
+        <aside class="salon-pos__card salon-pos__comanda-panel">
 
-        agregarAComanda(producto, cantidad);
+            <div class="salon-pos__comanda-header">
 
-        buscador.value = '';
-        sugerenciasBox.style.display = 'none';
-        inputCant.value = '1';
-        inputCant.focus();
-        inputCant.select();
-    }
+                <div>
+                    <span class="salon-pos__eyebrow">COMANDA</span>
+                    <h2 id="titulo-mesa">Seleccione una mesa</h2>
+                </div>
 
-    function agregarAComanda(producto, cantidadAAgregar) {
-        if (!mesaActual) return;
-        
-        const cuenta = cuentasMesas[mesaActual];
-        const existente = cuenta.items.find(i => i.codigo === producto.codigo);
+                <span id="estado-mesa" class="salon-pos__badge">
+                    SIN MESA
+                </span>
 
-        if (existente) {
-            existente.cantidad += cantidadAAgregar;
-        } else {
-            cuenta.items.push({
-                codigo: producto.codigo,
-                nombre: producto.nombre,
-                precio: producto.precio,
-                cantidad: cantidadAAgregar,
-                seleccionado: false,
-                cant_pagar: cantidadAAgregar
-            });
-        }
-        
-        recalcularTotal();
+            </div>
 
-        const cajasMesas = document.querySelectorAll('.mesa-item');
-        if (cajasMesas[mesaActual - 1]) {
-            cajasMesas[mesaActual - 1].classList.add('mesa-ocupada');
-        }
 
-        renderizarComanda();
-    }
+            <!-- ESTADO INICIAL -->
 
-    function cambiarCantidad(index, delta) {
-        if (!mesaActual) return;
-        const cuenta = cuentasMesas[mesaActual];
-        
-        cuenta.items[index].cantidad += delta;
-        
-        // Ajustar el selector de pago parcial si la cantidad total baja
-        if (cuenta.items[index].cant_pagar > cuenta.items[index].cantidad) {
-            cuenta.items[index].cant_pagar = cuenta.items[index].cantidad;
-        }
-        
-        if (cuenta.items[index].cantidad <= 0) {
-            cuenta.items.splice(index, 1);
-        }
+            <div
+                id="mensaje-seleccionar-mesa"
+                class="salon-pos__empty-state"
+            >
 
-        recalcularTotal();
-        renderizarComanda();
+                <div>
 
-        if (cuenta.items.length === 0) {
-            const cajasMesas = document.querySelectorAll('.mesa-item');
-            if (cajasMesas[mesaActual - 1]) {
-                cajasMesas[mesaActual - 1].classList.remove('mesa-ocupada');
-            }
-        }
-    }
+                    <span class="salon-pos__empty-icon">
+                        🍽️
+                    </span>
 
-    function toggleSeleccion(index) {
-        if (!mesaActual) return;
-        const cuenta = cuentasMesas[mesaActual];
-        cuenta.items[index].seleccionado = !cuenta.items[index].seleccionado;
-        
-        // Al tildar, por defecto asume que paga todo lo que hay de ese producto
-        if (cuenta.items[index].seleccionado) {
-            cuenta.items[index].cant_pagar = cuenta.items[index].cantidad;
-        }
-        
-        renderizarComanda();
-    }
+                    <strong>Elegí una mesa</strong>
 
-    // Novedad: Modificar cuántas unidades puntuales paga de la línea
-    function actualizarCantPagar(index, valor) {
-        if (!mesaActual) return;
-        const cuenta = cuentasMesas[mesaActual];
-        let cant = parseInt(valor);
-        
-        if (isNaN(cant) || cant <1) cant = 1;
-        if (cant > cuenta.items[index].cantidad) cant = cuenta.items[index].cantidad;
-        
-        cuenta.items[index].cant_pagar = cant;
-        calcularSubtotalSeleccionado();
-        renderizarComanda();
-    }
+                    <p>
+                        La cuenta se abrirá en este panel.
+                    </p>
 
-    function calcularSubtotalSeleccionado() {
-        if (!mesaActual) return;
-        const cuenta = cuentasMesas[mesaActual];
-        let sub = 0;
-        cuenta.items.forEach(i => {
-            if (i.seleccionado) {
-                const aPagar = i.cant_pagar || i.cantidad;
-                sub += (i.precio * aPagar);
-            }
-        });
-        totalSeleccionado.textContent = "$" + sub;
-    }
+                </div>
 
-    function recalcularTotal() {
-        const cuenta = cuentasMesas[mesaActual];
-        cuenta.total = cuenta.items.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
-    }
+            </div>
 
-    function renderizarComanda() {
-        if (!mesaActual) return;
-        
-        listaComanda.innerHTML = '';
-        const cuenta = cuentasMesas[mesaActual];
-        
-        cuenta.items.forEach((item, index) => {
-            const subtotalItem = item.precio * item.cantidad;
-            
-            // Selector dinámico de cantidad a pagar
-            let htmlCantPagar = '';
-            if (item.seleccionado && item.cantidad > 1) {
-                let cantPagarVal = item.cant_pagar || item.cantidad;
-                htmlCantPagar = `
-                    <div style="margin-top: 4px;">
-                        <span style="font-size: 0.75rem; font-weight: bold; color: var(--naranja-sterak);">¿Cuántas paga?</span>
-                        <input type="number" class="input-pago-parcial" value="\({cantPagarVal}" min="1" max="\){item.cantidad}" onchange="actualizarCantPagar(${index}, this.value)" onclick="event.stopPropagation()">
+
+            <!-- =================================================
+                 CUENTA ACTIVA
+                 ================================================= -->
+
+            <div
+                id="area-comanda"
+                class="salon-pos__area-comanda"
+                hidden
+            >
+
+                <!-- CARGA RÁPIDA -->
+
+                <div class="salon-pos__carga-rapida">
+
+                    <div class="salon-pos__field salon-pos__field--cant">
+
+                        <label for="input-cant">
+                            CANT
+                        </label>
+
+                        <input
+                            type="number"
+                            id="input-cant"
+                            class="salon-pos__input"
+                            value="1"
+                            min="1"
+                            step="1"
+                            inputmode="numeric"
+                        >
+
                     </div>
-                `;
-            }
 
-            const li = document.createElement('li');
-            li.innerHTML = `
-                <div style="display: flex; align-items: flex-start; gap: 8px; flex: 1;">
-                    <input type="checkbox" \({item.seleccionado ? 'checked' : ''} onchange="toggleSeleccion(\){index})" style="cursor: pointer; transform: scale(1.1); margin-top: 4px;">
+
+                    <div class="salon-pos__field salon-pos__field--buscador">
+
+                        <label for="buscador">
+                            CÓDIGO O PRODUCTO
+                        </label>
+
+                        <input
+                            type="text"
+                            id="buscador"
+                            class="salon-pos__input"
+                            placeholder="Ej: 114 o Coca..."
+                            autocomplete="off"
+                        >
+
+                        <ul
+                            id="lista-sugerencias"
+                            class="salon-pos__sugerencias"
+                            role="listbox"
+                        ></ul>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CABECERA CUENTA -->
+
+                <div class="salon-pos__cuenta-header">
+
                     <div>
-                        <strong>${item.nombre}</strong><br>
-                        <span style="font-size: 0.75rem; color: var(--texto-mutado);">$${item.precio} c/u</span>
-                        ${htmlCantPagar}
+
+                        <h3>
+                            Cuenta de la Mesa
+                        </h3>
+
+                        <p>
+                            Tildá productos para un pago parcial.
+                        </p>
+
                     </div>
+
+                    <span
+                        id="cantidad-lineas"
+                        class="salon-pos__contador"
+                    >
+                        0 ítems
+                    </span>
+
                 </div>
-                <div style="display: flex; align-items: center; gap: 4px;">
-                    <button type="button" class="btn-cant" onclick="cambiarCantidad(${index}, -1)">-</button>
-                    <span style="font-weight: bold; min-width: 15px; text-align: center; font-size: 0.9rem;">${item.cantidad}</span>
-                    <button type="button" class="btn-cant" onclick="cambiarCantidad(${index}, 1)">+</button>
-                    <span style="font-weight: bold; min-width: 45px; text-align: right; font-size: 0.9rem;">$${subtotalItem}</span>
+
+
+                <!-- PRODUCTOS -->
+
+                <ul
+                    id="lista-comanda"
+                    class="salon-pos__lista-comanda"
+                ></ul>
+
+
+                <!-- TOTAL -->
+
+                <div class="salon-pos__total-mesa">
+
+                    <span>
+                        Total restante
+                    </span>
+
+                    <strong id="total-cuenta">
+                        $0,00
+                    </strong>
+
                 </div>
-            `;
-            listaComanda.appendChild(li);
-        });
-        
-        totalCuenta.textContent = cuenta.total;
-        calcularSubtotalSeleccionado();
-    }
 
-    function cobrarSeleccionados() {
-        if (!mesaActual) return;
-        const cuenta = cuentasMesas[mesaActual];
-        
-        const itemsAProcesar = cuenta.items.filter(i => i.seleccionado);
-        if (itemsAProcesar.length === 0) {
-            Swal.fire({ icon: 'warning', title: 'Nada seleccionado', text: 'Tildá al menos un producto para cobrar su parte.' });
-            return;
-        }
 
-        // Armamos el ticket con la cantidad exacta que se está cobrando
-        const itemsParaTicket = itemsAProcesar.map(i => {
-            return { ...i, cantidad_cobrada: i.cant_pagar || i.cantidad };
-        });
+                <!-- =================================================
+                     PAGO PARCIAL
+                     ================================================= -->
 
-        let subtotalParcial = itemsParaTicket.reduce((acc, i) => acc + (i.precio * i.cantidad_cobrada), 0);
+                <div class="salon-pos__pago-parcial">
 
-        Swal.fire({
-            title: `¿Cobrar selección parcial?`,
-            text: `Monto a cobrar: $${subtotalParcial}`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#198754',
-            confirmButtonText: 'Sí, cobrar y sacar ticket'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                imprimirTicketParcial(itemsParaTicket, subtotalParcial);
+                    <div class="salon-pos__total-seleccion">
 
-                // Descontamos exactamente lo que se pagó de la mesa
-                cuenta.items.forEach(i => {
-                    if (i.seleccionado) {
-                        i.cantidad -= (i.cant_pagar || i.cantidad);
-                        i.seleccionado = false; 
-                    }
-                });
+                        <span>
+                            Seleccionado a pagar
+                        </span>
 
-                // Limpiamos los productos que llegaron a cantidad 0
-                cuenta.items = cuenta.items.filter(i => i.cantidad > 0);
-                
-                recalcularTotal();
-                renderizarComanda();
+                        <strong id="total-seleccionado">
+                            $0,00
+                        </strong>
 
-                if (cuenta.items.length === 0) {
-                    const cajasMesas = document.querySelectorAll('.mesa-item');
-                    if (cajasMesas[mesaActual - 1]) {
-                        cajasMesas[mesaActual - 1].classList.remove('mesa-ocupada');
-                    }
-                    areaComanda.style.display = 'none';
-                    tituloMesa.textContent = 'Seleccione una mesa';
-                }
+                    </div>
 
-                Swal.fire({ icon: 'success', title: '¡Cobrado con éxito!', timer: 1500, showConfirmButton: false });
-            }
-        });
-    }
 
-    function imprimirTicketParcial(itemsParciales, totalParcial) {
-        const ventanaPrint = window.open('', '_print', 'height=600,width=400');
-        ventanaPrint.document.write('<head><title>Ticket Parcial - Mesa ' + mesaActual + '</title></head><body style="font-family: monospace; padding: 20px;">');
-        ventanaPrint.document.write('<h3 style="text-align:center; margin:0;">SterakFood - Mesa ' + mesaActual + '</h3>');
-        ventanaPrint.document.write('<p style="text-align:center; font-size:0.8rem; margin-top:2px;">(Pago Parcial / Desglose)</p>');
-        ventanaPrint.document.write('<hr>');
-        ventanaPrint.document.write('<ul style="list-style: none; padding: 0;">');
-        itemsParciales.forEach(i => {
-            ventanaPrint.document.write('<li style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span>' + i.cantidad_cobrada + 'x ' + i.nombre + '</span> <strong>$' + (i.precio * i.cantidad_cobrada) + '</strong></li>');
-        });
-        ventanaPrint.document.write('</ul>');
-        ventanaPrint.document.write('<hr>');
-        ventanaPrint.document.write('<h3 style="text-align:right;">Monto Pagado: $' + totalParcial + '</h3>');
-        ventanaPrint.document.write('</body></html>');
-        ventanaPrint.document.close();
-        ventanaPrint.focus();
-        setTimeout(() => { ventanaPrint.print(); ventanaPrint.close(); }, 300);
-    }
+                    <button
+                        type="button"
+                        id="btn-cobrar-parcial"
+                        class="salon-pos__btn salon-pos__btn--parcial"
+                    >
+                        💳 Cobrar Selección Parcial
+                    </button>
 
-    function imprimirTicket() {
-        if (!mesaActual) return;
-        const cuenta = cuentasMesas[mesaActual];
-        if (cuenta.items.length === 0) {
-            Swal.fire({ icon: 'info', title: 'Mesa Vacía', text: 'No hay productos cargados en esta mesa.' });
-            return;
-        }
+                </div>
 
-        const ventanaPrint = window.open('', '_print', 'height=600,width=400');
-        ventanaPrint.document.write('<head><title>Ticket Mesa ' + mesaActual + '</title></head><body style="font-family: monospace; padding: 20px;">');
-        ventanaPrint.document.write('<h3 style="text-align:center; margin:0;">SterakFood - Mesa ' + mesaActual + '</h3>');
-        ventanaPrint.document.write('<hr>');
-        ventanaPrint.document.write('<ul style="list-style: none; padding: 0;">');
-        cuenta.items.forEach(i => {
-            ventanaPrint.document.write('<li style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span>' + i.cantidad + 'x ' + i.nombre + '</span> <strong>$' + (i.precio * i.cantidad) + '</strong></li>');
-        });
-        ventanaPrint.document.write('</ul>');
-        ventanaPrint.document.write('<hr>');
-        ventanaPrint.document.write('<h3 style="text-align:right;">Total de la Mesa: $' + cuenta.total + '</h3>');
-        ventanaPrint.document.write('</body></html>');
-        ventanaPrint.document.close();
-        ventanaPrint.focus();
-        setTimeout(() => { ventanaPrint.print(); ventanaPrint.close(); }, 300);
-    }
 
-    function cobrarMesaCompleta() {
-        if (!mesaActual) return;
-        const cuenta = cuentasMesas[mesaActual];
-        if (cuenta.items.length === 0) return;
+                <!-- =================================================
+                     ACCIONES
+                     ================================================= -->
 
-        Swal.fire({
-            title: `¿Cobrar TODO de la Mesa ${mesaActual}?`,
-            text: `Total a cobrar: $${cuenta.total}`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#198754',
-            confirmButtonText: 'Sí, cobrar todo y liberar mesa'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                cuentasMesas[mesaActual] = { items: [], total: 0 };
-                
-                const cajasMesas = document.querySelectorAll('.mesa-item');
-                if (cajasMesas[mesaActual - 1]) {
-                    cajasMesas[mesaActual - 1].classList.remove('mesa-ocupada');
-                }
-                
-                renderizarComanda();
-                areaComanda.style.display = 'none';
-                tituloMesa.textContent = 'Seleccione una mesa';
-                
-                Swal.fire({ icon: 'success', title: '¡Mesa cobrada por completo!', timer: 1500, showConfirmButton: false });
-            }
-        });
-    }
-</script>
+                <div class="salon-pos__acciones">
+
+                    <button
+                        type="button"
+                        id="btn-imprimir-mesa"
+                        class="salon-pos__btn salon-pos__btn--secundario"
+                    >
+                        🖨️ Imprimir Ticket de Mesa
+                    </button>
+
+
+                    <button
+                        type="button"
+                        id="btn-cobrar-mesa"
+                        class="salon-pos__btn salon-pos__btn--cobrar"
+                    >
+                        ✅ Cobrar Toda la Mesa
+                    </button>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+    </div>
+
+</section>
+
+
+{{ productos|json_script:"salon-productos-data" }}
+
 {% endblock %}
