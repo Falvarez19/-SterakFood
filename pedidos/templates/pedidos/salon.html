@@ -2,202 +2,130 @@
 
 {% block title %}Salón | SterakFood{% endblock %}
 
-
 {% block nav_acciones %}
-
-    <a
-        href="{% url 'pedidos:panel_control' %}"
-        class="btn-nav-ghost"
-    >
+    <a href="{% url 'pedidos:panel_control' %}" class="btn-nav-ghost">
         ← Volver al Panel
     </a>
-
 {% endblock %}
-
 
 {% block content %}
 
-
 <section
     id="salon-pos"
-    class="salon-pos"
+    class="salon-pos salon-pos--clasico"
     data-print-url="{% url 'pedidos:imprimir_ticket_salon' %}"
 >
 
-
-    <!-- =====================================================
-         CABECERA
-         ===================================================== -->
-
     <div class="salon-pos__header">
-
         <div>
-
-            <h1>
-                Control de Salón 🍽️
-            </h1>
-
-            <p>
-                Elegí una mesa, cargá productos y cobrá rápido.
-            </p>
-
+            <h1>Control de Salón 🍽️</h1>
+            <p>Elegí una mesa y administrá la cuenta como en un POS clásico.</p>
         </div>
-
 
         <div class="salon-pos__leyenda">
-
             <span>
-
-                <i
-                    class="salon-pos__estado salon-pos__estado--libre"
-                ></i>
-
+                <i class="salon-pos__estado salon-pos__estado--libre"></i>
                 Libre
-
             </span>
 
-
             <span>
-
-                <i
-                    class="salon-pos__estado salon-pos__estado--ocupada"
-                ></i>
-
+                <i class="salon-pos__estado salon-pos__estado--ocupada"></i>
                 Ocupada
-
             </span>
-
 
             <span>
-
-                <i
-                    class="salon-pos__estado salon-pos__estado--actual"
-                ></i>
-
+                <i class="salon-pos__estado salon-pos__estado--actual"></i>
                 Seleccionada
-
             </span>
-
         </div>
-
     </div>
 
 
+    <section class="salon-pos__card salon-pos__mesas-panel">
 
-    <!-- =====================================================
-         LAYOUT PRINCIPAL
-         ===================================================== -->
+        <div class="salon-pos__section-header">
 
-    <div class="salon-pos__layout">
-
-
-        <!-- =================================================
-             MESAS
-             ================================================= -->
-
-        <section
-            class="salon-pos__card salon-pos__mesas-panel"
-        >
-
-
-            <div class="salon-pos__section-header">
-
-                <h2>
-                    Mesas
-                </h2>
-
-                <span>
-                    1 a 100
-                </span>
-
+            <div>
+                <h2>Mesas</h2>
+                <p>Tocá una mesa para abrir la comanda.</p>
             </div>
 
+            <span>
+                1 a 100
+            </span>
 
+        </div>
 
-            <div
-                id="grilla-mesas"
-                class="salon-pos__grilla-mesas"
-            >
-
-
-                {% for mesa in mesas %}
-
-
-                    <button
-                        type="button"
-                        class="salon-pos__mesa"
-                        data-mesa="{{ mesa }}"
-                        aria-label="Abrir mesa {{ mesa }}"
-                    >
-
-
-                        <span class="salon-pos__mesa-numero">
-                            {{ mesa }}
-                        </span>
-
-
-                        <span class="salon-pos__mesa-libre">
-                            Libre
-                        </span>
-
-
-                    </button>
-
-
-                {% endfor %}
-
-
-            </div>
-
-
-        </section>
-
-
-
-        <!-- =================================================
-             OVERLAY DE LA VENTANA FLOTANTE
-             ================================================= -->
 
         <div
-            id="salon-modal-overlay"
-            class="salon-pos__modal-overlay"
-        ></div>
-
-
-
-        <!-- =================================================
-             COMANDA FLOTANTE
-             ================================================= -->
-
-        <aside
-            class="salon-pos__card salon-pos__comanda-panel"
+            id="grilla-mesas"
+            class="salon-pos__grilla-mesas"
         >
 
+            {% for mesa in mesas %}
 
-            <!-- =============================================
-                 CABECERA COMANDA
-                 ============================================= -->
+                <button
+                    type="button"
+                    class="salon-pos__mesa"
+                    data-mesa="{{ mesa }}"
+                    aria-label="Abrir mesa {{ mesa }}"
+                >
 
-            <div class="salon-pos__comanda-header">
-
-
-                <div>
-
-                    <span class="salon-pos__eyebrow">
-                        COMANDA
+                    <span class="salon-pos__mesa-numero">
+                        {{ mesa }}
                     </span>
 
+                    <span class="salon-pos__mesa-libre">
+                        Libre
+                    </span>
+
+                </button>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         OVERLAY
+         ===================================================== -->
+
+    <div
+        id="salon-modal-overlay"
+        class="salon-pos__modal-overlay"
+        aria-hidden="true"
+    ></div>
+
+
+    <!-- =====================================================
+         COMANDA FLOTANTE
+         ===================================================== -->
+
+    <aside
+        id="salon-comanda-modal"
+        class="salon-pos__comanda-panel salon-pos__comanda-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-mesa"
+    >
+
+        <!-- HEADER -->
+
+        <div class="salon-pos__comanda-header salon-pos__comanda-header--pos">
+
+            <div class="salon-pos__comanda-identidad">
+
+                <span class="salon-pos__eyebrow">
+                    COMANDA
+                </span>
+
+                <div class="salon-pos__titulo-linea">
 
                     <h2 id="titulo-mesa">
                         Seleccione una mesa
                     </h2>
-
-                </div>
-
-
-
-                <div class="salon-pos__comanda-header-right">
-
 
                     <span
                         id="estado-mesa"
@@ -206,284 +134,260 @@
                         SIN MESA
                     </span>
 
-
-                    <button
-                        type="button"
-                        id="btn-cerrar-comanda"
-                        class="salon-pos__cerrar-comanda"
-                        aria-label="Cerrar comanda"
-                        title="Cerrar comanda"
-                    >
-                        ×
-                    </button>
-
-
                 </div>
-
 
             </div>
 
 
+            <div class="salon-pos__resumen-superior">
 
-            <!-- =============================================
-                 ESTADO SIN MESA
-                 ============================================= -->
+                <span>
+                    Total mesa
+                </span>
 
-            <div
-                id="mensaje-seleccionar-mesa"
-                class="salon-pos__empty-state"
+                <strong id="total-cuenta">
+                    $0
+                </strong>
+
+            </div>
+
+
+            <button
+                type="button"
+                id="btn-cerrar-comanda"
+                class="salon-pos__cerrar-comanda"
+                aria-label="Cerrar comanda"
+                title="Cerrar"
             >
+                ×
+            </button>
 
+        </div>
+
+
+        <!-- SIN MESA -->
+
+        <div
+            id="mensaje-seleccionar-mesa"
+            class="salon-pos__empty-state"
+        >
+
+            <div>
+
+                <span class="salon-pos__empty-icon">
+                    🍽️
+                </span>
+
+                <strong>
+                    Elegí una mesa
+                </strong>
+
+                <p>
+                    La cuenta aparecerá acá.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- COMANDA -->
+
+        <div
+            id="area-comanda"
+            class="salon-pos__area-comanda"
+            hidden
+        >
+
+            <!-- BUSCADOR -->
+
+            <div class="salon-pos__carga-rapida salon-pos__carga-rapida--pos">
+
+                <div class="salon-pos__field salon-pos__field--cant">
+
+                    <label for="input-cant">
+                        CANTIDAD
+                    </label>
+
+                    <input
+                        type="number"
+                        id="input-cant"
+                        class="salon-pos__input"
+                        value="1"
+                        min="1"
+                        step="1"
+                        inputmode="numeric"
+                    >
+
+                </div>
+
+
+                <div class="salon-pos__field salon-pos__field--buscador">
+
+                    <label for="buscador">
+                        CÓDIGO / PRODUCTO
+                    </label>
+
+                    <input
+                        type="text"
+                        id="buscador"
+                        class="salon-pos__input"
+                        placeholder="Ej: 157 o Coca..."
+                        autocomplete="off"
+                    >
+
+
+                    <ul
+                        id="lista-sugerencias"
+                        class="salon-pos__sugerencias"
+                        role="listbox"
+                    ></ul>
+
+                </div>
+
+            </div>
+
+
+            <!-- TABLA -->
+
+            <div class="salon-pos__tabla-wrap">
+
+                <table class="salon-pos__tabla">
+
+                    <thead>
+
+                        <tr>
+
+                            <th class="col-cant">
+                                Cant.
+                            </th>
+
+                            <th class="col-codigo">
+                                Código
+                            </th>
+
+                            <th>
+                                Descripción
+                            </th>
+
+                            <th class="col-unitario">
+                                Unitario
+                            </th>
+
+                            <th class="col-total">
+                                Total
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="lista-comanda"></tbody>
+
+                </table>
+
+
+                <div
+                    id="salon-lista-vacia"
+                    class="salon-pos__tabla-vacia"
+                >
+
+                    <strong>
+                        Mesa vacía
+                    </strong>
+
+                    <span>
+                        Buscá un producto arriba y presioná Enter.
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- RESUMEN -->
+
+            <div class="salon-pos__estado-seleccion">
 
                 <div>
 
-
-                    <span class="salon-pos__empty-icon">
-                        🍽️
+                    <span
+                        id="cantidad-lineas"
+                        class="salon-pos__contador"
+                    >
+                        0 productos
                     </span>
 
+                    <span id="resumen-accion">
+                        Mesa sin productos
+                    </span>
 
-                    <strong>
-                        Elegí una mesa
+                </div>
+
+
+                <div class="salon-pos__seleccion-total">
+
+                    <span>
+                        Seleccionado
+                    </span>
+
+                    <strong id="total-seleccionado">
+                        $0
                     </strong>
 
-
-                    <p>
-                        La cuenta aparecerá acá.
-                    </p>
-
-
                 </div>
-
 
             </div>
 
 
-
-            <!-- =============================================
-                 COMANDA ABIERTA
-                 ============================================= -->
-
-            <div
-                id="area-comanda"
-                class="salon-pos__area-comanda"
-                hidden
-            >
-
-
-                <!-- =========================================
-                     CARGA RÁPIDA
-                     ========================================= -->
-
-                <div class="salon-pos__carga-rapida">
-
-
-                    <div
-                        class="salon-pos__field salon-pos__field--cant"
-                    >
-
-
-                        <label for="input-cant">
-                            CANT
-                        </label>
-
-
-                        <input
-                            type="number"
-                            id="input-cant"
-                            class="salon-pos__input"
-                            value="1"
-                            min="1"
-                            step="1"
-                            inputmode="numeric"
-                        >
-
-
-                    </div>
-
-
-
-                    <div
-                        class="salon-pos__field salon-pos__field--buscador"
-                    >
-
-
-                        <label for="buscador">
-                            CÓDIGO O PRODUCTO
-                        </label>
-
-
-                        <input
-                            type="text"
-                            id="buscador"
-                            class="salon-pos__input"
-                            placeholder="Ej: 157 o Coca..."
-                            autocomplete="off"
-                        >
-
-
-
-                        <ul
-                            id="lista-sugerencias"
-                            class="salon-pos__sugerencias"
-                            role="listbox"
-                        ></ul>
-
-
-                    </div>
-
-
-                </div>
-
-
-
-                <!-- =========================================
-                     CABECERA DE LA CUENTA
-                     ========================================= -->
-
-                <div class="salon-pos__cuenta-header">
-
-
-                    <div>
-
-
-                        <h3>
-                            Cuenta de la Mesa
-                        </h3>
-
-
-                        <p>
-                            Tocá un producto para seleccionarlo y cobrarlo.
-                        </p>
-
-
-                    </div>
-
-
-
-                    <div class="salon-pos__cuenta-meta">
-
-
-                        <span
-                            id="cantidad-lineas"
-                            class="salon-pos__contador"
-                        >
-                            0 productos
-                        </span>
-
-
-                        <strong
-                            id="total-cuenta"
-                            class="salon-pos__total-inline"
-                        >
-                            $0
-                        </strong>
-
-
-                    </div>
-
-
-                </div>
-
-
-
-                <!-- =========================================
-                     LISTA DE PRODUCTOS
-                     ========================================= -->
-
-                <ul
-                    id="lista-comanda"
-                    class="salon-pos__lista-comanda"
-                ></ul>
-
-
-
-                <!-- =========================================
-                     BARRA INFERIOR
-                     ========================================= -->
-
-                <div class="salon-pos__actionbar">
-
-
-                    <div class="salon-pos__actionbar-info">
-
-
-                        <span id="resumen-accion">
-                            Mesa sin productos
-                        </span>
-
-
-                        <strong id="total-seleccionado">
-                            $0
-                        </strong>
-
-
-                    </div>
-
-
-
-                    <div class="salon-pos__actionbar-buttons">
-
-
-                        <button
-                            type="button"
-                            id="btn-imprimir-mesa"
-                            class="salon-pos__btn salon-pos__btn--ticket"
-                            title="Imprimir ticket de mesa"
-                        >
-                            🖨 Ticket
-                        </button>
-
-
-
-                        <button
-                            type="button"
-                            id="btn-accion-principal"
-                            class="salon-pos__btn salon-pos__btn--principal is-completa"
-                        >
-                            Cobrar mesa
-                        </button>
-
-
-                    </div>
-
-
-                </div>
-
+            <!-- BOTONES -->
+
+            <div class="salon-pos__actionbar salon-pos__actionbar--pos">
+
+                <button
+                    type="button"
+                    id="btn-cerrar-comanda-inferior"
+                    class="salon-pos__btn salon-pos__btn--cerrar"
+                >
+                    ✕ Cerrar
+                </button>
+
+
+                <button
+                    type="button"
+                    id="btn-imprimir-mesa"
+                    class="salon-pos__btn salon-pos__btn--ticket"
+                >
+                    🖨 Ticket
+                </button>
+
+
+                <button
+                    type="button"
+                    id="btn-accion-principal"
+                    class="salon-pos__btn salon-pos__btn--principal is-completa"
+                >
+                    💵 Pagar mesa
+                </button>
 
             </div>
 
+        </div>
 
-        </aside>
-
-
-    </div>
-
+    </aside>
 
 </section>
 
-
-
-<!-- =========================================================
-     CSRF PARA FETCH
-     ========================================================= -->
 
 <form
     id="salon-csrf-form"
     hidden
 >
-
     {% csrf_token %}
-
 </form>
 
 
-
-<!-- =========================================================
-     PRODUCTOS DJANGO → JAVASCRIPT
-     ========================================================= -->
-
 {{ productos|json_script:"salon-productos-data" }}
-
 
 {% endblock %}
