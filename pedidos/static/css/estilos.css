@@ -1620,3 +1620,590 @@ input[type="radio"] + label, input[type="checkbox"] + label, label:has(input[typ
     }
 
 }
+/* ==========================================================================
+   POS DE SALÓN - UX COMPACTA / RÁPIDA
+   ========================================================================== */
+
+.salon-pos__comanda-panel {
+    padding-bottom: 0;
+    overflow: hidden;
+}
+
+
+.salon-pos__area-comanda:not([hidden]) {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+
+.salon-pos__carga-rapida {
+    margin-bottom: 14px;
+}
+
+
+/* ==========================================================================
+   CABECERA CUENTA
+   ========================================================================== */
+
+.salon-pos__cuenta-header--compacta {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+
+    gap: 14px;
+
+    margin: 4px 0 10px;
+
+    padding: 12px 0 10px;
+
+    border-top:
+        1px solid var(--salon-border);
+
+    border-bottom:
+        1px solid var(--salon-border);
+}
+
+
+.salon-pos__cuenta-header--compacta h3 {
+    margin: 0;
+}
+
+
+.salon-pos__cuenta-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+
+    gap: 3px;
+
+    flex: 0 0 auto;
+}
+
+
+.salon-pos__total-inline {
+    color: var(--salon-green);
+
+    font-size: 1.1rem;
+    font-weight: 900;
+}
+
+
+/* ==========================================================================
+   LISTA
+   ========================================================================== */
+
+.salon-pos__lista-comanda {
+    gap: 7px;
+
+    max-height:
+        calc(100vh - 470px);
+
+    min-height: 120px;
+
+    padding:
+        0 4px 12px 0;
+}
+
+
+/* ==========================================================================
+   PRODUCTO
+   ========================================================================== */
+
+.salon-pos__item-comanda {
+    display: block;
+
+    padding: 10px 11px;
+
+    border:
+        1px solid var(--salon-border);
+
+    border-radius: 11px;
+
+    background: #0b0e13;
+
+    cursor: pointer;
+
+    transition:
+        border-color .14s ease,
+        background .14s ease,
+        transform .14s ease;
+}
+
+
+.salon-pos__item-comanda:hover {
+    border-color: #414854;
+
+    transform:
+        translateY(-1px);
+}
+
+
+.salon-pos__item-comanda.is-seleccionado {
+    border-color:
+        var(--salon-yellow);
+
+    background:
+        rgba(245, 158, 11, 0.07);
+
+    box-shadow:
+        inset 3px 0 0
+        var(--salon-yellow);
+}
+
+
+/* ==========================================================================
+   PARTE SUPERIOR PRODUCTO
+   ========================================================================== */
+
+.salon-pos__item-top {
+    display: flex;
+
+    align-items: center;
+
+    justify-content:
+        space-between;
+
+    gap: 12px;
+}
+
+
+.salon-pos__item-info {
+    min-width: 0;
+}
+
+
+.salon-pos__item-name {
+    font-size: 0.95rem;
+
+    line-height: 1.15;
+}
+
+
+.salon-pos__item-price {
+    margin-top: 3px;
+
+    font-size: 0.7rem;
+}
+
+
+/* ==========================================================================
+   CANTIDAD EN MESA
+   ========================================================================== */
+
+.salon-pos__item-side {
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: flex-end;
+
+    gap: 3px;
+
+    flex: 0 0 auto;
+}
+
+
+.salon-pos__en-mesa {
+    color:
+        var(--salon-muted);
+
+    font-size: 0.62rem;
+
+    font-weight: 800;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.06em;
+}
+
+
+.salon-pos__cantidad-control {
+    gap: 4px;
+}
+
+
+.salon-pos__cantidad-btn,
+.salon-pos__mini-btn {
+    width: 31px;
+
+    height: 31px;
+
+    padding: 0;
+
+    border:
+        1px solid var(--salon-border);
+
+    border-radius: 8px;
+
+    background: #191d24;
+
+    color:
+        var(--salon-text);
+
+    font: inherit;
+
+    font-weight: 900;
+
+    cursor: pointer;
+}
+
+
+.salon-pos__cantidad-btn:hover,
+.salon-pos__mini-btn:hover {
+    border-color:
+        var(--salon-orange);
+
+    color:
+        var(--salon-orange);
+}
+
+
+.salon-pos__cantidad-numero {
+    min-width: 26px;
+
+    text-align: center;
+
+    font-size: 0.9rem;
+}
+
+
+/* ==========================================================================
+   COBRO PARCIAL
+   ========================================================================== */
+
+.salon-pos__cobro-inline {
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    margin-top: 9px;
+
+    padding-top: 9px;
+
+    border-top:
+        1px solid
+        rgba(245, 158, 11, 0.25);
+}
+
+
+.salon-pos__cobro-label {
+    margin-right: auto;
+
+    color:
+        var(--salon-yellow);
+
+    font-size: 0.72rem;
+
+    font-weight: 900;
+
+    text-transform:
+        uppercase;
+
+    letter-spacing:
+        0.04em;
+}
+
+
+.salon-pos__cobro-numero {
+    min-width: 28px;
+
+    text-align: center;
+
+    color:
+        var(--salon-text);
+
+    font-size: 0.92rem;
+}
+
+
+.salon-pos__cobro-de {
+    color:
+        var(--salon-muted);
+
+    font-size: 0.7rem;
+
+    font-weight: 700;
+}
+
+
+/* ==========================================================================
+   MESA VACÍA
+   ========================================================================== */
+
+.salon-pos__lista-vacia {
+    display: grid;
+
+    gap: 4px;
+
+    padding: 22px 12px;
+}
+
+
+.salon-pos__lista-vacia strong {
+    color:
+        var(--salon-text);
+}
+
+
+.salon-pos__lista-vacia span {
+    color:
+        var(--salon-muted);
+
+    font-size: 0.75rem;
+}
+
+
+/* ==========================================================================
+   BARRA DE COBRO
+   ========================================================================== */
+
+.salon-pos__actionbar {
+    position: sticky;
+
+    bottom: 0;
+
+    z-index: 15;
+
+    margin:
+        0 -22px;
+
+    padding:
+        12px 22px 16px;
+
+    border-top:
+        1px solid var(--salon-border);
+
+    background:
+        linear-gradient(
+            to bottom,
+            rgba(18, 21, 27, 0.96),
+            #12151b 28%
+        );
+
+    backdrop-filter:
+        blur(8px);
+}
+
+
+.salon-pos__actionbar-info {
+    display: flex;
+
+    align-items: center;
+
+    justify-content:
+        space-between;
+
+    gap: 12px;
+
+    margin-bottom: 9px;
+}
+
+
+.salon-pos__actionbar-info span {
+    color:
+        var(--salon-muted);
+
+    font-size: 0.75rem;
+
+    font-weight: 800;
+}
+
+
+.salon-pos__actionbar-info strong {
+    color:
+        var(--salon-yellow);
+
+    font-size: 1rem;
+
+    font-weight: 900;
+}
+
+
+.salon-pos__actionbar-buttons {
+    display: grid;
+
+    grid-template-columns:
+        118px minmax(0, 1fr);
+
+    gap: 8px;
+}
+
+
+/* ==========================================================================
+   BOTÓN TICKET
+   ========================================================================== */
+
+.salon-pos__btn--ticket {
+    border:
+        1px solid var(--salon-border);
+
+    background: #191d24;
+
+    color:
+        var(--salon-text);
+}
+
+
+/* ==========================================================================
+   BOTÓN PRINCIPAL
+   ========================================================================== */
+
+.salon-pos__btn--principal {
+    min-height: 46px;
+
+    font-size: 0.88rem;
+
+    font-weight: 900;
+}
+
+
+.salon-pos__btn--principal.is-completa {
+    background:
+        var(--salon-green);
+
+    color: #06150b;
+}
+
+
+.salon-pos__btn--principal.is-parcial {
+    background:
+        var(--salon-yellow);
+
+    color: #241500;
+}
+
+
+.salon-pos__btn:disabled {
+    opacity: 0.45;
+
+    cursor: not-allowed;
+
+    transform: none;
+}
+
+
+/* ==========================================================================
+   SUGERENCIAS
+   ========================================================================== */
+
+.salon-pos__sugerencias {
+    z-index: 40;
+}
+
+
+.salon-pos__sugerencia {
+    display: flex;
+
+    align-items: center;
+
+    justify-content:
+        space-between;
+
+    gap: 12px;
+
+    padding: 10px 12px;
+
+    cursor: pointer;
+}
+
+
+.salon-pos__sugerencia:hover,
+.salon-pos__sugerencia.is-activa {
+    background:
+        rgba(255, 102, 0, 0.11);
+}
+
+
+.salon-pos__sugerencia-main {
+    display: flex;
+
+    flex-direction: column;
+
+    min-width: 0;
+}
+
+
+.salon-pos__sugerencia-main strong {
+    color:
+        var(--salon-text);
+
+    font-size: 0.82rem;
+}
+
+
+.salon-pos__sugerencia-main span {
+    color:
+        var(--salon-muted);
+
+    font-size: 0.68rem;
+}
+
+
+.salon-pos__sugerencia b {
+    color:
+        var(--salon-orange-light);
+
+    white-space: nowrap;
+
+    font-size: 0.78rem;
+}
+
+
+/* ==========================================================================
+   TABLET
+   ========================================================================== */
+
+@media (max-width: 1080px) {
+
+    .salon-pos__lista-comanda {
+        max-height: 440px;
+    }
+
+}
+
+
+/* ==========================================================================
+   CELULAR
+   ========================================================================== */
+
+@media (max-width: 680px) {
+
+    .salon-pos__cuenta-header--compacta {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+
+    .salon-pos__cuenta-meta {
+        width: 100%;
+
+        flex-direction: row;
+
+        justify-content:
+            space-between;
+
+        align-items: center;
+    }
+
+
+    .salon-pos__actionbar-buttons {
+        grid-template-columns:
+            92px minmax(0, 1fr);
+    }
+
+
+    .salon-pos__actionbar {
+        margin-left: -16px;
+
+        margin-right: -16px;
+
+        padding-left: 16px;
+
+        padding-right: 16px;
+    }
+
+}

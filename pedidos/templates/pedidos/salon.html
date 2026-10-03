@@ -20,10 +20,11 @@
 
         <div>
             <h1>Control de Salón 🍽️</h1>
-            <p>Seleccioná una mesa y cargá los productos de la comanda.</p>
+            <p>Elegí una mesa, cargá productos y cobrá rápido.</p>
         </div>
 
         <div class="salon-pos__leyenda">
+
             <span>
                 <i class="salon-pos__estado salon-pos__estado--libre"></i>
                 Libre
@@ -38,6 +39,7 @@
                 <i class="salon-pos__estado salon-pos__estado--actual"></i>
                 Seleccionada
             </span>
+
         </div>
 
     </div>
@@ -52,8 +54,15 @@
         <section class="salon-pos__card salon-pos__mesas-panel">
 
             <div class="salon-pos__section-header">
-                <h2>Mesas</h2>
-                <span>1 a 100</span>
+
+                <h2>
+                    Mesas
+                </h2>
+
+                <span>
+                    1 a 100
+                </span>
+
             </div>
 
 
@@ -89,6 +98,7 @@
             <div class="salon-pos__comanda-header">
 
                 <div>
+
                     <span class="salon-pos__eyebrow">
                         COMANDA
                     </span>
@@ -96,6 +106,7 @@
                     <h2 id="titulo-mesa">
                         Seleccione una mesa
                     </h2>
+
                 </div>
 
 
@@ -110,7 +121,7 @@
 
 
             <!-- =================================================
-                 ESTADO INICIAL
+                 ESTADO SIN MESA
                  ================================================= -->
 
             <div
@@ -129,7 +140,7 @@
                     </strong>
 
                     <p>
-                        La cuenta se abrirá en este panel.
+                        La cuenta aparecerá acá.
                     </p>
 
                 </div>
@@ -138,7 +149,7 @@
 
 
             <!-- =================================================
-                 MESA ABIERTA
+                 CUENTA
                  ================================================= -->
 
             <div
@@ -150,7 +161,6 @@
                 <!-- CARGA RÁPIDA -->
 
                 <div class="salon-pos__carga-rapida">
-
 
                     <div class="salon-pos__field salon-pos__field--cant">
 
@@ -181,10 +191,9 @@
                             type="text"
                             id="buscador"
                             class="salon-pos__input"
-                            placeholder="Ej: 114 o Coca..."
+                            placeholder="Ej: 157 o Coca..."
                             autocomplete="off"
                         >
-
 
                         <ul
                             id="lista-sugerencias"
@@ -197,30 +206,50 @@
                 </div>
 
 
-                <!-- CUENTA -->
+                <!-- =================================================
+                     CABECERA CUENTA
+                     ================================================= -->
 
-                <div class="salon-pos__cuenta-header">
+                <div class="salon-pos__cuenta-header salon-pos__cuenta-header--compacta">
 
                     <div>
-                        <h3>Cuenta de la Mesa</h3>
+
+                        <h3>
+                            Cuenta de la Mesa
+                        </h3>
 
                         <p>
-                            Tildá productos para un pago parcial.
+                            Tocá un producto para seleccionarlo y cobrarlo.
                         </p>
+
                     </div>
 
 
-                    <span
-                        id="cantidad-lineas"
-                        class="salon-pos__contador"
-                    >
-                        0 ítems
-                    </span>
+                    <div class="salon-pos__cuenta-meta">
+
+                        <span
+                            id="cantidad-lineas"
+                            class="salon-pos__contador"
+                        >
+                            0 productos
+                        </span>
+
+
+                        <strong
+                            id="total-cuenta"
+                            class="salon-pos__total-inline"
+                        >
+                            $0
+                        </strong>
+
+                    </div>
 
                 </div>
 
 
-                <!-- PRODUCTOS -->
+                <!-- =================================================
+                     PRODUCTOS DE LA MESA
+                     ================================================= -->
 
                 <ul
                     id="lista-comanda"
@@ -228,69 +257,46 @@
                 ></ul>
 
 
-                <!-- TOTAL -->
+                <!-- =================================================
+                     BARRA DE COBRO FIJA
+                     ================================================= -->
 
-                <div class="salon-pos__total-mesa">
+                <div class="salon-pos__actionbar">
 
-                    <span>
-                        Total restante
-                    </span>
+                    <div class="salon-pos__actionbar-info">
 
-                    <strong id="total-cuenta">
-                        $0,00
-                    </strong>
-
-                </div>
-
-
-                <!-- PAGO PARCIAL -->
-
-                <div class="salon-pos__pago-parcial">
-
-                    <div class="salon-pos__total-seleccion">
-
-                        <span>
-                            Seleccionado a pagar
+                        <span id="resumen-accion">
+                            Mesa sin productos
                         </span>
 
                         <strong id="total-seleccionado">
-                            $0,00
+                            $0
                         </strong>
 
                     </div>
 
 
-                    <button
-                        type="button"
-                        id="btn-cobrar-parcial"
-                        class="salon-pos__btn salon-pos__btn--parcial"
-                    >
-                        💳 Cobrar Selección Parcial
-                    </button>
+                    <div class="salon-pos__actionbar-buttons">
 
-                </div>
-
-
-                <!-- ACCIONES -->
-
-                <div class="salon-pos__acciones">
-
-                    <button
-                        type="button"
-                        id="btn-imprimir-mesa"
-                        class="salon-pos__btn salon-pos__btn--secundario"
-                    >
-                        🖨️ Imprimir Ticket de Mesa
-                    </button>
+                        <button
+                            type="button"
+                            id="btn-imprimir-mesa"
+                            class="salon-pos__btn salon-pos__btn--ticket"
+                            title="Imprimir ticket de mesa"
+                        >
+                            🖨 Ticket
+                        </button>
 
 
-                    <button
-                        type="button"
-                        id="btn-cobrar-mesa"
-                        class="salon-pos__btn salon-pos__btn--cobrar"
-                    >
-                        ✅ Cobrar Toda la Mesa
-                    </button>
+                        <button
+                            type="button"
+                            id="btn-accion-principal"
+                            class="salon-pos__btn salon-pos__btn--principal is-completa"
+                        >
+                            Cobrar mesa
+                        </button>
+
+                    </div>
 
                 </div>
 
@@ -303,14 +309,14 @@
 </section>
 
 
-<!-- TOKEN CSRF PARA LAS IMPRESIONES AJAX -->
+<!-- CSRF PARA FETCH -->
 
 <form id="salon-csrf-form" hidden>
     {% csrf_token %}
 </form>
 
 
-<!-- PRODUCTOS EN JSON -->
+<!-- PRODUCTOS DJANGO -> JAVASCRIPT -->
 
 {{ productos|json_script:"salon-productos-data" }}
 
