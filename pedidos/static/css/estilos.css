@@ -2317,4 +2317,521 @@ input[type="radio"] + label, input[type="checkbox"] + label, label:has(input[typ
             );
     }
 
+}/* ==========================================================================
+   POS SALÓN - COMANDA COMO VENTANA FLOTANTE
+   ========================================================================== */
+
+
+/* La grilla de mesas ahora usa todo el ancho */
+.salon-pos__layout {
+    display: block !important;
+}
+
+
+.salon-pos__mesas-panel {
+    width: 100% !important;
+}
+
+
+/* Más mesas por fila */
+.salon-pos__grilla-mesas {
+    grid-template-columns:
+        repeat(
+            10,
+            minmax(90px, 1fr)
+        ) !important;
+
+    gap: 12px !important;
+}
+
+
+/* ==========================================================================
+   FONDO OSCURO DEL MODAL
+   ========================================================================== */
+
+.salon-pos__modal-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 1990;
+
+    background:
+        rgba(0, 0, 0, 0.66);
+
+    backdrop-filter:
+        blur(3px);
+
+    opacity: 0;
+
+    visibility: hidden;
+
+    pointer-events: none;
+
+    transition:
+        opacity 0.18s ease,
+        visibility 0.18s ease;
+}
+
+
+.salon-pos__modal-overlay.is-open {
+    opacity: 1;
+
+    visibility: visible;
+
+    pointer-events: auto;
+}
+
+
+/* ==========================================================================
+   VENTANA DE COMANDA
+   ========================================================================== */
+
+.salon-pos__comanda-panel {
+    position: fixed !important;
+
+    top: 50% !important;
+
+    left: 50% !important;
+
+    transform:
+        translate(
+            -50%,
+            -48%
+        )
+        scale(0.97);
+
+    z-index: 2000;
+
+    width:
+        min(
+            900px,
+            calc(100vw - 50px)
+        ) !important;
+
+    height:
+        min(
+            820px,
+            calc(100vh - 80px)
+        ) !important;
+
+    max-width:
+        900px !important;
+
+    max-height:
+        calc(100vh - 80px) !important;
+
+    padding:
+        26px !important;
+
+    border:
+        1px solid
+        #343a44 !important;
+
+    border-radius:
+        22px !important;
+
+    background:
+        #11151b !important;
+
+    box-shadow:
+        0 30px 100px
+        rgba(
+            0,
+            0,
+            0,
+            0.70
+        ) !important;
+
+    opacity: 0;
+
+    visibility: hidden;
+
+    pointer-events: none;
+
+    overflow: hidden !important;
+
+    transition:
+        opacity 0.18s ease,
+        transform 0.18s ease,
+        visibility 0.18s ease;
+}
+
+
+.salon-pos__comanda-panel.is-open {
+    opacity: 1;
+
+    visibility: visible;
+
+    pointer-events: auto;
+
+    transform:
+        translate(
+            -50%,
+            -50%
+        )
+        scale(1);
+}
+
+
+/* ==========================================================================
+   CABECERA
+   ========================================================================== */
+
+.salon-pos__comanda-header {
+    min-height: 76px;
+
+    padding-bottom: 18px !important;
+
+    margin-bottom: 18px !important;
+}
+
+
+.salon-pos__comanda-header h2 {
+    font-size:
+        2rem !important;
+}
+
+
+.salon-pos__comanda-header-right {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+}
+
+
+/* Botón X */
+.salon-pos__cerrar-comanda {
+    width: 42px;
+
+    height: 42px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border:
+        1px solid
+        var(--salon-border);
+
+    border-radius:
+        12px;
+
+    background:
+        #191d24;
+
+    color:
+        #f5f7fa;
+
+    font-size:
+        1.6rem;
+
+    font-weight:
+        400;
+
+    line-height: 1;
+
+    cursor: pointer;
+
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease;
+}
+
+
+.salon-pos__cerrar-comanda:hover {
+    border-color:
+        var(--salon-orange);
+
+    background:
+        rgba(
+            255,
+            102,
+            0,
+            0.12
+        );
+
+    color:
+        var(--salon-orange);
+}
+
+
+/* ==========================================================================
+   BUSCADOR MÁS GRANDE
+   ========================================================================== */
+
+.salon-pos__carga-rapida {
+    grid-template-columns:
+        120px
+        minmax(0, 1fr)
+        !important;
+
+    gap:
+        16px !important;
+}
+
+
+.salon-pos__input {
+    height:
+        58px !important;
+
+    font-size:
+        1rem !important;
+}
+
+
+.salon-pos__field--cant
+.salon-pos__input {
+    font-size:
+        1.4rem !important;
+}
+
+
+/* ==========================================================================
+   CUENTA
+   ========================================================================== */
+
+.salon-pos__cuenta-header {
+    padding:
+        15px
+        0 !important;
+
+    margin-top:
+        4px;
+}
+
+
+.salon-pos__cuenta-header h3 {
+    font-size:
+        1.25rem !important;
+}
+
+
+.salon-pos__total-inline {
+    font-size:
+        1.45rem !important;
+}
+
+
+/* ==========================================================================
+   LISTA MÁS GRANDE
+   ========================================================================== */
+
+.salon-pos__lista-comanda {
+    flex:
+        1
+        1
+        auto !important;
+
+    min-height:
+        0 !important;
+
+    margin-top:
+        12px !important;
+
+    padding-right:
+        10px !important;
+
+    overflow-y:
+        auto !important;
+}
+
+
+.salon-pos__item-comanda {
+    padding:
+        16px
+        18px !important;
+
+    border-radius:
+        14px !important;
+}
+
+
+.salon-pos__item-name {
+    font-size:
+        1.08rem !important;
+}
+
+
+.salon-pos__item-price {
+    font-size:
+        0.8rem !important;
+}
+
+
+.salon-pos__item-side {
+    min-width:
+        135px !important;
+}
+
+
+.salon-pos__cantidad-btn,
+.salon-pos__mini-btn {
+    width:
+        40px !important;
+
+    height:
+        40px !important;
+}
+
+
+.salon-pos__cantidad-numero {
+    font-size:
+        1.1rem !important;
+
+    min-width:
+        30px !important;
+}
+
+
+/* ==========================================================================
+   BARRA DE COBRO
+   ========================================================================== */
+
+.salon-pos__actionbar {
+    margin:
+        0
+        -26px
+        -26px !important;
+
+    padding:
+        15px
+        26px
+        20px !important;
+}
+
+
+.salon-pos__actionbar-buttons {
+    grid-template-columns:
+        145px
+        minmax(0, 1fr)
+        !important;
+}
+
+
+.salon-pos__btn {
+    min-height:
+        54px !important;
+
+    font-size:
+        0.95rem !important;
+}
+
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+
+@media (max-width: 1400px) {
+
+    .salon-pos__grilla-mesas {
+        grid-template-columns:
+            repeat(
+                8,
+                minmax(
+                    85px,
+                    1fr
+                )
+            )
+            !important;
+    }
+
+}
+
+
+@media (max-width: 1000px) {
+
+    .salon-pos__grilla-mesas {
+        grid-template-columns:
+            repeat(
+                6,
+                minmax(
+                    80px,
+                    1fr
+                )
+            )
+            !important;
+    }
+
+
+    .salon-pos__comanda-panel {
+        width:
+            calc(
+                100vw
+                -
+                24px
+            )
+            !important;
+
+        height:
+            calc(
+                100vh
+                -
+                24px
+            )
+            !important;
+
+        max-height:
+            calc(
+                100vh
+                -
+                24px
+            )
+            !important;
+    }
+
+}
+
+
+@media (max-width: 650px) {
+
+    .salon-pos__grilla-mesas {
+        grid-template-columns:
+            repeat(
+                4,
+                1fr
+            )
+            !important;
+    }
+
+
+    .salon-pos__comanda-panel {
+        padding:
+            16px !important;
+
+        border-radius:
+            16px !important;
+    }
+
+
+    .salon-pos__carga-rapida {
+        grid-template-columns:
+            80px
+            minmax(
+                0,
+                1fr
+            )
+            !important;
+    }
+
+
+    .salon-pos__actionbar {
+        margin:
+            0
+            -16px
+            -16px
+            !important;
+
+        padding:
+            12px
+            16px
+            16px
+            !important;
+    }
+
 }

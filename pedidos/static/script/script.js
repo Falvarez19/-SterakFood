@@ -941,7 +941,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==========================================================================
-// MÓDULO 9: POS DE SALÓN - VERSIÓN FINAL
+// MÓDULO 9: POS DE SALÓN - VERSIÓN FINAL + COMANDA FLOTANTE
 // ==========================================================================
 (function () {
 
@@ -1162,6 +1162,24 @@ document.addEventListener('DOMContentLoaded', () => {
     var btnTicket =
         document.getElementById(
             'btn-imprimir-mesa'
+        );
+
+
+    var modalComanda =
+        document.querySelector(
+            '.salon-pos__comanda-panel'
+        );
+
+
+    var modalOverlay =
+        document.getElementById(
+            'salon-modal-overlay'
+        );
+
+
+    var btnCerrarComanda =
+        document.getElementById(
+            'btn-cerrar-comanda'
         );
 
 
@@ -1576,6 +1594,70 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ======================================================================
+    // VENTANA FLOTANTE DE LA COMANDA
+    // ======================================================================
+
+    function abrirComanda() {
+
+        if (
+            modalComanda
+        ) {
+
+            modalComanda.classList.add(
+                'is-open'
+            );
+
+        }
+
+
+        if (
+            modalOverlay
+        ) {
+
+            modalOverlay.classList.add(
+                'is-open'
+            );
+
+        }
+
+
+        document.body.style.overflow =
+            'hidden';
+
+    }
+
+
+    function cerrarComanda() {
+
+        if (
+            modalComanda
+        ) {
+
+            modalComanda.classList.remove(
+                'is-open'
+            );
+
+        }
+
+
+        if (
+            modalOverlay
+        ) {
+
+            modalOverlay.classList.remove(
+                'is-open'
+            );
+
+        }
+
+
+        document.body.style.overflow =
+            '';
+
+    }
+
+
+    // ======================================================================
     // MESAS
     // ======================================================================
 
@@ -1620,6 +1702,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         areaComanda.hidden =
             false;
+
+
+        abrirComanda();
 
 
         actualizarMesas();
@@ -2813,7 +2898,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ======================================================================
-    // TICKET
+    // ITEMS DEL TICKET
     // ======================================================================
 
     function obtenerItemsTicket(
@@ -2878,6 +2963,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     }
 
+
+    // ======================================================================
+    // ENVIAR A DJANGO / TICKETERA
+    // ======================================================================
 
     function enviarTicket(
         items,
@@ -3276,7 +3365,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ======================================================================
-    // COBRAR MESA
+    // COBRAR MESA COMPLETA
     // ======================================================================
 
     function cobrarMesa() {
@@ -3421,7 +3510,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ======================================================================
-    // EVENTOS MESAS
+    // EVENTOS DE MESAS
     // ======================================================================
 
     botonesMesa.forEach(
@@ -3445,7 +3534,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ======================================================================
-    // EVENTOS BUSCADOR
+    // EVENTOS DEL BUSCADOR
     // ======================================================================
 
     buscador.addEventListener(
@@ -3484,7 +3573,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 event.preventDefault();
 
-
                 sugerenciaActiva++;
 
 
@@ -3516,7 +3604,6 @@ document.addEventListener('DOMContentLoaded', () => {
             ) {
 
                 event.preventDefault();
-
 
                 sugerenciaActiva--;
 
@@ -3632,7 +3719,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ======================================================================
-    // EVENTOS COMANDA
+    // EVENTOS DE PRODUCTOS
     // ======================================================================
 
     listaComanda.addEventListener(
@@ -3805,6 +3892,10 @@ document.addEventListener('DOMContentLoaded', () => {
     );
 
 
+    // ======================================================================
+    // TICKET
+    // ======================================================================
+
     btnTicket.addEventListener(
         'click',
         imprimirMesa
@@ -3834,18 +3925,72 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ======================================================================
+    // EVENTOS DE LA VENTANA FLOTANTE
+    // ======================================================================
+
+    if (
+        btnCerrarComanda
+    ) {
+
+        btnCerrarComanda.addEventListener(
+            'click',
+            cerrarComanda
+        );
+
+    }
+
+
+    if (
+        modalOverlay
+    ) {
+
+        modalOverlay.addEventListener(
+            'click',
+            cerrarComanda
+        );
+
+    }
+
+
+    document.addEventListener(
+        'keydown',
+        function (event) {
+
+            if (
+                event.key
+                ===
+                'Escape'
+            ) {
+
+                cerrarComanda();
+
+            }
+
+        }
+    );
+
+
+    // ======================================================================
     // GUARDADO AUTOMÁTICO
     // ======================================================================
 
     window.addEventListener(
         'pagehide',
-        guardar
+        function () {
+
+            guardar();
+
+        }
     );
 
 
     window.addEventListener(
         'beforeunload',
-        guardar
+        function () {
+
+            guardar();
+
+        }
     );
 
 
