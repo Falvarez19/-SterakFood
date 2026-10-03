@@ -79,7 +79,13 @@
                         data-mesa="{{ mesa }}"
                         aria-label="Abrir mesa {{ mesa }}"
                     >
-                        {{ mesa }}
+                        <span class="salon-pos__mesa-numero">
+                            {{ mesa }}
+                        </span>
+
+                        <span class="salon-pos__mesa-libre">
+                            Libre
+                        </span>
                     </button>
 
                 {% endfor %}
@@ -121,7 +127,7 @@
 
 
             <!-- =================================================
-                 ESTADO SIN MESA
+                 SIN MESA
                  ================================================= -->
 
             <div
@@ -149,7 +155,7 @@
 
 
             <!-- =================================================
-                 CUENTA
+                 COMANDA ABIERTA
                  ================================================= -->
 
             <div
@@ -158,7 +164,7 @@
                 hidden
             >
 
-                <!-- CARGA RÁPIDA -->
+                <!-- BUSCADOR -->
 
                 <div class="salon-pos__carga-rapida">
 
@@ -195,6 +201,7 @@
                             autocomplete="off"
                         >
 
+
                         <ul
                             id="lista-sugerencias"
                             class="salon-pos__sugerencias"
@@ -206,11 +213,9 @@
                 </div>
 
 
-                <!-- =================================================
-                     CABECERA CUENTA
-                     ================================================= -->
+                <!-- CABECERA DE CUENTA -->
 
-                <div class="salon-pos__cuenta-header salon-pos__cuenta-header--compacta">
+                <div class="salon-pos__cuenta-header">
 
                     <div>
 
@@ -247,9 +252,7 @@
                 </div>
 
 
-                <!-- =================================================
-                     PRODUCTOS DE LA MESA
-                     ================================================= -->
+                <!-- PRODUCTOS -->
 
                 <ul
                     id="lista-comanda"
@@ -257,9 +260,7 @@
                 ></ul>
 
 
-                <!-- =================================================
-                     BARRA DE COBRO FIJA
-                     ================================================= -->
+                <!-- BARRA INFERIOR -->
 
                 <div class="salon-pos__actionbar">
 
@@ -282,7 +283,6 @@
                             type="button"
                             id="btn-imprimir-mesa"
                             class="salon-pos__btn salon-pos__btn--ticket"
-                            title="Imprimir ticket de mesa"
                         >
                             🖨 Ticket
                         </button>
@@ -309,14 +309,10 @@
 </section>
 
 
-<!-- CSRF PARA FETCH -->
-
 <form id="salon-csrf-form" hidden>
     {% csrf_token %}
 </form>
 
-
-<!-- PRODUCTOS DJANGO -> JAVASCRIPT -->
 
 {{ productos|json_script:"salon-productos-data" }}
 
