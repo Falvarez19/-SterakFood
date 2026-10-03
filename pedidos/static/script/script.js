@@ -943,7 +943,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==========================================================================
 // MÓDULO 9: POS DE SALÓN
 // ==========================================================================
-
 (function () {
     'use strict';
 
@@ -958,16 +957,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // PRODUCTOS DESDE DJANGO
     // =========================================================
 
-    var productosData = document.getElementById('salon-productos-data');
+    var productosData =
+        document.getElementById('salon-productos-data');
+
     var productosSalon = [];
+
 
     if (productosData) {
 
         try {
 
-            productosSalon = JSON.parse(
-                productosData.textContent || '[]'
-            );
+            productosSalon =
+                JSON.parse(
+                    productosData.textContent || '[]'
+                );
 
         } catch (error) {
 
@@ -987,66 +990,115 @@ document.addEventListener('DOMContentLoaded', () => {
     // ESTADO
     // =========================================================
 
-    var STORAGE_KEY = 'sterakfood_salon_cuentas_v1';
+    var STORAGE_KEY =
+        'sterakfood_salon_cuentas_v1';
 
     var mesaActual = null;
 
-    var cuentasMesas = cargarCuentasSalon();
+    var cuentasMesas =
+        cargarCuentasSalon();
 
     var indiceSugerencia = -1;
 
     var resultadosSugerencias = [];
+
+    var imprimiendo = false;
 
 
     // =========================================================
     // ELEMENTOS
     // =========================================================
 
-    var botonesMesa = Array.prototype.slice.call(
-        document.querySelectorAll('.salon-pos__mesa')
-    );
+    var botonesMesa =
+        Array.prototype.slice.call(
+            document.querySelectorAll(
+                '.salon-pos__mesa'
+            )
+        );
+
 
     var tituloMesa =
-        document.getElementById('titulo-mesa');
+        document.getElementById(
+            'titulo-mesa'
+        );
+
 
     var estadoMesa =
-        document.getElementById('estado-mesa');
+        document.getElementById(
+            'estado-mesa'
+        );
+
 
     var mensajeSeleccionar =
-        document.getElementById('mensaje-seleccionar-mesa');
+        document.getElementById(
+            'mensaje-seleccionar-mesa'
+        );
+
 
     var areaComanda =
-        document.getElementById('area-comanda');
+        document.getElementById(
+            'area-comanda'
+        );
+
 
     var inputCant =
-        document.getElementById('input-cant');
+        document.getElementById(
+            'input-cant'
+        );
+
 
     var buscador =
-        document.getElementById('buscador');
+        document.getElementById(
+            'buscador'
+        );
+
 
     var sugerenciasBox =
-        document.getElementById('lista-sugerencias');
+        document.getElementById(
+            'lista-sugerencias'
+        );
+
 
     var listaComanda =
-        document.getElementById('lista-comanda');
+        document.getElementById(
+            'lista-comanda'
+        );
+
 
     var totalCuenta =
-        document.getElementById('total-cuenta');
+        document.getElementById(
+            'total-cuenta'
+        );
+
 
     var totalSeleccionado =
-        document.getElementById('total-seleccionado');
+        document.getElementById(
+            'total-seleccionado'
+        );
+
 
     var cantidadLineas =
-        document.getElementById('cantidad-lineas');
+        document.getElementById(
+            'cantidad-lineas'
+        );
+
 
     var btnCobrarParcial =
-        document.getElementById('btn-cobrar-parcial');
+        document.getElementById(
+            'btn-cobrar-parcial'
+        );
+
 
     var btnImprimirMesa =
-        document.getElementById('btn-imprimir-mesa');
+        document.getElementById(
+            'btn-imprimir-mesa'
+        );
+
 
     var btnCobrarMesa =
-        document.getElementById('btn-cobrar-mesa');
+        document.getElementById(
+            'btn-cobrar-mesa'
+        );
 
 
     // =========================================================
@@ -1061,32 +1113,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // =========================================================
-    // NORMALIZAR PRODUCTOS
+    // PRODUCTOS
     // =========================================================
 
     function normalizarProductosSalon() {
 
-        productosSalon = productosSalon.map(
-            function (producto) {
+        productosSalon =
+            productosSalon.map(
+                function (producto) {
 
-                return {
+                    return {
 
-                    codigo: String(
-                        producto.codigo || ''
-                    ),
+                        id:
+                            Number(
+                                producto.id || 0
+                            ),
 
-                    nombre: String(
-                        producto.nombre || ''
-                    ),
+                        codigo:
+                            String(
+                                producto.codigo || ''
+                            ),
 
-                    precio: Number(
-                        producto.precio || 0
-                    )
+                        nombre:
+                            String(
+                                producto.nombre || ''
+                            ),
 
-                };
+                        precio:
+                            Number(
+                                producto.precio || 0
+                            )
 
-            }
-        );
+                    };
+
+                }
+            );
 
     }
 
@@ -1106,7 +1167,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         seleccionarMesa(
                             Number(
-                                boton.getAttribute('data-mesa')
+                                boton.getAttribute(
+                                    'data-mesa'
+                                )
                             )
                         );
 
@@ -1123,7 +1186,9 @@ document.addEventListener('DOMContentLoaded', () => {
             'keydown',
             function (event) {
 
-                if (event.key === 'Enter') {
+                if (
+                    event.key === 'Enter'
+                ) {
 
                     event.preventDefault();
 
@@ -1139,21 +1204,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         buscador.addEventListener(
             'input',
-            function () {
-
-                actualizarSugerencias();
-
-            }
+            actualizarSugerencias
         );
 
 
         buscador.addEventListener(
             'keydown',
-            function (event) {
-
-                manejarTecladoBuscador(event);
-
-            }
+            manejarTecladoBuscador
         );
 
 
@@ -1196,19 +1253,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // =========================================================
-    // CUENTA ACTUAL
+    // CUENTA DE MESA
     // =========================================================
 
     function obtenerCuentaActual() {
 
         if (!mesaActual) {
+
             return null;
+
         }
 
 
-        if (!cuentasMesas[mesaActual]) {
+        if (
+            !cuentasMesas[
+                mesaActual
+            ]
+        ) {
 
-            cuentasMesas[mesaActual] = {
+            cuentasMesas[
+                mesaActual
+            ] = {
 
                 items: [],
 
@@ -1219,7 +1284,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
 
-        return cuentasMesas[mesaActual];
+        return cuentasMesas[
+            mesaActual
+        ];
 
     }
 
@@ -1228,19 +1295,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // SELECCIONAR MESA
     // =========================================================
 
-    function seleccionarMesa(numeroMesa) {
+    function seleccionarMesa(
+        numeroMesa
+    ) {
 
-        mesaActual = numeroMesa;
+        mesaActual =
+            numeroMesa;
+
 
         obtenerCuentaActual();
 
 
         tituloMesa.textContent =
-            'Mesa ' + numeroMesa;
+            'Mesa ' +
+            numeroMesa;
 
 
         estadoMesa.textContent =
-            'MESA ' + numeroMesa;
+            'MESA ' +
+            numeroMesa;
 
 
         estadoMesa.classList.add(
@@ -1248,17 +1321,31 @@ document.addEventListener('DOMContentLoaded', () => {
         );
 
 
-        mensajeSeleccionar.hidden = true;
+        // Ocultamos el cartel inicial de verdad.
 
-        areaComanda.hidden = false;
+        mensajeSeleccionar.hidden =
+            true;
 
 
-        inputCant.value = '1';
+        mensajeSeleccionar.classList.add(
+            'is-hidden'
+        );
 
-        buscador.value = '';
+
+        areaComanda.hidden =
+            false;
+
+
+        inputCant.value =
+            '1';
+
+
+        buscador.value =
+            '';
 
 
         cerrarSugerencias();
+
 
         actualizarEstadosMesas();
 
@@ -1280,7 +1367,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // =========================================================
-    // ESTADOS DE MESAS
+    // ESTADO VISUAL DE MESAS
     // =========================================================
 
     function actualizarEstadosMesas() {
@@ -1288,13 +1375,18 @@ document.addEventListener('DOMContentLoaded', () => {
         botonesMesa.forEach(
             function (boton) {
 
-                var numero = Number(
-                    boton.getAttribute('data-mesa')
-                );
+                var numero =
+                    Number(
+                        boton.getAttribute(
+                            'data-mesa'
+                        )
+                    );
 
 
                 var cuenta =
-                    cuentasMesas[numero];
+                    cuentasMesas[
+                        numero
+                    ];
 
 
                 var estaOcupada =
@@ -1334,9 +1426,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 .toLowerCase();
 
 
-        indiceSugerencia = -1;
+        indiceSugerencia =
+            -1;
 
-        resultadosSugerencias = [];
+
+        resultadosSugerencias =
+            [];
 
 
         limpiarNodo(
@@ -1354,24 +1449,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         resultadosSugerencias =
-            productosSalon.filter(
-                function (producto) {
+            productosSalon
+                .filter(
+                    function (producto) {
 
-                    return (
-                        producto.codigo
-                            .toLowerCase()
-                            .indexOf(texto) !== -1
-                        ||
-                        producto.nombre
-                            .toLowerCase()
-                            .indexOf(texto) !== -1
-                    );
+                        return (
+                            producto.codigo
+                                .toLowerCase()
+                                .indexOf(texto)
+                            !== -1
 
-                }
-            ).slice(
-                0,
-                15
-            );
+                            ||
+
+                            producto.nombre
+                                .toLowerCase()
+                                .indexOf(texto)
+                            !== -1
+                        );
+
+                    }
+                )
+                .slice(
+                    0,
+                    15
+                );
 
 
         if (
@@ -1386,10 +1487,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         resultadosSugerencias.forEach(
-            function (producto, index) {
+            function (
+                producto,
+                index
+            ) {
 
                 var li =
-                    document.createElement('li');
+                    document.createElement(
+                        'li'
+                    );
 
 
                 li.setAttribute(
@@ -1405,7 +1511,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
                 var codigo =
-                    document.createElement('span');
+                    document.createElement(
+                        'span'
+                    );
 
 
                 codigo.className =
@@ -1413,11 +1521,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
                 codigo.textContent =
-                    producto.codigo + ' · ';
+                    producto.codigo +
+                    ' · ';
 
 
                 var nombre =
-                    document.createElement('span');
+                    document.createElement(
+                        'span'
+                    );
 
 
                 nombre.textContent =
@@ -1425,7 +1536,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
                 var precio =
-                    document.createElement('span');
+                    document.createElement(
+                        'span'
+                    );
 
 
                 precio.className =
@@ -1459,6 +1572,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         event.preventDefault();
 
+
                         confirmarAgregadoSalon(
                             producto
                         );
@@ -1483,10 +1597,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // =========================================================
-    // TECLADO DEL BUSCADOR
+    // TECLADO BUSCADOR
     // =========================================================
 
-    function manejarTecladoBuscador(event) {
+    function manejarTecladoBuscador(
+        event
+    ) {
 
         var items =
             sugerenciasBox.querySelectorAll(
@@ -1495,7 +1611,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         if (
-            event.key === 'ArrowDown'
+            event.key ===
+            'ArrowDown'
         ) {
 
             event.preventDefault();
@@ -1518,7 +1635,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 items.length
             ) {
 
-                indiceSugerencia = 0;
+                indiceSugerencia =
+                    0;
 
             }
 
@@ -1534,7 +1652,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         if (
-            event.key === 'ArrowUp'
+            event.key ===
+            'ArrowUp'
         ) {
 
             event.preventDefault();
@@ -1573,7 +1692,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         if (
-            event.key === 'Escape'
+            event.key ===
+            'Escape'
         ) {
 
             cerrarSugerencias();
@@ -1584,14 +1704,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         if (
-            event.key === 'Enter'
+            event.key ===
+            'Enter'
         ) {
 
             event.preventDefault();
 
 
             if (
-                indiceSugerencia >= 0 &&
+                indiceSugerencia >= 0
+                &&
                 resultadosSugerencias[
                     indiceSugerencia
                 ]
@@ -1602,6 +1724,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         indiceSugerencia
                     ]
                 );
+
 
                 return;
 
@@ -1620,10 +1743,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         return (
                             producto.codigo
-                                .toLowerCase() === texto
+                                .toLowerCase()
+                            === texto
+
                             ||
+
                             producto.nombre
-                                .toLowerCase() === texto
+                                .toLowerCase()
+                            === texto
                         );
 
                     }
@@ -1636,13 +1763,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     exacto
                 );
 
+
                 return;
 
             }
 
 
             if (
-                resultadosSugerencias.length === 1
+                resultadosSugerencias.length
+                === 1
             ) {
 
                 confirmarAgregadoSalon(
@@ -1656,15 +1785,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    function resaltarSugerencia(items) {
+    function resaltarSugerencia(
+        items
+    ) {
 
         Array.prototype.forEach.call(
             items,
-            function (item, index) {
+            function (
+                item,
+                index
+            ) {
 
                 item.classList.toggle(
                     'activo',
-                    index === indiceSugerencia
+                    index ===
+                    indiceSugerencia
                 );
 
             }
@@ -1672,14 +1807,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         if (
-            items[indiceSugerencia]
+            items[
+                indiceSugerencia
+            ]
         ) {
 
             items[
                 indiceSugerencia
             ].scrollIntoView({
 
-                block: 'nearest'
+                block:
+                    'nearest'
 
             });
 
@@ -1700,21 +1838,28 @@ document.addEventListener('DOMContentLoaded', () => {
         );
 
 
-        indiceSugerencia = -1;
+        indiceSugerencia =
+            -1;
 
-        resultadosSugerencias = [];
+
+        resultadosSugerencias =
+            [];
 
     }
 
 
     // =========================================================
-    // AGREGAR PRODUCTO
+    // AGREGAR PRODUCTOS
     // =========================================================
 
-    function confirmarAgregadoSalon(producto) {
+    function confirmarAgregadoSalon(
+        producto
+    ) {
 
         if (!mesaActual) {
+
             return;
+
         }
 
 
@@ -1726,11 +1871,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         if (
-            isNaN(cantidad) ||
+            isNaN(cantidad)
+            ||
             cantidad < 1
         ) {
 
-            cantidad = 1;
+            cantidad =
+                1;
 
         }
 
@@ -1741,9 +1888,12 @@ document.addEventListener('DOMContentLoaded', () => {
         );
 
 
-        inputCant.value = '1';
+        inputCant.value =
+            '1';
 
-        buscador.value = '';
+
+        buscador.value =
+            '';
 
 
         cerrarSugerencias();
@@ -1770,7 +1920,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 function (item) {
 
                     return (
-                        item.codigo ===
+                        item.codigo
+                        ===
                         producto.codigo
                     );
 
@@ -1783,9 +1934,26 @@ document.addEventListener('DOMContentLoaded', () => {
             existente.cantidad +=
                 cantidad;
 
+
+            if (
+                !existente.producto_id
+            ) {
+
+                existente.producto_id =
+                    Number(
+                        producto.id || 0
+                    );
+
+            }
+
         } else {
 
             cuenta.items.push({
+
+                producto_id:
+                    Number(
+                        producto.id || 0
+                    ),
 
                 codigo:
                     producto.codigo,
@@ -1827,7 +1995,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // =========================================================
-    // CAMBIAR CANTIDAD + / -
+    // + Y -
     // =========================================================
 
     function cambiarCantidadSalon(
@@ -1840,8 +2008,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         if (
-            !cuenta ||
-            !cuenta.items[index]
+            !cuenta
+            ||
+            !cuenta.items[
+                index
+            ]
         ) {
 
             return;
@@ -1850,10 +2021,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         var item =
-            cuenta.items[index];
+            cuenta.items[
+                index
+            ];
 
 
-        item.cantidad += delta;
+        item.cantidad +=
+            delta;
 
 
         if (
@@ -1868,17 +2042,20 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
 
             if (
-                !item.cant_pagar ||
+                !item.cant_pagar
+                ||
                 item.cant_pagar < 1
             ) {
 
-                item.cant_pagar = 1;
+                item.cant_pagar =
+                    1;
 
             }
 
 
             if (
-                item.cant_pagar >
+                item.cant_pagar
+                >
                 item.cantidad
             ) {
 
@@ -1905,7 +2082,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // =========================================================
-    // SELECCIÓN PAGO PARCIAL
+    // SELECCIÓN PARCIAL
     // =========================================================
 
     function toggleSeleccionSalon(
@@ -1918,8 +2095,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         if (
-            !cuenta ||
-            !cuenta.items[index]
+            !cuenta
+            ||
+            !cuenta.items[
+                index
+            ]
         ) {
 
             return;
@@ -1928,7 +2108,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         var item =
-            cuenta.items[index];
+            cuenta.items[
+                index
+            ];
 
 
         item.seleccionado =
@@ -1961,8 +2143,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         if (
-            !cuenta ||
-            !cuenta.items[index]
+            !cuenta
+            ||
+            !cuenta.items[
+                index
+            ]
         ) {
 
             return;
@@ -1971,7 +2156,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         var item =
-            cuenta.items[index];
+            cuenta.items[
+                index
+            ];
 
 
         var cantidad =
@@ -1982,17 +2169,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         if (
-            isNaN(cantidad) ||
+            isNaN(cantidad)
+            ||
             cantidad < 1
         ) {
 
-            cantidad = 1;
+            cantidad =
+                1;
 
         }
 
 
         if (
-            cantidad >
+            cantidad
+            >
             item.cantidad
         ) {
 
@@ -2007,7 +2197,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         input.value =
-            String(cantidad);
+            String(
+                cantidad
+            );
 
 
         guardarCuentasSalon();
@@ -2018,10 +2210,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // =========================================================
-    // RECALCULAR TOTAL
+    // TOTALES
     // =========================================================
 
-    function recalcularCuenta(cuenta) {
+    function recalcularCuenta(
+        cuenta
+    ) {
 
         cuenta.total =
             cuenta.items.reduce(
@@ -2031,10 +2225,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 ) {
 
                     return (
-                        acumulado +
+                        acumulado
+                        +
                         Number(
                             item.precio
-                        ) *
+                        )
+                        *
                         Number(
                             item.cantidad
                         )
@@ -2048,7 +2244,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // =========================================================
-    // RENDER COMANDA
+    // RENDER
     // =========================================================
 
     function renderizarComandaSalon() {
@@ -2058,7 +2254,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         if (!cuenta) {
+
             return;
+
         }
 
 
@@ -2118,9 +2316,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         cantidadLineas.textContent =
             cuenta.items.length === 1
-                ? '1 ítem'
-                : cuenta.items.length +
-                  ' ítems';
+                ?
+                '1 ítem'
+                :
+                cuenta.items.length +
+                ' ítems';
 
 
         actualizarTotalSeleccionado();
@@ -2131,7 +2331,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // =========================================================
-    // CREAR FILA DE PRODUCTO
+    // CREAR ITEM COMANDA
     // =========================================================
 
     function crearItemComanda(
@@ -2160,8 +2360,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
 
-        // IZQUIERDA
-
         var izquierda =
             document.createElement(
                 'div'
@@ -2172,7 +2370,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'salon-pos__item-left';
 
 
-        // CHECKBOX
+        // CHECK
 
         var check =
             document.createElement(
@@ -2194,14 +2392,6 @@ document.addEventListener('DOMContentLoaded', () => {
             );
 
 
-        check.setAttribute(
-            'aria-label',
-            'Seleccionar ' +
-            item.nombre +
-            ' para pago parcial'
-        );
-
-
         check.addEventListener(
             'change',
             function () {
@@ -2215,7 +2405,7 @@ document.addEventListener('DOMContentLoaded', () => {
         );
 
 
-        // INFO
+        // INFORMACIÓN
 
         var info =
             document.createElement(
@@ -2254,8 +2444,10 @@ document.addEventListener('DOMContentLoaded', () => {
         precioUnitario.textContent =
             formatMonto(
                 item.precio
-            ) +
-            ' c/u · Código ' +
+            )
+            +
+            ' c/u · Código '
+            +
             item.codigo;
 
 
@@ -2269,10 +2461,11 @@ document.addEventListener('DOMContentLoaded', () => {
         );
 
 
-        // ¿CUÁNTAS PAGA?
+        // CUÁNTAS PAGA
 
         if (
-            item.seleccionado &&
+            item.seleccionado
+            &&
             item.cantidad > 1
         ) {
 
@@ -2326,16 +2519,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             inputParcial.value =
                 String(
-                    item.cant_pagar ||
+                    item.cant_pagar
+                    ||
                     item.cantidad
                 );
-
-
-            inputParcial.setAttribute(
-                'aria-label',
-                'Cantidad que paga de ' +
-                item.nombre
-            );
 
 
             inputParcial.addEventListener(
@@ -2366,10 +2553,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (
                         !isNaN(
                             cantidadTemporal
-                        ) &&
-                        cantidadTemporal >= 1 &&
-                        cantidadTemporal <=
-                            item.cantidad
+                        )
+                        &&
+                        cantidadTemporal >= 1
+                        &&
+                        cantidadTemporal
+                            <= item.cantidad
                     ) {
 
                         item.cant_pagar =
@@ -2433,7 +2622,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'salon-pos__cantidad-control';
 
 
-        // BOTÓN MENOS
+        // -
 
         var btnMenos =
             document.createElement(
@@ -2451,13 +2640,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         btnMenos.textContent =
             '−';
-
-
-        btnMenos.setAttribute(
-            'aria-label',
-            'Restar una unidad de ' +
-            item.nombre
-        );
 
 
         btnMenos.addEventListener(
@@ -2491,7 +2673,7 @@ document.addEventListener('DOMContentLoaded', () => {
             );
 
 
-        // BOTÓN MÁS
+        // +
 
         var btnMas =
             document.createElement(
@@ -2509,13 +2691,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         btnMas.textContent =
             '+';
-
-
-        btnMas.setAttribute(
-            'aria-label',
-            'Sumar una unidad de ' +
-            item.nombre
-        );
 
 
         btnMas.addEventListener(
@@ -2560,7 +2735,8 @@ document.addEventListener('DOMContentLoaded', () => {
             formatMonto(
                 Number(
                     item.precio
-                ) *
+                )
+                *
                 Number(
                     item.cantidad
                 )
@@ -2593,7 +2769,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // =========================================================
-    // TOTAL SELECCIONADO
+    // TOTAL PARCIAL
     // =========================================================
 
     function actualizarTotalSeleccionado() {
@@ -2606,6 +2782,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             totalSeleccionado.textContent =
                 formatMonto(0);
+
 
             return;
 
@@ -2630,18 +2807,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     var cantidadPagar =
                         item.cantidad > 1
-                            ? Number(
-                                item.cant_pagar ||
+                            ?
+                            Number(
+                                item.cant_pagar
+                                ||
                                 item.cantidad
                             )
-                            : 1;
+                            :
+                            1;
 
 
                     return (
-                        acumulado +
+                        acumulado
+                        +
                         Number(
                             item.precio
-                        ) *
+                        )
+                        *
                         cantidadPagar
                     );
 
@@ -2659,7 +2841,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // =========================================================
-    // BOTONES DE ACCIÓN
+    // BOTONES
     // =========================================================
 
     function actualizarBotonesAccion() {
@@ -2670,14 +2852,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         var tieneItems =
             Boolean(
-                cuenta &&
+                cuenta
+                &&
                 cuenta.items.length > 0
             );
 
 
         var tieneSeleccion =
             Boolean(
-                cuenta &&
+                cuenta
+                &&
                 cuenta.items.some(
                     function (item) {
 
@@ -2688,6 +2872,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 )
             );
+
+
+        if (imprimiendo) {
+
+            btnImprimirMesa.disabled =
+                true;
+
+            btnCobrarMesa.disabled =
+                true;
+
+            btnCobrarParcial.disabled =
+                true;
+
+
+            return;
+
+        }
 
 
         btnImprimirMesa.disabled =
@@ -2705,7 +2906,210 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // =========================================================
-    // COBRAR SELECCIÓN PARCIAL
+    // PREPARAR ITEM PARA DJANGO
+    // =========================================================
+
+    function crearItemTicketSalon(
+        item,
+        cantidad
+    ) {
+
+        return {
+
+            producto_id:
+                Number(
+                    item.producto_id || 0
+                ),
+
+            codigo:
+                String(
+                    item.codigo || ''
+                ),
+
+            nombre:
+                String(
+                    item.nombre || ''
+                ),
+
+            precio:
+                Number(
+                    item.precio || 0
+                ),
+
+            cantidad:
+                Number(
+                    cantidad || 0
+                )
+
+        };
+
+    }
+
+
+    // =========================================================
+    // ENVIAR A FACTURA_PYTHON
+    // =========================================================
+
+    function enviarTicketCaja(
+        items,
+        total,
+        tipo
+    ) {
+
+        var printUrl =
+            salonRoot.getAttribute(
+                'data-print-url'
+            );
+
+
+        var csrfInput =
+            document.querySelector(
+                '#salon-csrf-form [name="csrfmiddlewaretoken"]'
+            );
+
+
+        var csrfToken =
+            csrfInput
+                ?
+                csrfInput.value
+                :
+                '';
+
+
+        if (!printUrl) {
+
+            return Promise.reject(
+                new Error(
+                    'No está configurada la URL de impresión del salón.'
+                )
+            );
+
+        }
+
+
+        return fetch(
+            printUrl,
+            {
+
+                method:
+                    'POST',
+
+                headers: {
+
+                    'Content-Type':
+                        'application/json',
+
+                    'X-Requested-With':
+                        'XMLHttpRequest',
+
+                    'X-CSRFToken':
+                        csrfToken
+
+                },
+
+                body:
+                    JSON.stringify({
+
+                        mesa:
+                            mesaActual,
+
+                        tipo:
+                            tipo,
+
+                        total:
+                            Number(
+                                total || 0
+                            ),
+
+                        items:
+                            items
+
+                    })
+
+            }
+        )
+        .then(
+            function (respuesta) {
+
+                return respuesta
+                    .json()
+                    .then(
+                        function (datos) {
+
+                            if (
+                                !respuesta.ok
+                                ||
+                                datos.status
+                                    !== 'ok'
+                            ) {
+
+                                throw new Error(
+                                    datos.mensaje
+                                    ||
+                                    'No se pudo enviar el ticket a la caja.'
+                                );
+
+                            }
+
+
+                            return datos;
+
+                        }
+                    );
+
+            }
+        );
+
+    }
+
+
+    function cambiarEstadoImpresion(
+        bloquear
+    ) {
+
+        imprimiendo =
+            bloquear;
+
+
+        actualizarBotonesAccion();
+
+    }
+
+
+    function mostrarErrorTicketera(
+        error
+    ) {
+
+        Swal.fire({
+
+            icon:
+                'error',
+
+            title:
+                'No se pudo enviar a la ticketera',
+
+            text:
+                error
+                &&
+                error.message
+                ?
+                error.message
+                :
+                'Revisá la conexión con el servidor.',
+
+            background:
+                '#12151b',
+
+            color:
+                '#f5f7fa'
+
+        });
+
+    }
+
+
+    // =========================================================
+    // COBRAR PARCIAL
     // =========================================================
 
     function cobrarSeleccionParcial() {
@@ -2714,8 +3118,14 @@ document.addEventListener('DOMContentLoaded', () => {
             obtenerCuentaActual();
 
 
-        if (!cuenta) {
+        if (
+            !cuenta
+            ||
+            imprimiendo
+        ) {
+
             return;
+
         }
 
 
@@ -2732,7 +3142,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         if (
-            itemsSeleccionados.length === 0
+            itemsSeleccionados.length
+            === 0
         ) {
 
             Swal.fire({
@@ -2766,24 +3177,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     var cantidadCobrar =
                         item.cantidad > 1
-                            ? Number(
-                                item.cant_pagar ||
+                            ?
+                            Number(
+                                item.cant_pagar
+                                ||
                                 item.cantidad
                             )
-                            : 1;
+                            :
+                            1;
 
 
                     if (
                         cantidadCobrar < 1
                     ) {
 
-                        cantidadCobrar = 1;
+                        cantidadCobrar =
+                            1;
 
                     }
 
 
                     if (
-                        cantidadCobrar >
+                        cantidadCobrar
+                        >
                         item.cantidad
                     ) {
 
@@ -2793,23 +3209,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
 
-                    return {
-
-                        codigo:
-                            item.codigo,
-
-                        nombre:
-                            item.nombre,
-
-                        precio:
-                            Number(
-                                item.precio
-                            ),
-
-                        cantidad_cobrada:
-                            cantidadCobrar
-
-                    };
+                    return crearItemTicketSalon(
+                        item,
+                        cantidadCobrar
+                    );
 
                 }
             );
@@ -2823,9 +3226,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 ) {
 
                     return (
-                        acumulado +
-                        item.precio *
-                        item.cantidad_cobrada
+                        acumulado
+                        +
+                        item.precio
+                        *
+                        item.cantidad
                     );
 
                 },
@@ -2839,7 +3244,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 '¿Cobrar selección parcial?',
 
             text:
-                'Monto a cobrar: ' +
+                'Monto a cobrar: '
+                +
                 formatMonto(
                     subtotal
                 ),
@@ -2868,7 +3274,8 @@ document.addEventListener('DOMContentLoaded', () => {
             color:
                 '#f5f7fa'
 
-        }).then(
+        })
+        .then(
             function (resultado) {
 
                 if (
@@ -2880,93 +3287,235 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
 
-                imprimirTicketParcialSalon(
-                    itemsTicket,
-                    subtotal
+                cambiarEstadoImpresion(
+                    true
                 );
 
 
-                cuenta.items.forEach(
-                    function (item) {
+                enviarTicketCaja(
+                    itemsTicket,
+                    subtotal,
+                    'pago_parcial'
+                )
+                .then(
+                    function () {
 
-                        if (
-                            !item.seleccionado
-                        ) {
+                        cuenta.items.forEach(
+                            function (item) {
 
-                            return;
+                                if (
+                                    !item.seleccionado
+                                ) {
 
-                        }
+                                    return;
+
+                                }
 
 
-                        var cantidadCobrar =
-                            item.cantidad > 1
-                                ? Number(
-                                    item.cant_pagar ||
+                                var cantidadCobrar =
+                                    item.cantidad > 1
+                                        ?
+                                        Number(
+                                            item.cant_pagar
+                                            ||
+                                            item.cantidad
+                                        )
+                                        :
+                                        1;
+
+
+                                if (
+                                    cantidadCobrar
+                                    < 1
+                                ) {
+
+                                    cantidadCobrar =
+                                        1;
+
+                                }
+
+
+                                if (
+                                    cantidadCobrar
+                                    >
                                     item.cantidad
-                                )
-                                : 1;
+                                ) {
+
+                                    cantidadCobrar =
+                                        item.cantidad;
+
+                                }
 
 
-                        if (
-                            cantidadCobrar < 1
-                        ) {
-
-                            cantidadCobrar = 1;
-
-                        }
+                                item.cantidad -=
+                                    cantidadCobrar;
 
 
-                        if (
-                            cantidadCobrar >
-                            item.cantidad
-                        ) {
-
-                            cantidadCobrar =
-                                item.cantidad;
-
-                        }
+                                item.seleccionado =
+                                    false;
 
 
-                        item.cantidad -=
-                            cantidadCobrar;
+                                item.cant_pagar =
+                                    item.cantidad > 0
+                                        ?
+                                        item.cantidad
+                                        :
+                                        0;
+
+                            }
+                        );
 
 
-                        item.seleccionado =
-                            false;
+                        cuenta.items =
+                            cuenta.items.filter(
+                                function (item) {
+
+                                    return (
+                                        item.cantidad
+                                        >
+                                        0
+                                    );
+
+                                }
+                            );
 
 
-                        item.cant_pagar =
-                            item.cantidad > 0
-                                ? item.cantidad
-                                : 0;
+                        recalcularCuenta(
+                            cuenta
+                        );
+
+
+                        guardarCuentasSalon();
+
+                        actualizarEstadosMesas();
+
+                        renderizarComandaSalon();
+
+
+                        Swal.fire({
+
+                            icon:
+                                'success',
+
+                            title:
+                                'Cobrado y enviado a caja',
+
+                            text:
+                                'La ticketera imprimirá el pago parcial automáticamente.',
+
+                            timer:
+                                1800,
+
+                            showConfirmButton:
+                                false,
+
+                            background:
+                                '#12151b',
+
+                            color:
+                                '#f5f7fa'
+
+                        });
+
+                    }
+                )
+                .catch(
+                    mostrarErrorTicketera
+                )
+                .finally(
+                    function () {
+
+                        cambiarEstadoImpresion(
+                            false
+                        );
 
                     }
                 );
 
+            }
+        );
 
-                cuenta.items =
-                    cuenta.items.filter(
-                        function (item) {
+    }
 
-                            return (
-                                item.cantidad > 0
-                            );
 
-                        }
+    // =========================================================
+    // IMPRIMIR TICKET DE MESA
+    // =========================================================
+
+    function imprimirTicketMesa() {
+
+        var cuenta =
+            obtenerCuentaActual();
+
+
+        if (
+            !cuenta
+            ||
+            cuenta.items.length === 0
+            ||
+            imprimiendo
+        ) {
+
+            if (
+                !cuenta
+                ||
+                cuenta.items.length === 0
+            ) {
+
+                Swal.fire({
+
+                    icon:
+                        'info',
+
+                    title:
+                        'Mesa vacía',
+
+                    text:
+                        'No hay productos para imprimir.',
+
+                    background:
+                        '#12151b',
+
+                    color:
+                        '#f5f7fa'
+
+                });
+
+            }
+
+
+            return;
+
+        }
+
+
+        var items =
+            cuenta.items.map(
+                function (item) {
+
+                    return crearItemTicketSalon(
+                        item,
+                        Number(
+                            item.cantidad
+                        )
                     );
 
-
-                recalcularCuenta(
-                    cuenta
-                );
+                }
+            );
 
 
-                guardarCuentasSalon();
+        cambiarEstadoImpresion(
+            true
+        );
 
-                actualizarEstadosMesas();
 
-                renderizarComandaSalon();
-
+        enviarTicketCaja(
+            items,
+            cuenta.total,
+            'cuenta_mesa'
+        )
+        .then(
+            function () {
 
                 Swal.fire({
 
@@ -2974,13 +3523,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         'success',
 
                     title:
-                        'Pago parcial cobrado',
+                        'Ticket enviado a caja',
 
                     text:
-                        'Quedó pendiente en la mesa solamente lo que no se cobró.',
+                        'La ticketera de caja lo imprimirá automáticamente.',
 
                     timer:
-                        1700,
+                        1800,
 
                     showConfirmButton:
                         false,
@@ -2994,101 +3543,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
             }
-        );
+        )
+        .catch(
+            mostrarErrorTicketera
+        )
+        .finally(
+            function () {
 
-    }
+                cambiarEstadoImpresion(
+                    false
+                );
 
-
-    // =========================================================
-    // TICKET PARCIAL
-    // =========================================================
-
-    function imprimirTicketParcialSalon(
-        items,
-        total
-    ) {
-
-        abrirTicketImpresion(
-            items,
-            total,
-            'PAGO PARCIAL'
-        );
-
-    }
-
-
-    // =========================================================
-    // IMPRIMIR CUENTA COMPLETA
-    // =========================================================
-
-    function imprimirTicketMesa() {
-
-        var cuenta =
-            obtenerCuentaActual();
-
-
-        if (
-            !cuenta ||
-            cuenta.items.length === 0
-        ) {
-
-            Swal.fire({
-
-                icon:
-                    'info',
-
-                title:
-                    'Mesa vacía',
-
-                text:
-                    'No hay productos para imprimir.',
-
-                background:
-                    '#12151b',
-
-                color:
-                    '#f5f7fa'
-
-            });
-
-
-            return;
-
-        }
-
-
-        var items =
-            cuenta.items.map(
-                function (item) {
-
-                    return {
-
-                        codigo:
-                            item.codigo,
-
-                        nombre:
-                            item.nombre,
-
-                        precio:
-                            Number(
-                                item.precio
-                            ),
-
-                        cantidad_cobrada:
-                            Number(
-                                item.cantidad
-                            )
-
-                    };
-
-                }
-            );
-
-
-        abrirTicketImpresion(
-            items,
-            cuenta.total,
-            'CUENTA DE MESA'
+            }
         );
 
     }
@@ -3105,8 +3571,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         if (
-            !cuenta ||
+            !cuenta
+            ||
             cuenta.items.length === 0
+            ||
+            imprimiendo
         ) {
 
             return;
@@ -3122,15 +3591,33 @@ document.addEventListener('DOMContentLoaded', () => {
             cuenta.total;
 
 
+        var items =
+            cuenta.items.map(
+                function (item) {
+
+                    return crearItemTicketSalon(
+                        item,
+                        Number(
+                            item.cantidad
+                        )
+                    );
+
+                }
+            );
+
+
         Swal.fire({
 
             title:
-                '¿Cobrar toda la Mesa ' +
-                numeroMesa +
+                '¿Cobrar toda la Mesa '
+                +
+                numeroMesa
+                +
                 '?',
 
             text:
-                'Total a cobrar: ' +
+                'Total a cobrar: '
+                +
                 formatMonto(
                     total
                 ),
@@ -3148,7 +3635,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 '#59616e',
 
             confirmButtonText:
-                'Sí, cobrar y liberar mesa',
+                'Sí, cobrar, imprimir y liberar',
 
             cancelButtonText:
                 'Cancelar',
@@ -3159,7 +3646,8 @@ document.addEventListener('DOMContentLoaded', () => {
             color:
                 '#f5f7fa'
 
-        }).then(
+        })
+        .then(
             function (resultado) {
 
                 if (
@@ -3171,50 +3659,80 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
 
-                cuentasMesas[
-                    numeroMesa
-                ] = {
-
-                    items: [],
-
-                    total: 0
-
-                };
+                cambiarEstadoImpresion(
+                    true
+                );
 
 
-                guardarCuentasSalon();
+                enviarTicketCaja(
+                    items,
+                    total,
+                    'cobro_completo'
+                )
+                .then(
+                    function () {
 
-                actualizarEstadosMesas();
+                        cuentasMesas[
+                            numeroMesa
+                        ] = {
 
-                renderizarComandaSalon();
+                            items: [],
+
+                            total: 0
+
+                        };
 
 
-                Swal.fire({
+                        guardarCuentasSalon();
 
-                    icon:
-                        'success',
+                        actualizarEstadosMesas();
 
-                    title:
-                        'Mesa cobrada',
+                        renderizarComandaSalon();
 
-                    text:
-                        'La Mesa ' +
-                        numeroMesa +
-                        ' quedó liberada.',
 
-                    timer:
-                        1600,
+                        Swal.fire({
 
-                    showConfirmButton:
-                        false,
+                            icon:
+                                'success',
 
-                    background:
-                        '#12151b',
+                            title:
+                                'Mesa cobrada',
 
-                    color:
-                        '#f5f7fa'
+                            text:
+                                'La cuenta fue enviada a la ticketera y la Mesa '
+                                +
+                                numeroMesa
+                                +
+                                ' quedó liberada.',
 
-                });
+                            timer:
+                                1900,
+
+                            showConfirmButton:
+                                false,
+
+                            background:
+                                '#12151b',
+
+                            color:
+                                '#f5f7fa'
+
+                        });
+
+                    }
+                )
+                .catch(
+                    mostrarErrorTicketera
+                )
+                .finally(
+                    function () {
+
+                        cambiarEstadoImpresion(
+                            false
+                        );
+
+                    }
+                );
 
             }
         );
@@ -3223,256 +3741,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // =========================================================
-    // IMPRESIÓN
+    // DINERO
     // =========================================================
 
-    function abrirTicketImpresion(
-        items,
-        total,
-        tipoTicket
+    function formatMonto(
+        valor
     ) {
-
-        var ventana =
-            window.open(
-                '',
-                '_blank',
-                'width=420,height=700'
-            );
-
-
-        if (!ventana) {
-
-            Swal.fire({
-
-                icon:
-                    'warning',
-
-                title:
-                    'Ventana bloqueada',
-
-                text:
-                    'Permití las ventanas emergentes del navegador para imprimir el ticket.',
-
-                background:
-                    '#12151b',
-
-                color:
-                    '#f5f7fa'
-
-            });
-
-
-            return;
-
-        }
-
-
-        var filas = '';
-
-
-        items.forEach(
-            function (item) {
-
-                var cantidad =
-                    Number(
-                        item.cantidad_cobrada ||
-                        0
-                    );
-
-
-                var subtotal =
-                    Number(
-                        item.precio
-                    ) *
-                    cantidad;
-
-
-                filas +=
-                    '<tr>';
-
-
-                filas +=
-                    '<td>' +
-                    escaparHtml(
-                        String(
-                            cantidad
-                        )
-                    ) +
-                    'x</td>';
-
-
-                filas +=
-                    '<td>' +
-                    escaparHtml(
-                        item.nombre
-                    ) +
-                    '</td>';
-
-
-                filas +=
-                    '<td>' +
-                    escaparHtml(
-                        formatMonto(
-                            subtotal
-                        )
-                    ) +
-                    '</td>';
-
-
-                filas +=
-                    '</tr>';
-
-            }
-        );
-
-
-        var html = '';
-
-
-        html +=
-            '<!DOCTYPE html>';
-
-
-        html +=
-            '<html lang="es">';
-
-
-        html +=
-            '<head>';
-
-
-        html +=
-            '<meta charset="UTF-8">';
-
-
-        html +=
-            '<title>Ticket Mesa ' +
-            escaparHtml(
-                String(
-                    mesaActual
-                )
-            ) +
-            '</title>';
-
-
-        html +=
-            '<link rel="stylesheet" href="/static/css/estilos.css">';
-
-
-        html +=
-            '</head>';
-
-
-        html +=
-            '<body>';
-
-
-        html +=
-            '<main class="salon-ticket">';
-
-
-        html +=
-            '<h2 class="salon-ticket__brand">SterakFood</h2>';
-
-
-        html +=
-            '<div class="salon-ticket__meta">Mesa ' +
-            escaparHtml(
-                String(
-                    mesaActual
-                )
-            ) +
-            '</div>';
-
-
-        html +=
-            '<div class="salon-ticket__type">' +
-            escaparHtml(
-                tipoTicket
-            ) +
-            '</div>';
-
-
-        html +=
-            '<hr>';
-
-
-        html +=
-            '<table class="salon-ticket__table">' +
-            filas +
-            '</table>';
-
-
-        html +=
-            '<hr>';
-
-
-        html +=
-            '<div class="salon-ticket__total">';
-
-
-        html +=
-            '<span>TOTAL</span>';
-
-
-        html +=
-            '<span>' +
-            escaparHtml(
-                formatMonto(
-                    total
-                )
-            ) +
-            '</span>';
-
-
-        html +=
-            '</div>';
-
-
-        html +=
-            '<p class="salon-ticket__thanks">Gracias por su compra</p>';
-
-
-        html +=
-            '</main>';
-
-
-        html +=
-            '</body>';
-
-
-        html +=
-            '</html>';
-
-
-        ventana.document.open();
-
-        ventana.document.write(
-            html
-        );
-
-        ventana.document.close();
-
-        ventana.focus();
-
-
-        window.setTimeout(
-            function () {
-
-                ventana.print();
-
-            },
-            250
-        );
-
-    }
-
-
-    // =========================================================
-    // FORMATEAR DINERO
-    // =========================================================
-
-    function formatMonto(valor) {
 
         var numero =
             Number(
@@ -3481,7 +3755,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         return (
-            '$' +
+            '$'
+            +
             numero.toLocaleString(
                 'es-AR',
                 {
@@ -3500,10 +3775,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // =========================================================
-    // LIMPIAR NODO
+    // LIMPIAR ELEMENTOS
     // =========================================================
 
-    function limpiarNodo(nodo) {
+    function limpiarNodo(
+        nodo
+    ) {
 
         while (
             nodo.firstChild
@@ -3519,40 +3796,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // =========================================================
-    // ESCAPAR HTML
-    // =========================================================
-
-    function escaparHtml(texto) {
-
-        return String(
-            texto
-        )
-            .replace(
-                /&/g,
-                '&amp;'
-            )
-            .replace(
-                /</g,
-                '&lt;'
-            )
-            .replace(
-                />/g,
-                '&gt;'
-            )
-            .replace(
-                /"/g,
-                '&quot;'
-            )
-            .replace(
-                /'/g,
-                '&#039;'
-            );
-
-    }
-
-
-    // =========================================================
-    // GUARDAR CUENTAS
+    // LOCAL STORAGE
     // =========================================================
 
     function guardarCuentasSalon() {
@@ -3560,10 +3804,13 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
 
             localStorage.setItem(
+
                 STORAGE_KEY,
+
                 JSON.stringify(
                     cuentasMesas
                 )
+
             );
 
         } catch (error) {
@@ -3577,10 +3824,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     }
 
-
-    // =========================================================
-    // RECUPERAR CUENTAS
-    // =========================================================
 
     function cargarCuentasSalon() {
 
@@ -3606,8 +3849,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
             if (
-                !cuentas ||
-                typeof cuentas !== 'object'
+                !cuentas
+                ||
+                typeof cuentas
+                    !== 'object'
             ) {
 
                 return {};
@@ -3617,15 +3862,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
             Object.keys(
                 cuentas
-            ).forEach(
+            )
+            .forEach(
                 function (mesa) {
 
                     var cuenta =
-                        cuentas[mesa];
+                        cuentas[
+                            mesa
+                        ];
 
 
                     if (
-                        !cuenta ||
+                        !cuenta
+                        ||
                         !Array.isArray(
                             cuenta.items
                         )
@@ -3634,6 +3883,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         delete cuentas[
                             mesa
                         ];
+
 
                         return;
 
@@ -3646,10 +3896,13 @@ document.addEventListener('DOMContentLoaded', () => {
                                 function (item) {
 
                                     return (
-                                        item &&
+                                        item
+                                        &&
                                         Number(
                                             item.cantidad
-                                        ) > 0
+                                        )
+                                        >
+                                        0
                                     );
 
                                 }
@@ -3659,27 +3912,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
                                     return {
 
+                                        producto_id:
+                                            Number(
+                                                item.producto_id
+                                                ||
+                                                0
+                                            ),
+
                                         codigo:
                                             String(
-                                                item.codigo ||
+                                                item.codigo
+                                                ||
                                                 ''
                                             ),
 
                                         nombre:
                                             String(
-                                                item.nombre ||
+                                                item.nombre
+                                                ||
                                                 ''
                                             ),
 
                                         precio:
                                             Number(
-                                                item.precio ||
+                                                item.precio
+                                                ||
                                                 0
                                             ),
 
                                         cantidad:
                                             Number(
-                                                item.cantidad ||
+                                                item.cantidad
+                                                ||
                                                 0
                                             ),
 
@@ -3688,7 +3952,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                                         cant_pagar:
                                             Number(
-                                                item.cantidad ||
+                                                item.cantidad
+                                                ||
                                                 0
                                             )
 

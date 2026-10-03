@@ -562,9 +562,7 @@ input[type="radio"] + label, input[type="checkbox"] + label, label:has(input[typ
    ========================================================================== */
 
 .salon-pos {
-    --salon-bg: #090b0f;
     --salon-panel: #12151b;
-    --salon-panel-2: #171b22;
     --salon-border: #2b3038;
     --salon-text: #f5f7fa;
     --salon-muted: #939ba7;
@@ -574,16 +572,24 @@ input[type="radio"] + label, input[type="checkbox"] + label, label:has(input[typ
     --salon-blue: #3b82f6;
     --salon-yellow: #f59e0b;
 
-    width: min(1500px, calc(100% - 30px));
-    margin: 28px auto 60px;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 22px 24px 50px;
     color: var(--salon-text);
 }
+
 
 .salon-pos *,
 .salon-pos *::before,
 .salon-pos *::after {
     box-sizing: border-box;
 }
+
+
+/* ==========================================================================
+   CABECERA
+   ========================================================================== */
 
 .salon-pos__header {
     display: flex;
@@ -593,6 +599,7 @@ input[type="radio"] + label, input[type="checkbox"] + label, label:has(input[typ
     margin-bottom: 20px;
 }
 
+
 .salon-pos__header h1 {
     margin: 0;
     color: var(--salon-text);
@@ -601,11 +608,13 @@ input[type="radio"] + label, input[type="checkbox"] + label, label:has(input[typ
     letter-spacing: -0.04em;
 }
 
+
 .salon-pos__header p {
     margin: 5px 0 0;
     color: var(--salon-muted);
     font-size: 0.92rem;
 }
+
 
 .salon-pos__leyenda {
     display: flex;
@@ -616,11 +625,13 @@ input[type="radio"] + label, input[type="checkbox"] + label, label:has(input[typ
     font-weight: 800;
 }
 
+
 .salon-pos__leyenda span {
     display: inline-flex;
     align-items: center;
     gap: 6px;
 }
+
 
 .salon-pos__estado {
     display: inline-block;
@@ -630,20 +641,28 @@ input[type="radio"] + label, input[type="checkbox"] + label, label:has(input[typ
     background: #3a404a;
 }
 
+
 .salon-pos__estado--ocupada {
     background: var(--salon-orange);
 }
+
 
 .salon-pos__estado--actual {
     background: var(--salon-blue);
 }
 
+
+/* ==========================================================================
+   LAYOUT
+   ========================================================================== */
+
 .salon-pos__layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(420px, 500px);
-    gap: 20px;
+    grid-template-columns: minmax(0, 1fr) 520px;
+    gap: 24px;
     align-items: start;
 }
+
 
 .salon-pos__card {
     background: var(--salon-panel);
@@ -652,9 +671,15 @@ input[type="radio"] + label, input[type="checkbox"] + label, label:has(input[typ
     box-shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
 }
 
+
+/* ==========================================================================
+   MESAS
+   ========================================================================== */
+
 .salon-pos__mesas-panel {
     padding: 18px;
 }
+
 
 .salon-pos__section-header {
     display: flex;
@@ -664,6 +689,7 @@ input[type="radio"] + label, input[type="checkbox"] + label, label:has(input[typ
     margin-bottom: 15px;
 }
 
+
 .salon-pos__section-header h2 {
     margin: 0;
     color: var(--salon-text);
@@ -671,29 +697,37 @@ input[type="radio"] + label, input[type="checkbox"] + label, label:has(input[typ
     font-weight: 900;
 }
 
+
 .salon-pos__section-header span {
     color: var(--salon-muted);
     font-size: 0.76rem;
 }
 
+
 .salon-pos__grilla-mesas {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
-    gap: 9px;
+    grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+    gap: 11px;
 }
+
 
 .salon-pos__mesa {
     position: relative;
-    height: 66px;
+    height: 82px;
     padding: 0;
+
     border: 1px solid var(--salon-border);
-    border-radius: 12px;
+    border-radius: 14px;
+
     background: #0c0f14;
     color: var(--salon-text);
+
     font: inherit;
     font-size: 1rem;
     font-weight: 900;
+
     cursor: pointer;
+
     transition:
         transform 0.15s ease,
         border-color 0.15s ease,
@@ -701,10 +735,12 @@ input[type="radio"] + label, input[type="checkbox"] + label, label:has(input[typ
         box-shadow 0.15s ease;
 }
 
+
 .salon-pos__mesa:hover {
     transform: translateY(-2px);
     border-color: #59616e;
 }
+
 
 .salon-pos__mesa.mesa-ocupada {
     border-color: var(--salon-orange);
@@ -712,36 +748,56 @@ input[type="radio"] + label, input[type="checkbox"] + label, label:has(input[typ
     color: #ffd0b0;
 }
 
+
 .salon-pos__mesa.mesa-ocupada::after {
     content: "";
+
     position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 7px;
-    height: 7px;
+    top: 9px;
+    right: 9px;
+
+    width: 8px;
+    height: 8px;
+
     border-radius: 50%;
+
     background: var(--salon-orange);
-    box-shadow: 0 0 8px rgba(255, 102, 0, 0.75);
+
+    box-shadow:
+        0 0 8px rgba(255, 102, 0, 0.75);
 }
+
 
 .salon-pos__mesa.mesa-seleccionada {
     border-color: var(--salon-blue);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.22);
+
+    box-shadow:
+        0 0 0 2px rgba(59, 130, 246, 0.22);
 }
+
+
+/* ==========================================================================
+   COMANDA
+   ========================================================================== */
 
 .salon-pos__comanda-panel {
     position: sticky;
-    top: 20px;
-    max-height: calc(100vh - 40px);
-    padding: 18px;
+    top: 98px;
+
+    max-height: calc(100vh - 118px);
+
+    padding: 22px;
+
     overflow-y: auto;
 }
+
 
 .salon-pos__comanda-panel::-webkit-scrollbar,
 .salon-pos__lista-comanda::-webkit-scrollbar,
 .salon-pos__sugerencias::-webkit-scrollbar {
     width: 7px;
 }
+
 
 .salon-pos__comanda-panel::-webkit-scrollbar-thumb,
 .salon-pos__lista-comanda::-webkit-scrollbar-thumb,
@@ -750,563 +806,817 @@ input[type="radio"] + label, input[type="checkbox"] + label, label:has(input[typ
     border-radius: 20px;
 }
 
+
 .salon-pos__comanda-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+
     gap: 12px;
-    padding-bottom: 14px;
+
+    padding-bottom: 16px;
+
     border-bottom: 1px solid var(--salon-border);
 }
 
+
 .salon-pos__eyebrow {
     display: block;
-    margin-bottom: 3px;
+
+    margin-bottom: 4px;
+
     color: var(--salon-orange);
-    font-size: 0.66rem;
+
+    font-size: 0.68rem;
     font-weight: 900;
+
     letter-spacing: 0.12em;
 }
 
+
 .salon-pos__comanda-header h2 {
     margin: 0;
+
     color: var(--salon-text);
-    font-size: 1.35rem;
+
+    font-size: 1.45rem;
     font-weight: 900;
 }
+
 
 .salon-pos__badge {
     flex: 0 0 auto;
-    padding: 5px 10px;
+
+    padding: 7px 12px;
+
     border: 1px solid var(--salon-border);
     border-radius: 999px;
+
     color: var(--salon-muted);
-    font-size: 0.68rem;
+
+    font-size: 0.7rem;
     font-weight: 900;
 }
 
+
 .salon-pos__badge.is-activa {
     border-color: var(--salon-orange);
-    background: rgba(255, 102, 0, 0.08);
+
+    background:
+        rgba(255, 102, 0, 0.08);
+
     color: #ffc39a;
 }
 
+
+/* ==========================================================================
+   ESTADO VACÍO
+   ========================================================================== */
+
 .salon-pos__empty-state {
-    min-height: 310px;
+    min-height: 250px;
+
     display: grid;
     place-items: center;
+
     text-align: center;
+
     color: var(--salon-muted);
 }
 
+
+/* ESTE ARREGLA EL BUG QUE SE VEÍA EN TU CAPTURA */
+
+.salon-pos__empty-state[hidden],
+.salon-pos__empty-state.is-hidden {
+    display: none !important;
+}
+
+
 .salon-pos__empty-icon {
     display: block;
+
     margin-bottom: 8px;
+
     font-size: 2rem;
 }
 
+
 .salon-pos__empty-state strong {
     display: block;
+
     color: var(--salon-text);
+
     font-size: 1rem;
 }
 
+
 .salon-pos__empty-state p {
     margin: 5px 0 0;
+
     font-size: 0.82rem;
 }
+
 
 .salon-pos__area-comanda[hidden] {
     display: none !important;
 }
 
+
+.salon-pos__area-comanda:not([hidden]) {
+    display: block;
+}
+
+
+/* ==========================================================================
+   CARGA RÁPIDA
+   ========================================================================== */
+
 .salon-pos__carga-rapida {
     display: grid;
-    grid-template-columns: 85px minmax(0, 1fr);
-    gap: 10px;
-    margin-top: 15px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid var(--salon-border);
+
+    grid-template-columns:
+        95px minmax(0, 1fr);
+
+    gap: 12px;
+
+    margin-top: 18px;
+
+    padding-bottom: 18px;
+
+    border-bottom:
+        1px solid var(--salon-border);
 }
+
 
 .salon-pos__field {
     position: relative;
     min-width: 0;
 }
 
+
 .salon-pos__field label {
     display: block;
-    margin-bottom: 6px;
+
+    margin-bottom: 7px;
+
     color: var(--salon-muted);
-    font-size: 0.68rem;
+
+    font-size: 0.7rem;
     font-weight: 900;
+
     letter-spacing: 0.06em;
 }
 
+
 .salon-pos__input {
     width: 100%;
-    height: 44px;
-    padding: 0 12px;
-    border: 1px solid var(--salon-border);
-    border-radius: 10px;
+    height: 52px;
+
+    padding: 0 14px;
+
+    border:
+        1px solid var(--salon-border);
+
+    border-radius: 11px;
+
     outline: none;
+
     background: #090c11;
+
     color: var(--salon-text);
+
     font: inherit;
     font-size: 0.95rem;
+
     transition:
         border-color 0.15s ease,
         box-shadow 0.15s ease;
 }
 
+
 .salon-pos__input:focus {
-    border-color: var(--salon-orange);
-    box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.12);
+    border-color:
+        var(--salon-orange);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(255, 102, 0, 0.12);
 }
+
 
 #input-cant {
     text-align: center;
+
     font-weight: 900;
-    font-size: 1.05rem;
+    font-size: 1.15rem;
 }
+
+
+/* ==========================================================================
+   SUGERENCIAS
+   ========================================================================== */
 
 .salon-pos__sugerencias {
     position: absolute;
+
     top: calc(100% + 4px);
     left: 0;
     right: 0;
-    z-index: 100;
+
+    z-index: 500;
+
     display: none;
+
     max-height: 270px;
+
     margin: 0;
+
     padding: 6px;
+
     overflow-y: auto;
+
     list-style: none;
-    border: 1px solid #3b424d;
+
+    border:
+        1px solid #3b424d;
+
     border-radius: 12px;
+
     background: #11151b;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+
+    box-shadow:
+        0 20px 40px
+        rgba(0, 0, 0, 0.5);
 }
+
 
 .salon-pos__sugerencias.is-open {
     display: block;
 }
 
+
 .salon-pos__sugerencias li {
-    padding: 10px;
+    padding: 11px;
+
     border-radius: 8px;
+
     color: var(--salon-text);
+
     cursor: pointer;
+
     font-size: 0.84rem;
 }
 
+
 .salon-pos__sugerencias li:hover,
 .salon-pos__sugerencias li.activo {
-    background: rgba(255, 102, 0, 0.15);
+    background:
+        rgba(255, 102, 0, 0.15);
+
     color: #ffc59d;
 }
 
+
 .salon-pos__sugerencias .sugerencia-codigo {
     color: var(--salon-orange-light);
+
     font-weight: 900;
 }
 
+
 .salon-pos__sugerencias .sugerencia-precio {
     float: right;
+
     margin-left: 10px;
+
     color: var(--salon-muted);
+
     font-weight: 800;
 }
 
+
+/* ==========================================================================
+   CABECERA DE CUENTA
+   ========================================================================== */
+
 .salon-pos__cuenta-header {
     display: flex;
+
     justify-content: space-between;
     align-items: flex-end;
+
     gap: 10px;
-    margin: 16px 0 10px;
+
+    margin:
+        18px 0 12px;
 }
+
 
 .salon-pos__cuenta-header h3 {
     margin: 0;
+
     color: var(--salon-text);
+
     font-size: 1rem;
     font-weight: 900;
 }
 
+
 .salon-pos__cuenta-header p {
-    margin: 3px 0 0;
+    margin: 4px 0 0;
+
     color: var(--salon-muted);
+
     font-size: 0.72rem;
 }
 
+
 .salon-pos__contador {
     flex: 0 0 auto;
+
     color: var(--salon-muted);
+
     font-size: 0.72rem;
     font-weight: 800;
 }
 
+
+/* ==========================================================================
+   PRODUCTOS COMANDA
+   ========================================================================== */
+
 .salon-pos__lista-comanda {
     display: flex;
+
     flex-direction: column;
+
     gap: 8px;
-    max-height: 330px;
+
+    max-height: 350px;
+
     margin: 0;
-    padding: 0 3px 0 0;
+
+    padding:
+        0 3px 0 0;
+
     overflow-y: auto;
+
     list-style: none;
 }
 
+
 .salon-pos__item-comanda {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+
+    grid-template-columns:
+        minmax(0, 1fr) auto;
+
     gap: 10px;
-    padding: 11px;
-    border: 1px solid var(--salon-border);
+
+    padding: 12px;
+
+    border:
+        1px solid var(--salon-border);
+
     border-radius: 12px;
+
     background: #0b0e13;
 }
 
+
 .salon-pos__item-comanda.is-seleccionado {
-    border-color: var(--salon-yellow);
-    background: rgba(245, 158, 11, 0.06);
+    border-color:
+        var(--salon-yellow);
+
+    background:
+        rgba(245, 158, 11, 0.06);
 }
+
 
 .salon-pos__item-left {
     display: flex;
+
     align-items: flex-start;
-    gap: 8px;
+
+    gap: 9px;
+
     min-width: 0;
 }
+
 
 .salon-pos__check {
     width: 18px;
     height: 18px;
+
     margin-top: 3px;
+
     flex: 0 0 auto;
+
     cursor: pointer;
-    accent-color: var(--salon-yellow);
+
+    accent-color:
+        var(--salon-yellow);
 }
+
 
 .salon-pos__item-info {
     min-width: 0;
 }
 
+
 .salon-pos__item-name {
     color: var(--salon-text);
+
     font-size: 0.9rem;
     font-weight: 900;
+
     line-height: 1.25;
+
     overflow-wrap: anywhere;
 }
 
+
 .salon-pos__item-price {
     margin-top: 4px;
+
     color: var(--salon-muted);
+
     font-size: 0.72rem;
 }
 
+
+/* ==========================================================================
+   CANTIDAD A PAGAR
+   ========================================================================== */
+
 .salon-pos__parcial-cantidad {
     display: flex;
+
     align-items: center;
+
     gap: 7px;
+
     flex-wrap: wrap;
-    margin-top: 8px;
+
+    margin-top: 9px;
 }
+
 
 .salon-pos__parcial-cantidad label {
     color: var(--salon-yellow);
+
     font-size: 0.7rem;
     font-weight: 900;
 }
 
+
 .salon-pos__input-parcial {
-    width: 64px;
-    height: 30px;
+    width: 67px;
+    height: 32px;
+
     padding: 0 6px;
-    border: 1px solid var(--salon-yellow);
+
+    border:
+        1px solid var(--salon-yellow);
+
     border-radius: 7px;
+
     outline: none;
+
     background: #11151b;
+
     color: var(--salon-text);
+
     text-align: center;
+
     font: inherit;
-    font-size: 0.8rem;
+
+    font-size: 0.82rem;
     font-weight: 900;
 }
+
+
+/* ==========================================================================
+   +/- CANTIDAD
+   ========================================================================== */
 
 .salon-pos__item-right {
     display: flex;
+
     flex-direction: column;
+
     align-items: flex-end;
+
     gap: 7px;
 }
 
+
 .salon-pos__cantidad-control {
     display: flex;
+
     align-items: center;
+
     gap: 5px;
 }
 
+
 .salon-pos__cantidad-btn {
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
+
     padding: 0;
-    border: 1px solid var(--salon-border);
+
+    border:
+        1px solid var(--salon-border);
+
     border-radius: 8px;
+
     background: #191d24;
+
     color: var(--salon-text);
+
     font: inherit;
+
     font-weight: 900;
+
     cursor: pointer;
 }
 
+
 .salon-pos__cantidad-btn:hover {
-    border-color: var(--salon-orange);
-    color: var(--salon-orange);
+    border-color:
+        var(--salon-orange);
+
+    color:
+        var(--salon-orange);
 }
 
+
 .salon-pos__cantidad-numero {
-    min-width: 28px;
+    min-width: 30px;
+
     color: var(--salon-text);
+
     text-align: center;
-    font-size: 0.88rem;
+
+    font-size: 0.9rem;
     font-weight: 900;
 }
+
 
 .salon-pos__item-subtotal {
     color: #d7dce2;
-    font-size: 0.8rem;
+
+    font-size: 0.82rem;
     font-weight: 900;
 }
 
+
 .salon-pos__lista-vacia {
     padding: 30px 10px;
-    border: 1px dashed var(--salon-border);
+
+    border:
+        1px dashed
+        var(--salon-border);
+
     border-radius: 12px;
+
     color: var(--salon-muted);
+
     text-align: center;
+
     font-size: 0.84rem;
 }
 
+
+/* ==========================================================================
+   TOTALES
+   ========================================================================== */
+
 .salon-pos__total-mesa {
     display: flex;
+
     justify-content: space-between;
     align-items: center;
+
     gap: 15px;
-    margin-top: 14px;
-    padding-top: 13px;
-    border-top: 1px solid var(--salon-border);
+
+    margin-top: 16px;
+
+    padding-top: 15px;
+
+    border-top:
+        1px solid var(--salon-border);
 }
+
 
 .salon-pos__total-mesa span {
     color: var(--salon-text);
+
     font-size: 1rem;
     font-weight: 900;
 }
 
+
 .salon-pos__total-mesa strong {
     color: var(--salon-green);
-    font-size: 1.38rem;
+
+    font-size: 1.45rem;
     font-weight: 900;
 }
 
+
+/* ==========================================================================
+   PAGO PARCIAL
+   ========================================================================== */
+
 .salon-pos__pago-parcial {
-    margin-top: 12px;
-    padding: 12px;
-    border: 1px solid var(--salon-border);
+    margin-top: 14px;
+
+    padding: 13px;
+
+    border:
+        1px solid var(--salon-border);
+
     border-radius: 12px;
+
     background: #0b0e13;
 }
 
+
 .salon-pos__total-seleccion {
     display: flex;
+
     justify-content: space-between;
     align-items: center;
+
     gap: 12px;
-    margin-bottom: 10px;
+
+    margin-bottom: 11px;
+
     color: var(--salon-text);
+
     font-size: 0.86rem;
 }
 
+
 .salon-pos__total-seleccion strong {
     color: var(--salon-yellow);
-    font-size: 1.02rem;
+
+    font-size: 1.05rem;
 }
+
+
+/* ==========================================================================
+   BOTONES
+   ========================================================================== */
 
 .salon-pos__acciones {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+
+    grid-template-columns:
+        1fr 1fr;
+
     gap: 9px;
-    margin-top: 10px;
+
+    margin-top: 11px;
 }
 
+
 .salon-pos__btn {
-    min-height: 42px;
-    padding: 9px 12px;
+    min-height: 45px;
+
+    padding: 10px 12px;
+
     border: 0;
+
     border-radius: 10px;
+
     font: inherit;
+
     font-size: 0.82rem;
     font-weight: 900;
+
     cursor: pointer;
+
     transition:
         transform 0.15s ease,
         filter 0.15s ease;
 }
 
-.salon-pos__btn:hover {
-    transform: translateY(-1px);
-    filter: brightness(1.06);
+
+.salon-pos__btn:hover:not(:disabled) {
+    transform:
+        translateY(-1px);
+
+    filter:
+        brightness(1.06);
 }
 
+
 .salon-pos__btn:disabled {
-    opacity: 0.45;
+    opacity: 0.4;
+
     cursor: not-allowed;
-    transform: none;
-    filter: none;
 }
+
 
 .salon-pos__btn--parcial {
     width: 100%;
-    background: var(--salon-yellow);
+
+    background:
+        var(--salon-yellow);
+
     color: #171006;
 }
 
+
 .salon-pos__btn--secundario {
-    border: 1px solid #3a424e;
+    border:
+        1px solid #3a424e;
+
     background: #272d36;
-    color: var(--salon-text);
+
+    color:
+        var(--salon-text);
 }
 
+
 .salon-pos__btn--cobrar {
-    background: var(--salon-green);
+    background:
+        var(--salon-green);
+
     color: #06150b;
 }
 
-@media (max-width: 1080px) {
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+
+@media (max-width: 1180px) {
 
     .salon-pos__layout {
         grid-template-columns: 1fr;
     }
 
+
     .salon-pos__comanda-panel {
         position: static;
+
         max-height: none;
     }
 
 }
 
+
 @media (max-width: 680px) {
 
     .salon-pos {
-        width: calc(100% - 16px);
-        margin-top: 14px;
+        padding:
+            14px 8px 35px;
     }
+
 
     .salon-pos__header {
-        align-items: flex-start;
         flex-direction: column;
+
+        align-items: flex-start;
     }
+
 
     .salon-pos__grilla-mesas {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns:
+            repeat(4, minmax(0, 1fr));
     }
 
-    .salon-pos__carga-rapida {
-        grid-template-columns: 78px minmax(0, 1fr);
+
+    .salon-pos__mesa {
+        height: 65px;
     }
+
+
+    .salon-pos__carga-rapida {
+        grid-template-columns:
+            80px minmax(0, 1fr);
+    }
+
 
     .salon-pos__acciones {
         grid-template-columns: 1fr;
     }
 
+
     .salon-pos__item-comanda {
         grid-template-columns: 1fr;
     }
 
+
     .salon-pos__item-right {
         align-items: flex-start;
-        margin-left: 26px;
-    }
 
-}
-
-
-/* ============================================================
-   TICKET DE IMPRESIÓN
-   ============================================================ */
-
-.salon-ticket {
-    width: 290px;
-    margin: 0 auto;
-    padding: 15px;
-    background: #fff;
-    color: #000;
-    font-family: monospace;
-}
-
-.salon-ticket__brand,
-.salon-ticket__meta,
-.salon-ticket__type,
-.salon-ticket__thanks {
-    text-align: center;
-}
-
-.salon-ticket__brand {
-    margin: 0 0 3px;
-}
-
-.salon-ticket__meta {
-    margin-bottom: 8px;
-    font-size: 12px;
-}
-
-.salon-ticket__type {
-    margin-bottom: 10px;
-    font-size: 11px;
-    font-weight: 700;
-}
-
-.salon-ticket__table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-}
-
-.salon-ticket__table td {
-    padding: 4px 0;
-    vertical-align: top;
-}
-
-.salon-ticket__table td:nth-child(2) {
-    padding-left: 8px;
-    padding-right: 8px;
-}
-
-.salon-ticket__table td:last-child {
-    text-align: right;
-    white-space: nowrap;
-}
-
-.salon-ticket__total {
-    display: flex;
-    justify-content: space-between;
-    font-size: 16px;
-    font-weight: 700;
-}
-
-.salon-ticket__thanks {
-    margin-top: 15px;
-    font-size: 10px;
-}
-
-@media print {
-
-    .salon-ticket {
-        width: auto;
-        margin: 0;
-        padding: 0;
+        margin-left: 27px;
     }
 
 }

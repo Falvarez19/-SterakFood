@@ -10,7 +10,11 @@
 
 {% block content %}
 
-<section id="salon-pos" class="salon-pos">
+<section
+    id="salon-pos"
+    class="salon-pos"
+    data-print-url="{% url 'pedidos:imprimir_ticket_salon' %}"
+>
 
     <div class="salon-pos__header">
 
@@ -19,8 +23,7 @@
             <p>Seleccioná una mesa y cargá los productos de la comanda.</p>
         </div>
 
-        <div class="salon-pos__leyenda" aria-label="Estados de las mesas">
-
+        <div class="salon-pos__leyenda">
             <span>
                 <i class="salon-pos__estado salon-pos__estado--libre"></i>
                 Libre
@@ -35,7 +38,6 @@
                 <i class="salon-pos__estado salon-pos__estado--actual"></i>
                 Seleccionada
             </span>
-
         </div>
 
     </div>
@@ -54,7 +56,11 @@
                 <span>1 a 100</span>
             </div>
 
-            <div id="grilla-mesas" class="salon-pos__grilla-mesas">
+
+            <div
+                id="grilla-mesas"
+                class="salon-pos__grilla-mesas"
+            >
 
                 {% for mesa in mesas %}
 
@@ -83,18 +89,29 @@
             <div class="salon-pos__comanda-header">
 
                 <div>
-                    <span class="salon-pos__eyebrow">COMANDA</span>
-                    <h2 id="titulo-mesa">Seleccione una mesa</h2>
+                    <span class="salon-pos__eyebrow">
+                        COMANDA
+                    </span>
+
+                    <h2 id="titulo-mesa">
+                        Seleccione una mesa
+                    </h2>
                 </div>
 
-                <span id="estado-mesa" class="salon-pos__badge">
+
+                <span
+                    id="estado-mesa"
+                    class="salon-pos__badge"
+                >
                     SIN MESA
                 </span>
 
             </div>
 
 
-            <!-- ESTADO INICIAL -->
+            <!-- =================================================
+                 ESTADO INICIAL
+                 ================================================= -->
 
             <div
                 id="mensaje-seleccionar-mesa"
@@ -107,7 +124,9 @@
                         🍽️
                     </span>
 
-                    <strong>Elegí una mesa</strong>
+                    <strong>
+                        Elegí una mesa
+                    </strong>
 
                     <p>
                         La cuenta se abrirá en este panel.
@@ -119,7 +138,7 @@
 
 
             <!-- =================================================
-                 CUENTA ACTIVA
+                 MESA ABIERTA
                  ================================================= -->
 
             <div
@@ -131,6 +150,7 @@
                 <!-- CARGA RÁPIDA -->
 
                 <div class="salon-pos__carga-rapida">
+
 
                     <div class="salon-pos__field salon-pos__field--cant">
 
@@ -165,6 +185,7 @@
                             autocomplete="off"
                         >
 
+
                         <ul
                             id="lista-sugerencias"
                             class="salon-pos__sugerencias"
@@ -176,21 +197,18 @@
                 </div>
 
 
-                <!-- CABECERA CUENTA -->
+                <!-- CUENTA -->
 
                 <div class="salon-pos__cuenta-header">
 
                     <div>
-
-                        <h3>
-                            Cuenta de la Mesa
-                        </h3>
+                        <h3>Cuenta de la Mesa</h3>
 
                         <p>
                             Tildá productos para un pago parcial.
                         </p>
-
                     </div>
+
 
                     <span
                         id="cantidad-lineas"
@@ -225,9 +243,7 @@
                 </div>
 
 
-                <!-- =================================================
-                     PAGO PARCIAL
-                     ================================================= -->
+                <!-- PAGO PARCIAL -->
 
                 <div class="salon-pos__pago-parcial">
 
@@ -255,9 +271,7 @@
                 </div>
 
 
-                <!-- =================================================
-                     ACCIONES
-                     ================================================= -->
+                <!-- ACCIONES -->
 
                 <div class="salon-pos__acciones">
 
@@ -288,6 +302,15 @@
 
 </section>
 
+
+<!-- TOKEN CSRF PARA LAS IMPRESIONES AJAX -->
+
+<form id="salon-csrf-form" hidden>
+    {% csrf_token %}
+</form>
+
+
+<!-- PRODUCTOS EN JSON -->
 
 {{ productos|json_script:"salon-productos-data" }}
 
