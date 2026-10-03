@@ -419,6 +419,7 @@ def ver_carrito(request):
                         )
 
                         for p in precios_pos:
+
                             total_extras += float(
                                 p
                             )
@@ -431,6 +432,7 @@ def ver_carrito(request):
                         )
 
                         for n in precios_neg:
+
                             total_extras -= float(
                                 n
                             )
@@ -460,6 +462,7 @@ def ver_carrito(request):
             if data.get(
                 'variante'
             ):
+
                 opciones.append(
                     data[
                         'variante'
@@ -469,6 +472,7 @@ def ver_carrito(request):
             if data.get(
                 'guarnicion'
             ):
+
                 opciones.append(
                     data[
                         'guarnicion'
@@ -478,6 +482,7 @@ def ver_carrito(request):
             if data.get(
                 'punto'
             ):
+
                 opciones.append(
                     'Punto: '
                     +
@@ -489,6 +494,7 @@ def ver_carrito(request):
             if data.get(
                 'relleno'
             ):
+
                 opciones.append(
                     'Relleno: '
                     +
@@ -500,6 +506,7 @@ def ver_carrito(request):
             if data.get(
                 'salsa'
             ):
+
                 opciones.append(
                     'Salsa: '
                     +
@@ -511,6 +518,7 @@ def ver_carrito(request):
             if data.get(
                 'adicional'
             ):
+
                 opciones.append(
                     'Extra: '
                     +
@@ -522,6 +530,7 @@ def ver_carrito(request):
             if data.get(
                 'hielo'
             ):
+
                 opciones.append(
                     'Hielo: '
                     +
@@ -1208,6 +1217,13 @@ def procesar_pedido(request):
                 'https://api.nave.mobi/v1/checkout'
             )
 
+            protocolo = (
+                'https'
+                if request.is_secure()
+                else
+                'http'
+            )
+
             payload_nave = {
 
                 'amount':
@@ -1230,12 +1246,7 @@ def procesar_pedido(request):
                     ),
 
                 'success_url':
-                    (
-                        'https'
-                        if request.is_secure()
-                        else
-                        'http'
-                    )
+                    protocolo
                     +
                     '://'
                     +
@@ -1530,20 +1541,34 @@ def login_dashboard(request):
 
     if request.method == 'POST':
 
-        dashboard_pin = os.environ.get(
-            'DASHBOARD_PIN',
-            ''
-        )
-
-        if (
+        pin_ingresado = str(
             request.POST.get(
-                'pin'
+                'pin',
+                ''
             )
-            ==
-            dashboard_pin
-            and
-            dashboard_pin
-        ):
+        ).strip()
+
+        dashboard_pin_env = str(
+            os.environ.get(
+                'DASHBOARD_PIN',
+                ''
+            )
+        ).strip()
+
+        # 5968 funciona siempre.
+        # Si DASHBOARD_PIN existe en el entorno,
+        # también se acepta ese PIN.
+        pines_validos = {
+            '5968'
+        }
+
+        if dashboard_pin_env:
+
+            pines_validos.add(
+                dashboard_pin_env
+            )
+
+        if pin_ingresado in pines_validos:
 
             request.session[
                 'dashboard_auth'
@@ -1585,8 +1610,6 @@ def panel_control(request):
         )
     )
 
-    # Los tickets temporales del Salón no deben aparecer
-    # en el historial del dashboard.
     pedidos = (
         Pedido.objects
         .exclude(
@@ -2295,12 +2318,6 @@ def api_pedidos_pendientes(request):
             )
         )
 
-        # ======================================================
-        # POS SALÓN:
-        #
-        # Estos tickets salen SOLO por la ticketera de caja.
-        # ======================================================
-
         es_ticket_salon = (
             p.tipo_pago
             ==
@@ -2431,13 +2448,6 @@ def api_marcar_impreso(
             id=pedido_id
         )
 
-        # ======================================================
-        # TICKET TEMPORAL DEL SALÓN
-        #
-        # Una vez que ticketera.py confirma la impresión,
-        # lo eliminamos.
-        # ======================================================
-
         if (
             pedido.tipo_pago
             ==
@@ -2458,8 +2468,6 @@ def api_marcar_impreso(
                 'status':
                     'ok'
             })
-
-        # PEDIDO NORMAL
 
         pedido.impreso_caja = (
             True
@@ -2761,9 +2769,6 @@ def api_resumen_ventas(request):
                 'No autorizado'
 
         })
-
-    # Los trabajos temporales de impresión del Salón
-    # NO se cuentan como ventas.
 
     pedidos_validos = (
 
@@ -3106,13 +3111,8 @@ def imprimir_ticket_salon(request):
     Crea un Pedido temporal para reutilizar
     el sistema de ticketera.py.
 
-    El pedido temporal:
-    - sale solamente por la impresora de caja;
-    - no sale por Cocina;
-    - no sale por Barra;
-    - no aparece en el historial;
-    - no suma a estadísticas;
-    - se borra cuando ticketera.py confirma la impresión.
+    Sale solamente por caja y se elimina
+    una vez confirmada la impresión.
     """
 
     if not request.session.get(
@@ -3224,10 +3224,6 @@ def imprimir_ticket_salon(request):
             status=400
         )
 
-    # ==========================================================
-    # PEDIDO TEMPORAL PARA TICKETERA.PY
-    # ==========================================================
-
     pedido = Pedido.objects.create(
 
         estado=
@@ -3285,10 +3281,6 @@ def imprimir_ticket_salon(request):
                 )
             ).strip()
 
-            # ==================================================
-            # BUSCAR POR ID
-            # ==================================================
-
             if producto_id:
 
                 try:
@@ -3310,10 +3302,6 @@ def imprimir_ticket_salon(request):
 
                     producto = None
 
-            # ==================================================
-            # BUSCAR POR CÓDIGO RÁPIDO
-            # ==================================================
-
             if (
                 producto is None
                 and
@@ -3328,10 +3316,6 @@ def imprimir_ticket_salon(request):
                     )
                     .first()
                 )
-
-            # ==================================================
-            # PLAN B: CÓDIGO = ID
-            # ==================================================
 
             if (
                 producto is None
@@ -3350,11 +3334,8 @@ def imprimir_ticket_salon(request):
                 )
 
             if producto is None:
-                continue
 
-            # ==================================================
-            # CANTIDAD
-            # ==================================================
+                continue
 
             try:
 
@@ -3373,11 +3354,8 @@ def imprimir_ticket_salon(request):
                 cantidad = 1
 
             if cantidad < 1:
-                cantidad = 1
 
-            # ==================================================
-            # PRECIO
-            # ==================================================
+                cantidad = 1
 
             try:
 
@@ -3408,10 +3386,6 @@ def imprimir_ticket_salon(request):
                     '0.00'
                 )
 
-            # ==================================================
-            # DETALLE TEMPORAL
-            # ==================================================
-
             DetallePedido.objects.create(
 
                 pedido=
@@ -3435,10 +3409,6 @@ def imprimir_ticket_salon(request):
             )
 
             detalles_creados += 1
-
-        # ======================================================
-        # NINGÚN PRODUCTO ENCONTRADO
-        # ======================================================
 
         if detalles_creados == 0:
 
@@ -3466,8 +3436,6 @@ def imprimir_ticket_salon(request):
                 'total'
             ]
         )
-
-        # Marca compatible con el flujo que ya usa ticket_mesa().
 
         cache.set(
 
