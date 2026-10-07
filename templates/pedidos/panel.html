@@ -1,0 +1,1350 @@
+{% extends 'pedidos/base.html' %}
+{% block title %}Panel | SterakFood{% endblock %}
+{% block nav_acciones %}
+    <a
+        href="{% url 'pedidos:inicio' %}"
+        class="btn-nav-ghost"
+    >
+        ← Ver Menú Público
+    </a>
+{% endblock %}
+{% block content %}
+<!-- # SONIDO DE NUEVO PEDIDO -->
+<audio
+    id="audio-beep"
+    src="https://actions.google.com/sounds/v1/alarms/ding.ogg"
+    preload="auto"
+></audio>
+<div
+    class="container dash-container"
+    style="margin-top: 30px;"
+>
+    <!-- # CONTROL MAESTRO -->
+    <div class="dashboard-control-card">
+        <h2>
+            ⚙️ Control rápido del sistema
+        </h2>
+        <p
+            style="
+                color: var(--texto-mutado);
+                margin-bottom: 0;
+            "
+        >
+            Si desactivás esto, nadie podrá realizar pedidos aunque tengan el link.
+        </p>
+        <div class="control-actions">
+            <a
+                href="{% url 'pedidos:cambiar_estado_global' %}"
+                id="btn-estado-global"
+                class="
+                    btn-master
+                    {% if buffet_habilitado %}
+                        btn-master-off
+                    {% else %}
+                        btn-master-on
+                    {% endif %}
+                "
+            >
+                {{ buffet_habilitado|yesno:"🔴 DESACTIVAR PEDIDOS,🟢 ACTIVAR PEDIDOS" }}
+            </a>
+            <a
+                href="{% url 'pedidos:descargar_backup' %}"
+                class="btn-master btn-master-backup"
+            >
+                📦 DESCARGAR BACKUP
+            </a>
+            <a
+                href="javascript:void(0)"
+                onclick="abrirCierreCaja()"
+                class="btn-master"
+                style="
+                    background: rgba(58, 134, 255, 0.05);
+                    border: 2px solid #3a86ff;
+                    color: #3a86ff;
+                "
+            >
+                📊 CIERRE DE CAJA
+            </a>
+        </div>
+    </div>
+    <h1
+        style="
+            margin-bottom: 25px;
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+        "
+    >
+        Tablero de Control 🚀
+    </h1>
+    <!-- # TABS -->
+    <div class="panel-tabs">
+        <button
+            class="panel-tab-btn"
+            onclick="abrirTab('pedidos', this)"
+            id="btn-tab-pedidos"
+        >
+            📝 Pedidos
+        </button>
+        <button
+            class="panel-tab-btn"
+            onclick="abrirTab('mesas', this); renderizarMesas();"
+            id="btn-tab-mesas"
+            data-requiere-salon
+            {% if not configuracion.salon_habilitado %}hidden{% endif %}
+        >
+            🍽️ Mesas
+        </button>
+        <a
+            href="{% url 'pedidos:salon' %}"
+            class="panel-tab-btn"
+            data-requiere-salon
+            {% if not configuracion.salon_habilitado %}hidden{% endif %}
+            style="
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+            "
+        >
+            🧾 Salón POS
+        </a>
+        <button
+            class="panel-tab-btn"
+            onclick="abrirTab('menu', this)"
+            id="btn-tab-menu"
+        >
+            🍔 Menú
+        </button>
+        <button
+            class="panel-tab-btn"
+            onclick="abrirTab('mostradores', this)"
+            id="btn-tab-mostradores"
+        >
+            🏪 Mostradores
+        </button>
+        <button
+            class="panel-tab-btn"
+            onclick="abrirTab('opiniones', this)"
+            id="btn-tab-opiniones"
+        >
+            💬 Opiniones
+            {% if opiniones_no_leidas %}
+                <span class="opiniones-badge">{{ opiniones_no_leidas }}</span>
+            {% endif %}
+        </button>
+        <button class="panel-tab-btn" onclick="abrirTab('config', this)" id="btn-tab-config">
+            ⚙️ Configuración
+        </button>
+    </div>
+    <!-- # TAB PEDIDOS -->
+    <div
+        id="tab-pedidos"
+        class="tab-content"
+    >
+        <div class="dashboard-header-row">
+            <h3
+                style="
+                    margin: 0;
+                    font-size: 1.3rem;
+                "
+            >
+                Historial del día
+            </h3>
+            <a
+                href="{% url 'pedidos:eliminar_todo_historial' %}"
+                class="btn-panel btn-rojo"
+                onclick="eliminarTodoAjax(event, this)"
+            >
+                🗑️ Limpiar Historial
+            </a>
+        </div>
+
+        <!-- # FILTROS -->
+
+        <div
+            class="filtros-mostrador"
+            style="
+                margin-bottom: 20px;
+                display: flex;
+                gap: 10px;
+                overflow-x: auto;
+                padding-bottom: 5px;
+            "
+        >
+            <button
+                class="btn-panel btn-azul active"
+                onclick="filtrarPedidos('todos', this)"
+                id="btn-filtro-todos"
+                style="
+                    min-width: max-content;
+                    border-radius: 20px;
+                "
+            >
+                Todos
+            </button>
+            {% for puesto in puestos %}
+                <button
+                    class="btn-panel btn-gris"
+                    onclick="filtrarPedidos('{{ puesto.slug }}', this)"
+                    style="
+                        min-width: max-content;
+                        border-radius: 20px;
+                    "
+                >
+                    {{ puesto.nombre }}
+                </button>
+            {% endfor %}
+        </div>
+
+        <!-- # TABLA PEDIDOS -->
+
+        <table class="tabla-panel">
+            <thead>
+                <tr>
+                    <th
+                        style="
+                            width: 15%;
+                            border-top-left-radius: 8px;
+                        "
+                    >
+                        Orden
+                    </th>
+                    <th style="width: 40%;">
+                        Detalle
+                    </th>
+                    <th style="width: 15%;">
+                        Total
+                    </th>
+                    <th
+                        style="
+                            width: 30%;
+                            border-top-right-radius: 8px;
+                        "
+                    >
+                        Acciones
+                    </th>
+                </tr>
+            </thead>
+            <tbody id="lista-pedidos">
+                {% for pedido in pedidos %}
+                    <tr
+                        id="pedido-{{ pedido.id }}"
+                        class="fila-pedido"
+                        data-puesto="{{ pedido.punto_venta.slug|default:'general' }}"
+                    >
+                        <td>
+                            <strong
+                                style="font-size: 1.2rem;"
+                            >
+                                #{{ pedido.id }}
+                            </strong>
+                            <br>
+                            <span
+                                class="
+                                    badge-estado
+                                    badge-{{ pedido.estado }}
+                                "
+                                style="
+                                    display: inline-block;
+                                    margin-top: 5px;
+                                "
+                            >
+                                {{ pedido.get_estado_display }}
+                            </span>
+                            <br>
+                            <small
+                                style="
+                                    display: block;
+                                    margin-top: 8px;
+                                    font-weight: bold;
+                                    color: var(--texto-mutado);
+                                "
+                            >
+                                🕒 {{ pedido.fecha_creacion|date:"H:i" }} hs
+                            </small>
+                            <small
+                                style="
+                                    display: block;
+                                    margin-top: 2px;
+                                    color: var(--dorado-sanmartin);
+                                "
+                            >
+                                {{ pedido.tipo_pago|upper }}
+                            </small>
+                        </td>
+                        <td>
+                            <details class="order-details-box">
+                                <summary>
+                                    ▶ Ver ítems ({{ pedido.items.count }})
+                                </summary>
+                                <div
+                                    style="
+                                        margin-top: 12px;
+                                        padding-left: 5px;
+                                    "
+                                >
+                                    {% for item in pedido.items.all %}
+                                        <div
+                                            style="
+                                                margin-bottom: 8px;
+                                                font-size: 0.95rem;
+                                            "
+                                        >
+                                            <strong
+                                                style="
+                                                    color: var(--text-color);
+                                                "
+                                            >
+                                                {{ item.cantidad }}x
+                                            </strong>
+                                            {{ item.producto.nombre }}
+                                            {% if item.variante_elegida or item.guarnicion_elegida or item.adicional_elegido or item.punto_coccion_elegido %}
+                                                <br>
+                                                <small
+                                                    style="
+                                                        color: var(--texto-mutado);
+                                                        display: block;
+                                                        margin-top: 2px;
+                                                    "
+                                                >
+                                                    •
+                                                    {{ item.variante_elegida }}
+                                                    {{ item.guarnicion_elegida }}
+                                                    {{ item.punto_coccion_elegido }}
+                                                    {{ item.adicional_elegido }}
+                                                </small>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                    <div
+                                        style="
+                                            margin-top: 15px;
+                                            font-size: 0.85rem;
+                                            color: var(--texto-mutado);
+                                            border-top: 1px dashed var(--borde);
+                                            padding-top: 10px;
+                                        "
+                                    >
+                                        <strong>
+                                            👤 Cliente:
+                                        </strong>
+                                        {{ pedido.nombre_cliente }}
+                                        <br>
+                                        <strong>
+                                            📍 Entrega:
+                                        </strong>
+                                        {{ pedido.tipo_entrega }}
+                                        {% if pedido.numero_mesa %}
+                                            (Mesa {{ pedido.numero_mesa }})
+                                        {% endif %}
+                                        {% if pedido.mozo %}
+                                            <br>
+                                            <strong>
+                                                🧑‍🍳 Mozo:
+                                            </strong>
+                                            {{ pedido.mozo }}
+                                        {% endif %}
+                                        <br>
+                                        {% if pedido.telefono_cliente %}
+                                            <strong>
+                                                📱 Tel:
+                                            </strong>
+                                            {{ pedido.telefono_cliente }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </details>
+                        </td>
+                        <td
+                            style="
+                                font-size: 1.2rem;
+                                font-weight: 800;
+                                color: var(--verde-sanmartin);
+                            "
+                        >
+                            ${{ pedido.total }}
+                        </td>
+                        <td>
+                            <div
+                                style="
+                                    display: flex;
+                                    gap: 8px;
+                                    flex-wrap: wrap;
+                                "
+                            >
+                                {% if pedido.estado == 'pendiente' or pedido.estado == 'preparacion' %}
+                                    <a
+                                        href="{% url 'pedidos:cambiar_estado_pedido' pedido.id 'listo' %}"
+                                        class="btn-panel btn-verde"
+                                        onclick="cambiarEstadoAjax(event, this, 'listo')"
+                                    >
+                                        ✅ Listo
+                                    </a>
+                                    <a
+                                        href="{% url 'pedidos:cambiar_estado_pedido' pedido.id 'preparacion' %}"
+                                        class="btn-panel btn-amarillo"
+                                        onclick="cambiarEstadoAjax(event, this, 'preparacion')"
+                                    >
+                                        🍳 Prep
+                                    </a>
+                                {% endif %}
+                                {% if pedido.estado == 'listo' %}
+                                    <a
+                                        href="{% url 'pedidos:cambiar_estado_pedido' pedido.id 'entregado' %}"
+                                        class="btn-panel btn-gris"
+                                        onclick="cambiarEstadoAjax(event, this, 'entregado')"
+                                    >
+                                        ✔️ Entregado
+                                    </a>
+                                {% endif %}
+                                <button
+                                    class="btn-panel btn-azul"
+                                    onclick="imprimirCuentaDirecto('{% url 'pedidos:ticket_mesa' pedido.id %}')"
+                                    style="
+                                        padding: 6px 12px;
+                                    "
+                                >
+                                    🖨️ Cuenta
+                                </button>
+                                {% if pedido.estado != 'cancelado' and pedido.estado != 'entregado' %}
+                                    <a
+                                        href="{% url 'pedidos:cambiar_estado_pedido' pedido.id 'cancelado' %}"
+                                        class="btn-panel btn-rojo"
+                                        style="
+                                            padding: 6px 12px;
+                                        "
+                                        onclick="cambiarEstadoAjax(event, this, 'cancelado', true)"
+                                    >
+                                        ❌
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <!-- # TAB MESAS -->
+    <div
+        id="tab-mesas"
+        class="tab-content"
+        style="display: none;"
+    >
+        <div
+            class="dashboard-header-row"
+            style="margin-bottom: 10px;"
+        >
+            <div>
+                <h3
+                    style="
+                        margin: 0;
+                        font-size: 1.5rem;
+                    "
+                >
+                    Cuentas por Mesa
+                </h3>
+                <p
+                    style="
+                        margin: 5px 0 0 0;
+                        color: var(--texto-mutado);
+                        font-size: 0.9rem;
+                    "
+                >
+                    Agrupa automáticamente los pedidos en EFECTIVO que aún no fueron cobrados.
+                </p>
+            </div>
+            <button
+                onclick="if(typeof renderizarMesas === 'function') renderizarMesas();"
+                class="btn-panel btn-azul"
+                style="border-radius: 8px;"
+            >
+                🔄 Refrescar
+            </button>
+        </div>
+        <section class="mozos-admin">
+            <div class="mozos-admin__encabezado">
+                <div>
+                    <span class="categoria-kicker">PERSONAL DE SALÓN</span>
+                    <h3>👤 Mozos del turno</h3>
+                    <p>Agregá o eliminá los mozos disponibles. Después podés asignarlos cuando abrís una mesa en Salón POS.</p>
+                </div>
+            </div>
+
+            <form
+                id="form-agregar-mozo"
+                class="mozos-admin__form"
+                action="{% url 'pedidos:agregar_mozo' %}"
+                method="POST"
+                onsubmit="agregarMozoDashboard(event, this)"
+            >
+                {% csrf_token %}
+                <input type="text" name="nombre" maxlength="100" placeholder="Nombre del mozo..." autocomplete="off" required>
+                <button type="submit" class="btn-panel btn-verde">+ Agregar mozo</button>
+            </form>
+
+            <div id="lista-mozos-admin" class="mozos-admin__lista">
+                {% for mozo in mozos %}
+                    <div class="mozo-chip" id="mozo-admin-{{ mozo.id }}">
+                        <span>👤 {{ mozo.nombre }}</span>
+                        <button
+                            type="button"
+                            title="Eliminar mozo"
+                            onclick="eliminarMozoDashboard({{ mozo.id }}, '{% url 'pedidos:eliminar_mozo' mozo.id %}')"
+                        >×</button>
+                    </div>
+                {% empty %}
+                    <div class="mozos-admin__vacio" id="mozos-admin-vacio">Todavía no cargaste mozos.</div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <div
+            id="grid-mesas"
+            class="mesas-grid"
+        ></div>
+    </div>
+    <!-- # TAB MENÚ -->
+    <div id="tab-menu" class="tab-content">
+        <div class="menu-admin-toolbar">
+            <div class="menu-admin-toolbar__fila">
+                <div class="menu-admin-filtros" id="filtros-menu-admin">
+                    <button type="button" class="menu-admin-filtro is-active btn-filtro-menu" data-puesto="todos" onclick="filtrarMenu('todos', this)">Todos</button>
+                    {% for puesto in puestos %}
+                        <button type="button" class="menu-admin-filtro btn-filtro-menu" data-puesto="{{ puesto.id }}" onclick="filtrarMenu('{{ puesto.id }}', this)">{{ puesto.nombre }}</button>
+                    {% endfor %}
+                </div>
+                <a href="{% url 'pedidos:agregar_producto' %}" class="menu-admin-nuevo">+ NUEVO PRODUCTO</a>
+            </div>
+            <div class="menu-admin-toolbar__fila menu-admin-toolbar__fila--busqueda">
+                <div class="menu-admin-buscador">
+                    <span aria-hidden="true">⌕</span>
+                    <input type="search" id="buscador-menu-admin" placeholder="Buscar por nombre, código o categoría..." autocomplete="off">
+                </div>
+                <div class="menu-admin-ayuda">Editá precio, categoría, código, disponibilidad, promos y opciones sin salir del panel.</div>
+            </div>
+        </div>
+
+        {% regroup productos by categoria.nombre as categorias_lista %}
+        <div class="menu-admin-categorias" id="menu-admin-categorias">
+            {% for categoria in categorias_lista %}
+                <details class="panel-accordion categoria-menu menu-admin-categoria">
+                    <summary>
+                        <span class="menu-admin-categoria__titulo">{{ categoria.grouper }}</span>
+                        <span class="menu-admin-categoria__cantidad">{{ categoria.list|length }} producto{{ categoria.list|length|pluralize }}</span>
+                    </summary>
+                    <div class="menu-admin-lista">
+                        {% for producto in categoria.list %}
+                            <article
+                                class="fila-producto-menu menu-admin-producto {% if not producto.disponible %}is-pausado{% endif %}"
+                                data-puestos="{% for p in producto.puntos_venta.all %}{{ p.id }}{% if not forloop.last %},{% endif %}{% endfor %}"
+                                data-busqueda="{{ producto.nombre|default:'' }} {{ producto.codigo_rapido|default:'' }} {{ producto.categoria.nombre|default:'' }}"
+                            >
+                                <div class="menu-admin-producto__principal">
+                                    <div class="menu-admin-producto__badges">
+                                        <span class="menu-admin-estado {% if producto.disponible %}is-activo{% else %}is-pausado{% endif %}">
+                                            {% if producto.disponible %}● ACTIVO{% else %}● PAUSADO{% endif %}
+                                        </span>
+                                        {% if producto.en_promocion %}
+                                            <span class="menu-admin-badge menu-admin-badge--promo">🔥 PROMO</span>
+                                        {% endif %}
+                                        {% if producto.categoria.nombre == 'Salon' %}
+                                            <span class="menu-admin-badge menu-admin-badge--salon">🧾 SOLO POS SALÓN</span>
+                                        {% endif %}
+                                    </div>
+                                    <h4>{{ producto.nombre }}</h4>
+                                    <div class="menu-admin-producto__meta">
+                                        <span>Orden: <strong>{{ producto.orden }}</strong></span>
+                                        {% if producto.codigo_rapido %}
+                                            <span>Código: <strong>{{ producto.codigo_rapido }}</strong></span>
+                                        {% else %}
+                                            <span>Código: <strong>—</strong></span>
+                                        {% endif %}
+                                        <span>Categoría: <strong>{{ producto.categoria.nombre }}</strong></span>
+                                    </div>
+                                </div>
+
+                                <div class="menu-admin-producto__precio">
+                                    <small>PRECIO RÁPIDO</small>
+                                    <form
+                                        class="menu-admin-precio-form"
+                                        action="{% url 'pedidos:editar_precio' producto.id %}"
+                                        method="POST"
+                                        onsubmit="editarPrecioAjax(event, this)"
+                                    >
+                                        {% csrf_token %}
+                                        <div class="menu-admin-precio-input">
+                                            <span>$</span>
+                                            <input
+                                                type="text"
+                                                inputmode="decimal"
+                                                name="precio"
+                                                value="{{ producto.precio }}"
+                                                aria-label="Precio de {{ producto.nombre }}"
+                                                required
+                                            >
+                                        </div>
+                                        <button type="submit">OK</button>
+                                    </form>
+                                </div>
+
+                                <div class="menu-admin-producto__puestos">
+                                    <small>MOSTRADORES</small>
+                                    <div class="menu-admin-puestos-lista">
+                                        {% for puesto in producto.puntos_venta.all %}
+                                            <span>{{ puesto.nombre }}</span>
+                                        {% empty %}
+                                            <span class="is-vacio">Sin asignar</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                <div class="menu-admin-producto__acciones">
+                                    <a
+                                        href="{% url 'pedidos:cambiar_disponibilidad' producto.id %}"
+                                        class="menu-admin-btn menu-admin-btn--estado {% if producto.disponible %}is-pausar{% else %}is-activar{% endif %}"
+                                        onclick="cambiarDisponibilidadAjax(event, this)"
+                                    >
+                                        {% if producto.disponible %}⏸ Pausar{% else %}▶ Activar{% endif %}
+                                    </a>
+                                    <button
+                                        type="button"
+                                        class="menu-admin-btn menu-admin-btn--editar"
+                                        onclick="abrirEditorProducto(this)"
+                                        data-url="{% url 'pedidos:editar_producto' producto.id %}"
+                                        data-nombre="{{ producto.nombre|default:''|escape }}"
+                                        data-codigo="{{ producto.codigo_rapido|default:''|escape }}"
+                                        data-categoria="{{ producto.categoria.id }}"
+                                        data-precio="{{ producto.precio }}"
+                                        data-orden="{{ producto.orden }}"
+                                        data-descripcion="{{ producto.descripcion|default:''|escape }}"
+                                        data-disponible="{% if producto.disponible %}1{% else %}0{% endif %}"
+                                        data-promo="{% if producto.en_promocion %}1{% else %}0{% endif %}"
+                                        data-puestos="{% for p in producto.puntos_venta.all %}{{ p.id }}{% if not forloop.last %},{% endif %}{% endfor %}"
+                                        data-variantes="{{ producto.variantes|default:''|escape }}"
+                                        data-guarniciones="{{ producto.guarniciones|default:''|escape }}"
+                                        data-coccion="{{ producto.puntos_coccion|default:''|escape }}"
+                                        data-rellenos="{{ producto.rellenos|default:''|escape }}"
+                                        data-salsas="{{ producto.salsas|default:''|escape }}"
+                                        data-adicionales="{{ producto.adicionales|default:''|escape }}"
+                                        data-hielo="{{ producto.opcion_hielo|default:''|escape }}"
+                                        data-imagen="{% if producto.imagen %}{{ producto.imagen.url }}{% endif %}"
+                                    >
+                                        ✏️ Editar
+                                    </button>
+                                    <a
+                                        href="{% url 'pedidos:eliminar_producto' producto.id %}"
+                                        class="menu-admin-btn menu-admin-btn--borrar"
+                                        onclick="eliminarProductoAjax(event, this)"
+                                        title="Eliminar producto"
+                                    >
+                                        🗑
+                                    </a>
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+                </details>
+            {% empty %}
+                <div class="menu-admin-sin-resultados">No hay productos cargados todavía.</div>
+            {% endfor %}
+        </div>
+        <div id="menu-admin-sin-resultados" class="menu-admin-sin-resultados" hidden>No encontramos productos con esos filtros.</div>
+    </div>
+
+    <!-- # MODAL EDITOR DE PRODUCTO -->
+    <div id="modal-editor-producto" class="menu-editor-modal" aria-hidden="true">
+        <div class="menu-editor-modal__overlay" onclick="cerrarEditorProducto()"></div>
+        <section class="menu-editor-modal__panel" role="dialog" aria-modal="true" aria-labelledby="editor-producto-titulo">
+            <div class="menu-editor-modal__header">
+                <div>
+                    <span class="menu-editor-modal__kicker">GESTOR DE MENÚ</span>
+                    <h2 id="editor-producto-titulo">Editar producto</h2>
+                    <p>Cambiá todo desde acá y guardá sin salir del Dashboard.</p>
+                </div>
+                <button type="button" class="menu-editor-modal__cerrar" onclick="cerrarEditorProducto()" aria-label="Cerrar">×</button>
+            </div>
+
+            <form id="form-editor-producto" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="menu-editor-grid">
+                    <div class="menu-editor-columna">
+                        <div class="menu-editor-seccion">
+                            <h3>Datos principales</h3>
+                            <label class="menu-editor-campo menu-editor-campo--ancho">
+                                <span>Nombre</span>
+                                <input type="text" id="editor-nombre" name="nombre" required>
+                            </label>
+                            <div class="menu-editor-doble">
+                                <label class="menu-editor-campo">
+                                    <span>Código rápido</span>
+                                    <input type="text" id="editor-codigo" name="codigo_rapido" placeholder="Ej: 500">
+                                </label>
+                                <label class="menu-editor-campo">
+                                    <span>Orden</span>
+                                    <input type="number" id="editor-orden" name="orden" value="0">
+                                </label>
+                            </div>
+                            <div class="menu-editor-doble">
+                                <label class="menu-editor-campo">
+                                    <span>Precio</span>
+                                    <input type="number" id="editor-precio" name="precio" step="0.01" min="0" required>
+                                </label>
+                                <label class="menu-editor-campo">
+                                    <span>Categoría</span>
+                                    <select id="editor-categoria" name="categoria" data-categoria-select required>
+                                        {% for categoria in categorias %}
+                                            <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </label>
+                            </div>
+                            <div id="editor-aviso-salon" class="menu-editor-aviso-salon" hidden>
+                                🧾 Esta categoría es interna: el producto aparece en Salón POS pero no en el menú público.
+                            </div>
+                            <label class="menu-editor-campo menu-editor-campo--ancho">
+                                <span>Descripción</span>
+                                <textarea id="editor-descripcion" name="descripcion" rows="3"></textarea>
+                            </label>
+                        </div>
+
+                        <div class="menu-editor-seccion">
+                            <h3>Estado y visibilidad</h3>
+                            <div class="menu-editor-switches">
+                                <label class="menu-editor-switch">
+                                    <input type="checkbox" id="editor-disponible" name="disponible">
+                                    <span class="menu-editor-switch__control"></span>
+                                    <span><strong>Disponible</strong><small>Se puede vender y buscar.</small></span>
+                                </label>
+                                <label class="menu-editor-switch">
+                                    <input type="checkbox" id="editor-promo" name="en_promocion">
+                                    <span class="menu-editor-switch__control"></span>
+                                    <span><strong>🔥 Mostrar en Promos</strong><small>Destacalo arriba del menú público.</small></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="menu-editor-seccion">
+                            <h3>Mostradores</h3>
+                            <div id="editor-puntos-venta" class="menu-editor-puestos">
+                                {% for puesto in puestos %}
+                                    <label>
+                                        <input type="checkbox" name="puntos_venta" value="{{ puesto.id }}">
+                                        <span>{{ puesto.nombre }}</span>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="menu-editor-columna">
+                        <div class="menu-editor-seccion">
+                            <h3>Imagen</h3>
+                            <div class="menu-editor-imagen">
+                                <div id="editor-imagen-preview" class="menu-editor-imagen__preview"><span>Sin imagen</span></div>
+                                <label class="menu-editor-campo menu-editor-campo--ancho">
+                                    <span>Cambiar imagen</span>
+                                    <input type="file" id="editor-imagen" name="imagen" accept="image/*">
+                                </label>
+                            </div>
+                        </div>
+
+                        <details class="menu-editor-seccion menu-editor-personalizacion">
+                            <summary>Personalización del producto <span>Opcional</span></summary>
+                            <p>Separá las opciones con comas, igual que hasta ahora.</p>
+                            <label class="menu-editor-campo menu-editor-campo--ancho">
+                                <span>Variantes</span>
+                                <input type="text" id="editor-variantes" name="variantes">
+                            </label>
+                            <label class="menu-editor-campo menu-editor-campo--ancho">
+                                <span>Guarniciones</span>
+                                <input type="text" id="editor-guarniciones" name="guarniciones">
+                            </label>
+                            <label class="menu-editor-campo menu-editor-campo--ancho">
+                                <span>Puntos de cocción</span>
+                                <input type="text" id="editor-coccion" name="puntos_coccion">
+                            </label>
+                            <label class="menu-editor-campo menu-editor-campo--ancho">
+                                <span>Rellenos</span>
+                                <input type="text" id="editor-rellenos" name="rellenos">
+                            </label>
+                            <label class="menu-editor-campo menu-editor-campo--ancho">
+                                <span>Salsas con precio</span>
+                                <input type="text" id="editor-salsas" name="salsas" placeholder="Fileto, Bolognesa (+800)">
+                            </label>
+                            <label class="menu-editor-campo menu-editor-campo--ancho">
+                                <span>Adicionales</span>
+                                <input type="text" id="editor-adicionales" name="adicionales">
+                            </label>
+                            <label class="menu-editor-campo menu-editor-campo--ancho">
+                                <span>Opción de hielo</span>
+                                <input type="text" id="editor-hielo" name="opcion_hielo">
+                            </label>
+                        </details>
+                    </div>
+                </div>
+
+                <div class="menu-editor-modal__footer">
+                    <button type="button" class="menu-editor-cancelar" onclick="cerrarEditorProducto()">Cancelar</button>
+                    <button type="submit" class="menu-editor-guardar" id="btn-guardar-editor-producto">💾 Guardar cambios</button>
+                </div>
+            </form>
+        </section>
+    </div>
+
+    <!-- # TAB MOSTRADORES -->
+    <div
+        id="tab-mostradores"
+        class="tab-content"
+    >
+        <div class="panel-grid-mostradores">
+            {% for puesto in puestos %}
+                <div class="panel-card-mostrador">
+                    <h3
+                        style="
+                            margin-top: 0;
+                            color: var(--text-color);
+                        "
+                    >
+                        {{ puesto.nombre }}
+                    </h3>
+                    <p
+                        style="
+                            font-weight: bold;
+                            margin-bottom: 20px;
+                        "
+                    >
+                        {% if puesto.abierto %}
+                            <span style="color: #198754;">
+                                🟢 ABIERTO
+                            </span>
+                        {% else %}
+                            <span style="color: var(--error);">
+                                🔴 CERRADO
+                            </span>
+                        {% endif %}
+                    </p>
+                    <a
+                        href="{% url 'pedidos:cambiar_estado_puesto' puesto.id %}"
+                        class="
+                            btn-panel
+                            {% if puesto.abierto %}
+                                btn-rojo
+                            {% else %}
+                                btn-verde
+                            {% endif %}
+                        "
+                        onclick="ejecutarAjax(event, this)"
+                        style="
+                            width: 100%;
+                            padding: 10px;
+                            border-radius: 8px;
+                        "
+                    >
+                        {{ puesto.abierto|yesno:"Cerrar Mostrador,Abrir Mostrador" }}
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <!-- # TAB CONFIGURACIÓN -->
+    <div id="tab-config" class="tab-content">
+        <section class="config-sistema" data-config-url="{% url 'pedidos:actualizar_configuracion' %}">
+            <form id="config-csrf-form" hidden>{% csrf_token %}</form>
+            <div class="config-sistema__header">
+                <div>
+                    <span class="categoria-kicker">CONFIGURACIÓN RÁPIDA</span>
+                    <h2>⚙️ Funciones del sistema</h2>
+                    <p>Activá o desactivá las funciones más usadas sin tocar código.</p>
+                </div>
+                <span id="config-estado-guardado" class="config-guardado" aria-live="polite"></span>
+            </div>
+
+            <div class="config-grupo">
+                <h3>🛒 Ventas</h3>
+                <label class="config-fila">
+                    <span><strong>Aceptar pedidos online</strong><small>Pausa o habilita los pedidos desde el menú público.</small></span>
+                    <input type="checkbox" data-config-campo="buffet_habilitado" {% if configuracion.buffet_habilitado %}checked{% endif %}>
+                    <i class="config-switch" aria-hidden="true"></i>
+                </label>
+                <div class="config-fila config-fila--con-campo">
+                    <span><strong>Descuento en efectivo</strong><small>Se aplica cuando el switch está activo.</small></span>
+                    <div class="config-control-doble">
+                        <input class="config-input" type="number" min="0" max="100" value="{{ configuracion.descuento_efectivo_porcentaje }}" data-config-campo="descuento_efectivo_porcentaje">
+                        <span>%</span>
+                        <label class="config-switch-label" title="Activar descuento en efectivo">
+                            <input type="checkbox" data-config-campo="descuento_efectivo_activo" {% if configuracion.descuento_efectivo_activo %}checked{% endif %}>
+                            <i class="config-switch" aria-hidden="true"></i>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="config-grupo">
+                <h3>🕐 Horarios</h3>
+                <div class="config-fila config-fila--con-campo">
+                    <span><strong>Cierre automático</strong><small>Desactiva los pedidos a esa hora y quedan pausados hasta que los vuelvas a activar.</small></span>
+                    <div class="config-control-doble">
+                        <input class="config-input config-input--hora" type="time" value="{{ configuracion.hora_cierre|time:'H:i' }}" data-config-campo="hora_cierre">
+                        <label class="config-switch-label" title="Activar cierre automático">
+                            <input type="checkbox" data-config-campo="cierre_automatico_activo" {% if configuracion.cierre_automatico_activo %}checked{% endif %}>
+                            <i class="config-switch" aria-hidden="true"></i>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="config-grupo">
+                <h3>🍔 Menú público</h3>
+                <label class="config-fila">
+                    <span><strong>Mostrar promociones</strong><small>Muestra u oculta el bloque completo de Promos.</small></span>
+                    <input type="checkbox" data-config-campo="mostrar_promociones" {% if configuracion.mostrar_promociones %}checked{% endif %}>
+                    <i class="config-switch" aria-hidden="true"></i>
+                </label>
+                <label class="config-fila">
+                    <span><strong>Popup de bienvenida</strong><small>{% if welcome_image_available %}Muestra la imagen de bienvenida al entrar al menú.{% else %}Agregá static/img/bienvenida_buffet.webp para habilitarlo.{% endif %}</small></span>
+                    <input type="checkbox" data-config-campo="mostrar_bienvenida" {% if configuracion.mostrar_bienvenida %}checked{% endif %} {% if not welcome_image_available %}disabled{% endif %}>
+                    <i class="config-switch" aria-hidden="true"></i>
+                </label>
+            </div>
+
+            <div class="config-grupo">
+                <h3>💬 Clientes</h3>
+                <label class="config-fila">
+                    <span><strong>Opiniones privadas</strong><small>Muestra u oculta el formulario de comentarios privados.</small></span>
+                    <input type="checkbox" data-config-campo="mostrar_opiniones" {% if configuracion.mostrar_opiniones %}checked{% endif %}>
+                    <i class="config-switch" aria-hidden="true"></i>
+                </label>
+                <label class="config-fila">
+                    <span><strong>Google Reviews</strong><small>Muestra u oculta el acceso para dejar una reseña en Google.</small></span>
+                    <input type="checkbox" data-config-campo="mostrar_google_reviews" {% if configuracion.mostrar_google_reviews %}checked{% endif %}>
+                    <i class="config-switch" aria-hidden="true"></i>
+                </label>
+            </div>
+
+            <div class="config-grupo">
+                <h3>🍽️ Salón</h3>
+                <label class="config-fila">
+                    <span><strong>Módulo Salón / Mesas</strong><small>Activa el POS de salón, mesas y selección de mozos.</small></span>
+                    <input type="checkbox" data-config-campo="salon_habilitado" {% if configuracion.salon_habilitado %}checked{% endif %}>
+                    <i class="config-switch" aria-hidden="true"></i>
+                </label>
+            </div>
+        </section>
+    </div>
+
+    <!-- # TAB OPINIONES -->
+    <div id="tab-opiniones" class="tab-content">
+        <div class="opiniones-dashboard-header">
+            <div>
+                <span class="categoria-kicker">FEEDBACK</span>
+                <h2>💬 Opiniones de clientes</h2>
+                <p>Comentarios privados enviados desde el menú.</p>
+            </div>
+        </div>
+
+        <div class="opiniones-dashboard-lista" id="lista-opiniones">
+            {% for opinion in opiniones %}
+                <article
+                    class="opinion-dashboard-card {% if not opinion.leida %}is-nueva{% endif %}"
+                    id="opinion-{{ opinion.id }}"
+                >
+                    <div class="opinion-dashboard-card__top">
+                        <div class="opinion-dashboard-card__badges">
+                            {% if not opinion.leida %}
+                                <span class="opinion-nueva-badge">NUEVA</span>
+                            {% endif %}
+
+                            <span class="opinion-tipo">💬 Opinión privada</span>
+                        </div>
+                        <time>{{ opinion.fecha_creacion|date:"d/m/Y H:i" }}</time>
+                    </div>
+
+                    <p class="opinion-dashboard-card__mensaje">{{ opinion.mensaje }}</p>
+
+                    <div class="opinion-dashboard-card__datos">
+                        <span>🍽 Mesa: <strong>{{ opinion.mesa|default:"-" }}</strong></span>
+                        <span>👤 Cliente: <strong>{{ opinion.nombre|default:"-" }}</strong></span>
+                        <span>🧑‍🍳 Mozo: <strong>{{ opinion.mozo|default:"-" }}</strong></span>
+                    </div>
+
+                    <div class="opinion-dashboard-card__acciones">
+                        {% if not opinion.leida %}
+                            <button
+                                type="button"
+                                class="opinion-btn opinion-btn--leida"
+                                onclick="marcarOpinionLeida({{ opinion.id }}, '{% url 'pedidos:marcar_opinion_leida' opinion.id %}')"
+                            >
+                                ✓ Marcar como vista
+                            </button>
+                        {% endif %}
+
+                        <button
+                            type="button"
+                            class="opinion-btn opinion-btn--borrar"
+                            onclick="eliminarOpinion({{ opinion.id }}, '{% url 'pedidos:eliminar_opinion' opinion.id %}')"
+                        >
+                            🗑 Eliminar
+                        </button>
+                    </div>
+                </article>
+            {% empty %}
+                <div class="opiniones-vacio">
+                    <span>💬</span>
+                    <strong>Todavía no recibiste comentarios.</strong>
+                    <p>Cuando un cliente envíe uno, aparecerá acá.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- # MODAL CIERRE -->
+    <div
+        id="modalCierre"
+        class="modal-overlay"
+    >
+        <div
+            class="modal-content"
+            style="
+                max-width: 500px;
+                padding: 25px;
+            "
+        >
+            <button
+                class="btn-cerrar-modal"
+                onclick="cerrarCierreCaja()"
+            >
+                ×
+            </button>
+            <h2
+                class="modal-titulo"
+                style="margin-bottom: 5px;"
+            >
+                📊 Cierre del Día
+            </h2>
+            <p
+                style="
+                    text-align: center;
+                    color: var(--texto-mutado);
+                    margin-bottom: 20px;
+                "
+            >
+                Recaudación Total:
+                <strong
+                    id="gran-total-cierre"
+                    style="
+                        color: var(--verde-sanmartin);
+                        font-size: 1.3rem;
+                    "
+                >
+                    $0
+                </strong>
+            </p>
+            <div
+                id="contenedor-mostradores"
+                style="
+                    max-height: 55vh;
+                    overflow-y: auto;
+                    margin-bottom: 20px;
+                    padding-right: 5px;
+                "
+            >
+            </div>
+            <button
+                onclick="confirmarCierreYLimpiar()"
+                class="btn-pagar-block"
+                style="
+                    background-color: var(--error);
+                "
+            >
+                🗑️ CERRAR TURNO Y LIMPIAR TODO
+            </button>
+        </div>
+    </div>
+</div>
+<script>
+
+    // =========================================================
+    // IMPRIMIR CUENTA
+    // =========================================================
+    function imprimirCuentaDirecto(
+        url
+    ) {
+        fetch(
+            url
+        )
+        .then(
+            response =>
+                response.json()
+        )
+        .then(
+            data => {
+                if (
+                    data.status
+                    ===
+                    'ok'
+                ) {
+                    Swal.fire(
+                        {
+                            toast:
+                                true,
+                            position:
+                                'top-end',
+                            icon:
+                                'success',
+                            title:
+                                'Enviando cuenta a impresora...',
+                            background:
+                                'var(--card-bg)',
+                            color:
+                                'var(--text-color)',
+                            showConfirmButton:
+                                false,
+                            timer:
+                                2000
+                        }
+                    );
+                }
+            }
+        )
+        .catch(
+            err =>
+                console.error(
+                    "Error al imprimir:",
+                    err
+                )
+        );
+    }
+    // =========================================================
+    // SONIDO
+    // =========================================================
+    function reproducirBeep(
+        veces
+    ) {
+        const audio =
+            document.getElementById(
+                'audio-beep'
+            );
+        if (
+            !audio
+        ) {
+            return;
+        }
+        let contador =
+            0;
+        let intervalo =
+            setInterval(
+                () => {
+                    let sonido =
+                        audio.cloneNode();
+                    sonido.volume =
+                        1.0;
+                    sonido
+                        .play()
+                        .catch(
+                            e =>
+                                console.log(
+                                    'Sonido bloqueado por el navegador',
+                                    e
+                                )
+                        );
+                    contador++;
+                    if (
+                        contador
+                        >=
+                        veces
+                    ) {
+                        clearInterval(
+                            intervalo
+                        );
+                    }
+                },
+                400
+            );
+    }
+    // =========================================================
+    // ACTUALIZAR PEDIDOS
+    // =========================================================
+    document.addEventListener(
+        "DOMContentLoaded",
+        function() {
+            setInterval(
+                () => {
+                    if (
+                        document
+                            .getElementById(
+                                'tab-pedidos'
+                            )
+                            .style
+                            .display
+                        !==
+                        'none'
+                        ||
+                        document
+                            .getElementById(
+                                'tab-mesas'
+                            )
+                            .style
+                            .display
+                        !==
+                        'none'
+                    ) {
+                        fetch(
+                            window.location.href
+                        )
+                        .then(
+                            res =>
+                                res.text()
+                        )
+                        .then(
+                            html => {
+                                const doc =
+                                    new DOMParser()
+                                        .parseFromString(
+                                            html,
+                                            'text/html'
+                                        );
+                                const nuevaLista =
+                                    doc.getElementById(
+                                        'lista-pedidos'
+                                    );
+                                const listaActual =
+                                    document.getElementById(
+                                        'lista-pedidos'
+                                    );
+                                if (
+                                    nuevaLista
+                                    &&
+                                    listaActual
+                                ) {
+                                    const countNuevos =
+                                        nuevaLista
+                                            .querySelectorAll(
+                                                '.fila-pedido'
+                                            )
+                                            .length;
+                                    const countActuales =
+                                        listaActual
+                                            .querySelectorAll(
+                                                '.fila-pedido'
+                                            )
+                                            .length;
+                                    if (
+                                        countNuevos
+                                        >
+                                        countActuales
+                                    ) {
+                                        const diferencia =
+                                            countNuevos
+                                            -
+                                            countActuales;
+                                        let esEfectivo =
+                                            false;
+                                        const filasNuevas =
+                                            nuevaLista
+                                                .querySelectorAll(
+                                                    '.fila-pedido'
+                                                );
+                                        for (
+                                            let i = 0;
+                                            i < diferencia;
+                                            i++
+                                        ) {
+                                            if (
+                                                filasNuevas[i]
+                                                &&
+                                                filasNuevas[i]
+                                                    .innerText
+                                                    .toUpperCase()
+                                                    .includes(
+                                                        'EFECTIVO'
+                                                    )
+                                            ) {
+                                                esEfectivo =
+                                                    true;
+                                                break;
+                                            }
+                                        }
+                                        if (
+                                            esEfectivo
+                                        ) {
+                                            reproducirBeep(
+                                                4
+                                            );
+                                            Swal.fire(
+                                                {
+                                                    toast:
+                                                        true,
+                                                    position:
+                                                        'top-end',
+                                                    icon:
+                                                        'warning',
+                                                    title:
+                                                        '¡NUEVO PAGO EN EFECTIVO! 💵',
+                                                    background:
+                                                        'var(--dorado-sanmartin)',
+                                                    color:
+                                                        '#000',
+                                                    showConfirmButton:
+                                                        false,
+                                                    timer:
+                                                        6000
+                                                }
+                                            );
+                                        } else {
+                                            reproducirBeep(
+                                                4
+                                            );
+                                            Swal.fire(
+                                                {
+                                                    toast:
+                                                        true,
+                                                    position:
+                                                        'top-end',
+                                                    icon:
+                                                        'info',
+                                                    title:
+                                                        '¡Nuevo pedido recibido!',
+                                                    background:
+                                                        'var(--card-bg)',
+                                                    color:
+                                                        'var(--text-color)',
+                                                    showConfirmButton:
+                                                        false,
+                                                    timer:
+                                                        4000
+                                                }
+                                            );
+                                        }
+                                    }
+                                    listaActual.innerHTML =
+                                        nuevaLista.innerHTML;
+                                    if (
+                                        document
+                                            .getElementById(
+                                                'tab-mesas'
+                                            )
+                                            .style
+                                            .display
+                                        !==
+                                        'none'
+                                    ) {
+                                        if (
+                                            typeof renderizarMesas
+                                            ===
+                                            'function'
+                                        ) {
+                                            renderizarMesas();
+                                        }
+                                    }
+                                }
+                            }
+                        );
+                    }
+                },
+                10000
+            );
+        }
+    );
+</script>
+{% endblock %}
