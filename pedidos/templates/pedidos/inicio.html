@@ -54,8 +54,8 @@
         <span>💵</span>
     </div>
     {% endif %}
-    <!-- # HERO -->
-    <header class="hero hero-menu-moderno">
+    <!-- # HERO CON FOTO PRINCIPAL -->
+    <header class="hero hero-menu-moderno hero-con-foto">
         <div class="hero-content">
             <div class="hero-texto">
                 <span class="hero-kicker">
@@ -68,10 +68,19 @@
                     Elegí lo que quieras y armá tu pedido.
                 </p>
             </div>
-            <div class="hero-logo-side">
+
+            <!-- FOTO PRINCIPAL DEL BUFFET -->
+            <div class="hero-foto-side">
+                <img
+                    src="{% static 'img/fondo-buffet.png' %}"
+                    alt="Foto principal del buffet"
+                    class="hero-foto-principal"
+                >
+
                 <img
                     src="{% static 'img/logo.png' %}"
-                    alt="Escudo SterakFood"
+                    alt="Logo SterakFood"
+                    class="hero-logo-flotante"
                 >
             </div>
         </div>
