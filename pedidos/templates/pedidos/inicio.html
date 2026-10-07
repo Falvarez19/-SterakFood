@@ -55,7 +55,7 @@
     </div>
     {% endif %}
     <!-- # HERO CON FOTO PRINCIPAL -->
-    <header class="hero hero-menu-moderno hero-con-foto">
+    <header class="hero hero-menu-moderno hero-solo-fondo">
         <div class="hero-content">
             <div class="hero-texto">
                 <span class="hero-kicker">
@@ -70,20 +70,13 @@
             </div>
 
             <!-- FOTO PRINCIPAL DEL BUFFET -->
-            <div class="hero-foto-side">
-                <img
-                    src="{% static 'img/fondo-buffet.png' %}"
-                    alt="Foto principal del buffet"
-                    class="hero-foto-principal"
-                >
-
+            <div class="hero-logo-side hero-logo-side--solo">
                 <img
                     src="{% static 'img/logo.png' %}"
                     alt="Logo SterakFood"
-                    class="hero-logo-flotante"
                 >
             </div>
-        </div>
+</div>
     </header>
     <main class="container menu-principal-moderno">
         {% regroup productos by categoria.nombre as categorias_lista %}

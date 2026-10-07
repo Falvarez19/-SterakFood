@@ -5136,3 +5136,51 @@ body.bienvenida-menu-abierta {
         height: 72px;
     }
 }
+
+
+/* ==========================================================================
+   HERO SOLO CON FOTO DE FONDO + LOGO
+   Quita la miniatura lateral y deja la imagen grande como fondo.
+   ========================================================================== */
+.hero-solo-fondo {
+    background-image:
+        linear-gradient(90deg, rgba(10, 11, 13, 0.88) 0%, rgba(10, 11, 13, 0.62) 45%, rgba(10, 11, 13, 0.88) 100%),
+        url('../img/fondo-buffet.png') !important;
+    background-size: cover !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+}
+
+.hero-solo-fondo .hero-content {
+    min-height: 420px;
+}
+
+.hero-solo-fondo .hero-foto-side,
+.hero-solo-fondo .hero-foto-principal,
+.hero-solo-fondo .hero-logo-flotante {
+    display: none !important;
+}
+
+.hero-logo-side--solo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-logo-side--solo img {
+    width: 160px !important;
+    height: auto !important;
+    object-fit: contain !important;
+    filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.75));
+}
+
+@media (max-width: 768px) {
+    .hero-solo-fondo .hero-content {
+        min-height: 360px;
+    }
+
+    .hero-logo-side--solo img {
+        width: 120px !important;
+    }
+}
+
