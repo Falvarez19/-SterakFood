@@ -35,8 +35,9 @@ def obtener_configuracion():
 
 
 def descuento_efectivo_vigente(config):
-    ahora = timezone.localtime(timezone.now())
-    return config.descuento_efectivo_activo and ahora.weekday() in [5, 6] and ahora.hour in [12, 13, 14]
+    # Si el switch "Descuento en efectivo" está prendido, el descuento se aplica.
+    # Antes estaba limitado a sábado/domingo de 12 a 14 hs.
+    return config.descuento_efectivo_activo
 
 
 def cierre_automatico_en_curso(config):
