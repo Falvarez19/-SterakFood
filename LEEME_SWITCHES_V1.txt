@@ -1,0 +1,36 @@
+STERAKFOOD - SWITCHES V1 PARA PASAR AL PROYECTO PRINCIPAL
+==========================================================
+
+Copiar estos archivos respetando exactamente las carpetas.
+
+Incluye el nuevo apartado de Dashboard "Funciones del sistema" con:
+- Aceptar pedidos online.
+- Descuento en efectivo ON/OFF + porcentaje.
+- Cierre automático ON/OFF + hora de cierre.
+- Mostrar/ocultar Promociones.
+- Mostrar/ocultar popup de Bienvenida.
+- Mostrar/ocultar Opiniones privadas.
+- Mostrar/ocultar Google Reviews.
+- Activar/desactivar módulo Salón / Mesas.
+
+Los switches se guardan por AJAX, sin botón Guardar.
+
+IMPORTANTE:
+1. Hacer backup antes de reemplazar archivos si el proyecto ya tiene datos importantes.
+2. Copiar los archivos de este ZIP encima del SterakFood principal.
+3. Ejecutar:
+
+   python manage.py migrate
+   python manage.py check
+   python manage.py runserver
+
+La migración nueva es:
+- pedidos/migrations/0014_configuracion_funciones.py
+
+No reemplaza db.sqlite3, media, .env, .git ni venv.
+
+ESTILO DEL CÓDIGO
+- JavaScript: camelCase.
+- Python/Django: snake_case.
+- Secciones etiquetadas con comentarios.
+- Código compactado sin saltos de línea innecesarios.

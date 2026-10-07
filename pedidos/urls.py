@@ -25,6 +25,12 @@ urlpatterns = [
         name='inicio'
     ),
 
+    path(
+        'opinion/enviar/',
+        views.enviar_opinion,
+        name='enviar_opinion'
+    ),
+
 
     # ======================================================================
     # PAGOS
@@ -127,6 +133,32 @@ urlpatterns = [
         'dashboard/',
         views.panel_control,
         name='panel_control'
+    ),
+
+    path('dashboard/configuracion/actualizar/', views.actualizar_configuracion, name='actualizar_configuracion'),
+
+    path(
+        'dashboard/opinion/<int:opinion_id>/leida/',
+        views.marcar_opinion_leida,
+        name='marcar_opinion_leida'
+    ),
+
+    path(
+        'dashboard/opinion/<int:opinion_id>/eliminar/',
+        views.eliminar_opinion,
+        name='eliminar_opinion'
+    ),
+
+    path(
+        'dashboard/mozo/agregar/',
+        views.agregar_mozo,
+        name='agregar_mozo'
+    ),
+
+    path(
+        'dashboard/mozo/<int:mozo_id>/eliminar/',
+        views.eliminar_mozo,
+        name='eliminar_mozo'
     ),
 
     path(
@@ -243,6 +275,12 @@ urlpatterns = [
         'salon/imprimir-ticket/',
         views.imprimir_ticket_salon,
         name='imprimir_ticket_salon'
+    ),
+
+    path(
+        'salon/cobrar-mesa/',
+        views.cobrar_mesa_salon,
+        name='cobrar_mesa_salon'
     ),
 
 

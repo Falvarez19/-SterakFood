@@ -1,6 +1,6 @@
 {
   "name": "Sterak Food",
-  "short_name": "SteraFood",
+  "short_name": "SterakFood",
   "description": "Pedí tu comida sin hacer fila directo desde tu mesa.",
   "start_url": "/",
   "display": "standalone",

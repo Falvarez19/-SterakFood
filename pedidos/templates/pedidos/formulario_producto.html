@@ -7,65 +7,160 @@
 {% endblock %}
 
 {% block content %}
-<div class="container dash-container" style="max-width: 800px; margin: 0 auto; padding-top: 20px;">
-    
-    <!--  variables dinámicas  -->
-    <div style="background: var(--card-bg); padding: 30px; border-radius: 8px; border: 1px solid var(--borde); color: var(--text-color);">
-        <h2 style="margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid var(--borde); padding-bottom: 10px;">
-            {{ accion }}
-        </h2>
+<div class="container dash-container producto-form-page">
+    <div class="producto-form-card">
+        <div class="producto-form-header">
+            <div>
+                <span class="producto-form-kicker">GESTOR DE MENÚ</span>
+                <h2>{{ accion }}</h2>
+                {% if not producto %}
+                    <p>Guardá el producto y vas a quedar en esta misma pantalla para poder cargar el siguiente.</p>
+                {% endif %}
+            </div>
+            <a href="{% url 'pedidos:panel_control' %}" class="producto-form-volver">← Menú del Dashboard</a>
+        </div>
 
-        <!-- Le sumé la clase de tu CSS al form para que los inputs también se adapten -->
-        <form method="POST" enctype="multipart/form-data" class="formulario-producto-container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="producto-form-alerta producto-form-alerta--ok">
+                    ✅ {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if form.errors %}
+            <div class="producto-form-alerta producto-form-alerta--error">
+                <strong>Revisá estos datos:</strong>
+                {{ form.errors }}
+            </div>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data" class="producto-form">
             {% csrf_token %}
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-                <div>
-                    <!-- variable dorada/naranja -->
-                    <h4 style="color: var(--dorado-sanmartin); margin-bottom: 15px;">Datos Principales</h4>
-                    <p><strong>Nombre:</strong><br>{{ form.nombre }}</p>
-                    
-                    <!-- NUEVO CAMPO AGREGADO: Código Rápido -->
-                    <p><strong>Código rápido (Salón):</strong><br>{{ form.codigo_rapido }}</p>
-                    
-                    <p><strong>Categoría:</strong><br>{{ form.categoria }}</p>
-                    <p><strong>Precio ($):</strong><br>{{ form.precio }}</p>
-                    <p><strong>Orden en Menú:</strong><br>{{ form.orden }}</p>
-                    <p><strong>Imagen:</strong><br>
+
+            <div class="producto-form-grid">
+                <section class="producto-form-seccion">
+                    <h3>Datos principales</h3>
+
+                    <label class="producto-form-campo">
+                        <span>Nombre</span>
+                        {{ form.nombre }}
+                    </label>
+
+                    <div class="producto-form-doble">
+                        <label class="producto-form-campo">
+                            <span>Código rápido (Salón)</span>
+                            {{ form.codigo_rapido }}
+                            <small>Ej: 500 para Gaseosa.</small>
+                        </label>
+
+                        <label class="producto-form-campo">
+                            <span>Orden en menú</span>
+                            {{ form.orden }}
+                        </label>
+                    </div>
+
+                    <div class="producto-form-doble">
+                        <label class="producto-form-campo">
+                            <span>Precio ($)</span>
+                            {{ form.precio }}
+                        </label>
+
+                        <label class="producto-form-campo producto-form-campo--categoria">
+                            <span>Categoría</span>
+                            {{ form.categoria }}
+                            <small>Podés escribir para buscar. “Salon” deja el producto solo para el POS.</small>
+                        </label>
+                    </div>
+
+                    <label class="producto-form-campo">
+                        <span>Descripción</span>
+                        {{ form.descripcion }}
+                    </label>
+
+                    <label class="producto-form-campo">
+                        <span>Imagen</span>
                         {% if producto.imagen %}
-                            <img src="{{ producto.imagen.url }}" alt="Actual" style="max-width: 100px; display: block; margin-bottom: 10px; border-radius: 4px;">
+                            <img src="{{ producto.imagen.url }}" alt="Imagen actual" class="producto-form-imagen-actual">
                         {% endif %}
                         {{ form.imagen }}
-                    </p>
-                    <p><strong>Descripción:</strong><br>{{ form.descripcion }}</p>
-                    <!-- Actualizamos el fondo de este cuadrito -->
-                    <p style="background: var(--bg-color); padding: 10px; border-radius: 5px; border: 1px solid var(--borde);">
-                        <strong>¿Está Disponible?</strong> {{ form.disponible }}
-                    </p>
-                    <p><strong>Puntos de Venta:</strong><br>{{ form.puntos_venta }}</p>
-                </div>
+                    </label>
+                </section>
 
-                <!-- Reemplazamos el rgba negro por el fondo secundario de la app -->
-                <div style="background: var(--bg-color); padding: 15px; border-radius: 8px; border: 1px solid var(--borde);">
-                    <h4 style="color: var(--dorado-sanmartin); margin-bottom: 15px;">Personalización (Opcional)</h4>
-                    <small style="color: var(--texto-mutado); display: block; margin-bottom: 15px;">Separá las opciones con comas. Ej: "Papas, Ensalada y para añadir extra precio ej :extra cheddar(+2000)"</small>
-                    
-                    <p><strong>Variantes:</strong><br>{{ form.variantes }}</p>
-                    <p><strong>Guarniciones:</strong><br>{{ form.guarniciones }}</p>
-                    <p><strong>Puntos de cocción:</strong><br>{{ form.puntos_coccion }}</p>
-                    <p><strong>Rellenos:</strong><br>{{ form.rellenos }}</p>
-                    
-                    <hr style="border-color: var(--borde); margin: 15px 0;">
-                    
-                    <p><strong>Salsas con precio:</strong><br>{{ form.salsas }}</p>
-                    <p><strong>Adicionales:</strong><br>{{ form.adicionales }}</p>
-                    <p><strong>Opción de hielo:</strong><br>{{ form.opcion_hielo }}</p>
-                </div>
+                <section class="producto-form-seccion">
+                    <h3>Estado y venta</h3>
+
+                    <div class="producto-form-switches">
+                        <label class="producto-form-switch">
+                            {{ form.disponible }}
+                            <span>
+                                <strong>Disponible</strong>
+                                <small>Permite venderlo y buscarlo desde el sistema.</small>
+                            </span>
+                        </label>
+
+                        {% if form.en_promocion %}
+                            <label class="producto-form-switch producto-form-switch--promo">
+                                {{ form.en_promocion }}
+                                <span>
+                                    <strong>🔥 Mostrar en Promos</strong>
+                                    <small>Lo destaca en la sección Promos del menú público.</small>
+                                </span>
+                            </label>
+                        {% endif %}
+                    </div>
+
+                    <div class="producto-form-campo">
+                        <span>Puntos de venta</span>
+                        <div class="producto-form-puestos">
+                            {{ form.puntos_venta }}
+                        </div>
+                    </div>
+                </section>
+
+                <section class="producto-form-seccion producto-form-seccion--personalizacion">
+                    <div class="producto-form-seccion-titulo">
+                        <h3>Personalización</h3>
+                        <small>Opcional</small>
+                    </div>
+                    <p class="producto-form-ayuda">Separá las opciones con comas. Ej: Papas, Ensalada.</p>
+
+                    <label class="producto-form-campo">
+                        <span>Variantes</span>
+                        {{ form.variantes }}
+                    </label>
+                    <label class="producto-form-campo">
+                        <span>Guarniciones</span>
+                        {{ form.guarniciones }}
+                    </label>
+                    <label class="producto-form-campo">
+                        <span>Puntos de cocción</span>
+                        {{ form.puntos_coccion }}
+                    </label>
+                    <label class="producto-form-campo">
+                        <span>Rellenos</span>
+                        {{ form.rellenos }}
+                    </label>
+                    <label class="producto-form-campo">
+                        <span>Salsas con precio</span>
+                        {{ form.salsas }}
+                    </label>
+                    <label class="producto-form-campo">
+                        <span>Adicionales</span>
+                        {{ form.adicionales }}
+                    </label>
+                    <label class="producto-form-campo">
+                        <span>Opción de hielo</span>
+                        {{ form.opcion_hielo }}
+                    </label>
+                </section>
             </div>
 
-            <div style="text-align: right; margin-top: 30px; border-top: 1px solid var(--borde); padding-top: 20px;">
-                <a href="{% url 'pedidos:panel_control' %}" class="btn-panel btn-gris" style="text-decoration: none; padding: 10px 20px; font-size: 1.1rem; margin-right: 10px;">Cancelar</a>
-                <button type="submit" class="btn-panel btn-verde" style="padding: 10px 20px; font-size: 1.1rem; font-weight: bold;">💾 Guardar Producto</button>
+            <div class="producto-form-footer">
+                <a href="{% url 'pedidos:panel_control' %}" class="producto-form-btn producto-form-btn--cancelar">Cancelar</a>
+                <button type="submit" class="producto-form-btn producto-form-btn--guardar">
+                    {% if producto %}💾 Guardar cambios{% else %}💾 Guardar y cargar otro{% endif %}
+                </button>
             </div>
         </form>
     </div>

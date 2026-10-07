@@ -14,6 +14,7 @@
     id="salon-pos"
     class="salon-pos salon-pos--clasico"
     data-print-url="{% url 'pedidos:imprimir_ticket_salon' %}"
+    data-charge-url="{% url 'pedidos:cobrar_mesa_salon' %}"
 >
 
     <div class="salon-pos__header">
@@ -40,22 +41,44 @@
         </div>
     </div>
 
-
     <section class="salon-pos__card salon-pos__mesas-panel">
 
         <div class="salon-pos__section-header">
 
             <div>
                 <h2>Mesas</h2>
-                <p>Tocá una mesa para abrir la comanda.</p>
+                <p>Escribí el número y Enter, o tocá una mesa.</p>
             </div>
 
-            <span>
-                1 a 100
-            </span>
+            <div class="salon-pos__mesa-rapida">
+
+                <label for="input-mesa-rapida">
+                    MESA RÁPIDA
+                </label>
+
+                <div class="salon-pos__mesa-rapida-linea">
+
+                    <input
+                        type="number"
+                        id="input-mesa-rapida"
+                        class="salon-pos__input"
+                        min="1"
+                        max="100"
+                        step="1"
+                        inputmode="numeric"
+                        autocomplete="off"
+                        placeholder="Ej: 7"
+                    >
+
+                    <span>
+                        Enter
+                    </span>
+
+                </div>
+
+            </div>
 
         </div>
-
 
         <div
             id="grilla-mesas"
@@ -87,6 +110,9 @@
 
     </section>
 
+    <!-- =====================================================
+         OVERLAY
+         ===================================================== -->
 
     <div
         id="salon-modal-overlay"
@@ -94,6 +120,9 @@
         aria-hidden="true"
     ></div>
 
+    <!-- =====================================================
+         COMANDA FLOTANTE
+         ===================================================== -->
 
     <aside
         id="salon-comanda-modal"
@@ -102,6 +131,8 @@
         aria-modal="true"
         aria-labelledby="titulo-mesa"
     >
+
+        <!-- HEADER -->
 
         <div class="salon-pos__comanda-header salon-pos__comanda-header--pos">
 
@@ -126,8 +157,17 @@
 
                 </div>
 
-            </div>
+                <div class="salon-pos__mozo-asignado">
+                    <label for="selector-mozo-mesa">🧑‍🍳 Mozo</label>
+                    <select id="selector-mozo-mesa" class="salon-pos__select-mozo">
+                        <option value="">Sin asignar</option>
+                        {% for mozo in mozos %}
+                            <option value="{{ mozo.id }}">{{ mozo.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
 
+            </div>
 
             <div class="salon-pos__resumen-superior">
 
@@ -141,7 +181,6 @@
 
             </div>
 
-
             <button
                 type="button"
                 id="btn-cerrar-comanda"
@@ -154,6 +193,7 @@
 
         </div>
 
+        <!-- SIN MESA -->
 
         <div
             id="mensaje-seleccionar-mesa"
@@ -178,12 +218,15 @@
 
         </div>
 
+        <!-- COMANDA -->
 
         <div
             id="area-comanda"
             class="salon-pos__area-comanda"
             hidden
         >
+
+            <!-- BUSCADOR -->
 
             <div class="salon-pos__carga-rapida salon-pos__carga-rapida--pos">
 
@@ -205,18 +248,17 @@
 
                 </div>
 
-
                 <div class="salon-pos__field salon-pos__field--buscador">
 
                     <label for="buscador">
-                        CÓDIGO O PRODUCTO
+                        CÓDIGO / PRODUCTO
                     </label>
 
                     <input
                         type="text"
                         id="buscador"
                         class="salon-pos__input"
-                        placeholder="157 o Coca..."
+                        placeholder="Ej: 157 o Coca..."
                         autocomplete="off"
                     >
 
@@ -230,35 +272,43 @@
 
             </div>
 
+            <!-- TABLA -->
 
-            <div class="salon-pos__lista-wrap">
+            <div class="salon-pos__tabla-wrap">
 
-                <div class="salon-pos__lista-head">
+                <table class="salon-pos__tabla">
 
-                    <span class="col-cant">
-                        Cant.
-                    </span>
+                    <thead>
 
-                    <span class="col-codigo">
-                        Código
-                    </span>
+                        <tr>
 
-                    <span class="col-descripcion">
-                        Descripción
-                    </span>
+                            <th class="col-cant">
+                                Cant.
+                            </th>
 
-                    <span class="col-total">
-                        Total
-                    </span>
+                            <th class="col-codigo">
+                                Código
+                            </th>
 
-                </div>
+                            <th>
+                                Descripción
+                            </th>
 
+                            <th class="col-unitario">
+                                Unitario
+                            </th>
 
-                <div
-                    id="lista-comanda"
-                    class="salon-pos__lista-pos"
-                ></div>
+                            <th class="col-total">
+                                Total
+                            </th>
 
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="lista-comanda"></tbody>
+
+                </table>
 
                 <div
                     id="salon-lista-vacia"
@@ -277,6 +327,7 @@
 
             </div>
 
+            <!-- RESUMEN -->
 
             <div class="salon-pos__estado-seleccion">
 
@@ -295,7 +346,6 @@
 
                 </div>
 
-
                 <div class="salon-pos__seleccion-total">
 
                     <span>
@@ -310,6 +360,7 @@
 
             </div>
 
+            <!-- BOTONES -->
 
             <div class="salon-pos__actionbar salon-pos__actionbar--pos">
 
@@ -321,7 +372,6 @@
                     ✕ Cerrar
                 </button>
 
-
                 <button
                     type="button"
                     id="btn-imprimir-mesa"
@@ -329,7 +379,6 @@
                 >
                     🖨 Ticket
                 </button>
-
 
                 <button
                     type="button"
@@ -347,7 +396,6 @@
 
 </section>
 
-
 <form
     id="salon-csrf-form"
     hidden
@@ -355,7 +403,7 @@
     {% csrf_token %}
 </form>
 
-
 {{ productos|json_script:"salon-productos-data" }}
+{{ mozos|json_script:"salon-mozos-data" }}
 
 {% endblock %}

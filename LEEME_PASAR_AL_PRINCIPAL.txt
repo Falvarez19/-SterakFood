@@ -1,0 +1,30 @@
+STERAKFOOD - CAMBIOS LIMPIOS PARA PASAR AL ARCHIVO PRINCIPAL
+
+Este paquete contiene SOLO los archivos nuevos o modificados del update.
+No incluye db.sqlite3, media, .env, .git ni venv.
+
+ESTILO DE CODIGO APLICADO
+- JavaScript: variables y funciones internas en camelCase.
+- Python/Django: snake_case (estandar correcto de Python).
+- views.py: compactado sin cambiar su AST/logica y separado por modulos etiquetados.
+- script.js: compactado y separado por modulos etiquetados.
+- HTML/CSS: se quitaron espacios y lineas vacias repetidas sin cambiar la logica.
+
+NUEVAS MIGRACIONES
+- 0010_producto_en_promocion.py
+- 0011_opinioncliente.py
+- 0012_mozo_opinioncliente_mozo.py
+- 0013_pedido_mozo.py
+
+PARA APLICARLO
+1. Hacer una copia de seguridad del proyecto principal.
+2. Copiar el contenido de este ZIP encima de la raiz del proyecto SterakFood.
+3. NO reemplazar tu .env ni tu db.sqlite3.
+4. Ejecutar:
+   python manage.py migrate
+   python manage.py check
+   python manage.py runserver
+
+NOTA SOBRE EL MODAL DE BIENVENIDA
+La maqueta lo deja preparado, pero no incluye la imagen de San Martin.
+Para cada restaurante se coloca su propia imagen y se activa mediante la configuracion indicada en GUIA_NUEVO_RESTAURANTE.md.

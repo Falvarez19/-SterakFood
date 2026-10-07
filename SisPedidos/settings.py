@@ -10,18 +10,27 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-8rap(l^@enrgtv&^(7^bn(3ro7d3unq=k&zu)3rr%gm3&+)+mi'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-cambiar-en-produccion')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').strip().lower() in {'1', 'true', 'yes', 'on'}
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get('ALLOWED_HOSTS', '*').split(',')
+    if host.strip()
+]
 
 # 🔥 ARREGLO CLAVE: Agregamos el dominio de Render para que funcionen los botones y Mercado Pago
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000',
     'http://localhost:8000',
-    'https://*.onrender.com'
+    'https://*.onrender.com',
+]
+CSRF_TRUSTED_ORIGINS += [
+    origin.strip()
+    for origin in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
+    if origin.strip()
 ]
 
 # Application definition
@@ -66,14 +75,20 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'SisPedidos.wsgi.application'
 
-# 🔥 EL ARREGLO MÁGICO: Base de datos estricta en SQLite para el Portafolio
+# Base local por defecto: SQLite.
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-# (Se eliminó el if 'RENDER' para que no rompa la conexión)
+
+# Si existe DATABASE_URL (Render/Railway/PostgreSQL), se usa automáticamente.
+if os.environ.get('DATABASE_URL'):
+    DATABASES['default'] = dj_database_url.config(
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600,
+    )
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -104,3 +119,12 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ==========================================================================
+# CONFIGURACIÓN REUTILIZABLE DEL RESTAURANTE
+# ==========================================================================
+# Si queda vacía, la tarjeta de Google no se muestra.
+GOOGLE_REVIEW_URL = os.environ.get('GOOGLE_REVIEW_URL', '').strip()
+
+# Nombre general para procesos externos como ticketera.py.
+RESTAURANT_NAME = os.environ.get('RESTAURANT_NAME', 'SterakFood').strip() or 'SterakFood'

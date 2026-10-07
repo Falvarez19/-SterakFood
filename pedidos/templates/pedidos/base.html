@@ -11,13 +11,11 @@
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     >
 
-
     <title>
         {% block title %}
             Sterak Food
         {% endblock %}
     </title>
-
 
     <link
         rel="icon"
@@ -25,66 +23,54 @@
         type="image/png"
     >
 
-
     <link
         rel="stylesheet"
-        href="{% static 'css/estilos.css' %}?v=27"
+        href="{% static 'css/estilos.css' %}?v=51"
     >
-
 
     {% block extra_css %}
     {% endblock %}
-
 
     <link
         rel="manifest"
         href="/manifest.json"
     >
 
-
     <meta
         name="theme-color"
         content="#0a0b0d"
     >
-
 
     <meta
         name="mobile-web-app-capable"
         content="yes"
     >
 
-
     <meta
         name="apple-mobile-web-app-capable"
         content="yes"
     >
-
 
     <meta
         name="apple-mobile-web-app-status-bar-style"
         content="black-translucent"
     >
 
-
     <meta
         name="apple-mobile-web-app-title"
         content="SterakFood"
     >
-
 
     <link
         rel="apple-touch-icon"
         href="{% static 'img/logo.png' %}"
     >
 
-
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </head>
 
-
 <body class="bloquear-scroll">
-
 
     <!-- =====================================================
          CARGA
@@ -95,7 +81,6 @@
         <div class="loader-container">
 
             <div class="loader-sterak"></div>
-
 
             <img
                 src="{% static 'img/wok.gif' %}"
@@ -111,7 +96,6 @@
 
         </div>
 
-
         <div class="texto-carga">
 
             CARGANDO
@@ -124,7 +108,6 @@
 
     </div>
 
-
     <!-- =====================================================
          NAVBAR
          ===================================================== -->
@@ -132,7 +115,6 @@
     <nav class="navbar">
 
         <div class="nav-container">
-
 
             <a
                 href="{% url 'pedidos:inicio' %}"
@@ -154,16 +136,13 @@
                     "
                 >
 
-
                 <span class="logo-texto">
                     SterakFood
                 </span>
 
             </a>
 
-
             <div class="nav-acciones">
-
 
                 <button
                     id="btn-instalar-nav"
@@ -172,7 +151,6 @@
                     Descargar App
                 </button>
 
-
                 <!-- TEMA -->
 
                 <div class="theme-switch-wrapper">
@@ -180,7 +158,6 @@
                     <span class="icono-clima">
                         ☀️
                     </span>
-
 
                     <label class="switch">
 
@@ -193,16 +170,13 @@
 
                     </label>
 
-
                     <span class="icono-clima">
                         🌙
                     </span>
 
                 </div>
 
-
                 {% block nav_acciones %}
-
 
                     {% if buffet_habilitado %}
 
@@ -230,20 +204,17 @@
                                     r="1"
                                 ></circle>
 
-
                                 <circle
                                     cx="20"
                                     cy="21"
                                     r="1"
                                 ></circle>
 
-
                                 <path
                                     d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"
                                 ></path>
 
                             </svg>
-
 
                             <span
                                 class="badge-flotante-premium"
@@ -256,7 +227,6 @@
 
                     {% endif %}
 
-
                 {% endblock %}
 
             </div>
@@ -264,7 +234,6 @@
         </div>
 
     </nav>
-
 
     <!-- =====================================================
          CONTENIDO
@@ -277,7 +246,6 @@
 
     </main>
 
-
     <!-- =====================================================
          OVERLAY CARRITO
          ===================================================== -->
@@ -287,7 +255,6 @@
         class="carrito-overlay"
         onclick="cerrarCarrito()"
     ></div>
-
 
     <!-- =====================================================
          CARRITO
@@ -304,7 +271,6 @@
                 Tu Pedido 🛒
             </h3>
 
-
             <button
                 type="button"
                 class="btn-cerrar"
@@ -315,15 +281,12 @@
 
         </div>
 
-
         <div
             id="carrito-items"
             class="carrito-items"
         ></div>
 
-
         <div class="carrito-footer">
-
 
             <div
                 style="
@@ -337,7 +300,6 @@
                 <strong>
                     Total:
                 </strong>
-
 
                 <strong
                     style="
@@ -354,7 +316,6 @@
                 </strong>
 
             </div>
-
 
             <div
                 style="
@@ -379,7 +340,6 @@
                     Vaciar
                 </button>
 
-
                 <button
                     type="button"
                     class="btn-pagar-block"
@@ -399,7 +359,6 @@
 
     </div>
 
-
     <!-- =====================================================
          MODAL
          ===================================================== -->
@@ -412,7 +371,6 @@
 
         <div class="modal-content">
 
-
             <button
                 type="button"
                 class="btn-cerrar-modal"
@@ -421,11 +379,9 @@
                 ×
             </button>
 
-
             <h2 class="modal-titulo">
                 Completá tu pedido 🚀
             </h2>
-
 
             <form
                 id="form-checkout"
@@ -434,7 +390,6 @@
 
                 {% csrf_token %}
 
-
                 <!-- NOMBRE -->
 
                 <div class="form-group">
@@ -442,7 +397,6 @@
                     <label>
                         Tu Nombre y Apellido:
                     </label>
-
 
                     <input
                         type="text"
@@ -454,16 +408,13 @@
 
                 </div>
 
-
                 <!-- ENTREGA -->
 
                 <h3 class="seccion-titulo">
                     ¿Cómo te lo entregamos?
                 </h3>
 
-
                 <div class="opciones-grid">
-
 
                     <label class="opcion-card">
 
@@ -473,7 +424,6 @@
                             value="mostrador"
                             onchange="toggleFormularioMesa()"
                         >
-
 
                         <div class="opcion-contenido">
 
@@ -489,7 +439,7 @@
 
                     </label>
 
-
+                    {% if salon_habilitado %}
                     <label
                         class="opcion-card"
                         id="label-mesa"
@@ -501,7 +451,6 @@
                             value="mesa"
                             onchange="toggleFormularioMesa()"
                         >
-
 
                         <div class="opcion-contenido">
 
@@ -516,9 +465,9 @@
                         </div>
 
                     </label>
+                    {% endif %}
 
                 </div>
-
 
                 <!-- MESA -->
 
@@ -532,7 +481,6 @@
                         Número de Mesa:
                     </label>
 
-
                     <input
                         type="text"
                         id="numero_mesa"
@@ -541,7 +489,6 @@
                     >
 
                 </div>
-
 
                 <!-- PAGO -->
 
@@ -554,9 +501,7 @@
                         ¿Cómo vas a pagar?
                     </h3>
 
-
                     <div class="opciones-grid">
-
 
                         <label class="opcion-card">
 
@@ -566,7 +511,6 @@
                                 value="mercadopago"
                                 onchange="toggleFormularioMesa()"
                             >
-
 
                             <div class="opcion-contenido">
 
@@ -584,7 +528,6 @@
 
                         </label>
 
-
                         <label class="opcion-card">
 
                             <input
@@ -594,7 +537,6 @@
                                 onchange="toggleFormularioMesa()"
                             >
 
-
                             <div class="opcion-contenido">
 
                                 <span
@@ -603,7 +545,6 @@
                                 >
                                     💵
                                 </span>
-
 
                                 <span class="texto">
                                     Efectivo
@@ -617,7 +558,6 @@
 
                 </div>
 
-
                 <!-- WHATSAPP -->
 
                 <div
@@ -630,7 +570,6 @@
                         Tu número de WhatsApp:
                     </label>
 
-
                     <input
                         type="tel"
                         id="telefono_cliente"
@@ -639,7 +578,6 @@
                     >
 
                 </div>
-
 
                 <!-- COMENTARIOS -->
 
@@ -652,7 +590,6 @@
                         Comentarios extras (Opcional):
                     </label>
 
-
                     <input
                         type="text"
                         id="comentarios_pedido"
@@ -662,6 +599,11 @@
 
                 </div>
 
+                <div id="resumen-pago" class="resumen-pago" data-descuento-activo="{{ descuento_activo|yesno:'1,0' }}" data-descuento-porcentaje="{{ descuento_porcentaje|default:'10' }}">
+                    <span>Total a pagar</span>
+                    <strong><s id="modal-total-original"></s><span id="modal-total-final">$0.00</span></strong>
+                    <small id="modal-descuento-aviso">🎉 ¡{{ descuento_porcentaje|default:'10' }}% OFF en efectivo aplicado!</small>
+                </div>
 
                 <button
                     type="submit"
@@ -676,19 +618,16 @@
 
     </div>
 
-
     <!-- =====================================================
          JAVASCRIPT
          ===================================================== -->
 
     <script
-        src="{% static 'script/script.js' %}?v=25"
+        src="{% static 'script/script.js' %}?v=51"
     ></script>
-
 
     {% block extra_js %}
     {% endblock %}
-
 
 </body>
 

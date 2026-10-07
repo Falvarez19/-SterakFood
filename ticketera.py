@@ -1,3 +1,4 @@
+import os
 import time
 import requests
 import winsound
@@ -8,13 +9,15 @@ from escpos.printer import Win32Raw, Network
 from PIL import Image, ImageDraw 
 import pystray 
 
-URL_PENDIENTES = "https://buffetclubsm.com.ar/api/pedidos-pendientes/"
-URL_MARCAR = "https://buffetclubsm.com.ar/api/marcar-impreso/"
+BASE_URL = os.environ.get("TICKETERA_BASE_URL", "http://127.0.0.1:8000").rstrip("/")
+URL_PENDIENTES = f"{BASE_URL}/api/pedidos-pendientes/"
+URL_MARCAR = f"{BASE_URL}/api/marcar-impreso/"
 
-IMPRESORA_CAJA = "FACTURA_PYTHON"
-IP_COCINA      = "192.168.200.250" # IP de la cocina
-IP_BARRA       = "192.168.200.198" # IP de la barra
-ANCHO_TICKET = 32 
+NOMBRE_RESTAURANTE = os.environ.get("RESTAURANT_NAME", "SterakFood").strip() or "SterakFood"
+IMPRESORA_CAJA = os.environ.get("IMPRESORA_CAJA", "FACTURA_PYTHON")
+IP_COCINA = os.environ.get("IP_COCINA", "192.168.200.250")
+IP_BARRA = os.environ.get("IP_BARRA", "192.168.200.198")
+ANCHO_TICKET = int(os.environ.get("ANCHO_TICKET", "32")) 
 
 # Variable global para prender/apagar
 sistema_activo = True
@@ -86,12 +89,13 @@ def imprimir_ticket_cobro(impresora, pedido):
     impresora.set(align='center', font='a', bold=False, double_height=False, double_width=False)
     
     impresora.set(bold=True)
-    impresora.text("BUFFET SAN MARTIN\n")
+    impresora.text(NOMBRE_RESTAURANTE.upper() + "\n")
     impresora.set(bold=False)
     
     fecha_str = datetime.now().strftime("%d/%m/%y %H:%M")
     impresora.text(f"{fecha_str} | Pedido #{pedido.get('id', '')}\n")
-    impresora.text(f"MESA: {pedido.get('mesa', '?')} | MOZO: CAJA\n")
+    mozo = pedido.get('mozo') or 'CAJA'
+    impresora.text(f"MESA: {pedido.get('mesa', '?')} | MOZO: {mozo}\n")
     impresora.text("-" * ANCHO_TICKET + "\n")
     
     impresora.set(align='left', bold=True)

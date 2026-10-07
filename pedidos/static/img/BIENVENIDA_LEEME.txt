@@ -1,0 +1,5 @@
+MODAL DE BIENVENIDA
+====================
+1. Guardá la tarjeta del nuevo restaurante como bienvenida_buffet.webp en esta carpeta.
+2. Activá WELCOME_MODAL_ENABLED=true en las variables de entorno.
+3. El modal se muestra una vez por sesión y se puede cerrar con la X, afuera o Escape.
