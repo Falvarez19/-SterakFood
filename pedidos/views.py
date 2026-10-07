@@ -692,11 +692,14 @@ def seguimiento_pedido(request, pedido_id):
 def actualizar_configuracion(request):
     if not request.session.get('dashboard_auth'):
         return JsonResponse({'status': 'error', 'mensaje': 'No autorizado'}, status=403)
+
     if request.method != 'POST':
         return JsonResponse({'status': 'error', 'mensaje': 'Método no permitido'}, status=405)
+
     config = obtener_configuracion()
     campo = request.POST.get('campo', '').strip()
     valor = request.POST.get('valor', '').strip()
+
     campos_booleanos = {
         'buffet_habilitado',
         'descuento_efectivo_activo',
@@ -707,30 +710,56 @@ def actualizar_configuracion(request):
         'mostrar_bienvenida',
         'salon_habilitado',
     }
+
+    campos_actualizados = []
+
     if campo in campos_booleanos:
         valor_guardado = valor.lower() in {'1', 'true', 'on', 'yes'}
         setattr(config, campo, valor_guardado)
+        campos_actualizados.append(campo)
+
     elif campo == 'descuento_efectivo_porcentaje':
         try:
             valor_guardado = max(0, min(int(valor), 100))
         except ValueError:
             return JsonResponse({'status': 'error', 'mensaje': 'Ingresá un porcentaje válido.'}, status=400)
         config.descuento_efectivo_porcentaje = valor_guardado
+        campos_actualizados.append(campo)
+
     elif campo == 'hora_cierre':
         try:
             valor_guardado = datetime.strptime(valor, '%H:%M').time()
         except ValueError:
             return JsonResponse({'status': 'error', 'mensaje': 'Ingresá una hora válida.'}, status=400)
         config.hora_cierre = valor_guardado
+        campos_actualizados.append(campo)
+
     else:
         return JsonResponse({'status': 'error', 'mensaje': 'Configuración no permitida.'}, status=400)
-    config.save(update_fields=[campo])
+
+    # Si el cierre automático queda activo y la hora ya pasó, pausamos pedidos al guardar.
+    if cierre_automatico_en_curso(config) and config.buffet_habilitado:
+        config.buffet_habilitado = False
+        if 'buffet_habilitado' not in campos_actualizados:
+            campos_actualizados.append('buffet_habilitado')
+
+    config.save(update_fields=campos_actualizados)
+
     if campo == 'hora_cierre':
         valor_respuesta = config.hora_cierre.strftime('%H:%M')
     else:
         valor_respuesta = getattr(config, campo)
-    return JsonResponse({'status': 'ok', 'campo': campo, 'valor': valor_respuesta})
 
+    return JsonResponse({
+        'status': 'ok',
+        'campo': campo,
+        'valor': valor_respuesta,
+        'buffet_habilitado': config.buffet_habilitado,
+        'descuento_efectivo_activo': config.descuento_efectivo_activo,
+        'descuento_efectivo_porcentaje': config.descuento_efectivo_porcentaje,
+        'cierre_automatico_activo': config.cierre_automatico_activo,
+        'hora_cierre': config.hora_cierre.strftime('%H:%M') if config.hora_cierre else '',
+    })
 
 def cambiar_estado_global(request):
     if not request.session.get('dashboard_auth'):
