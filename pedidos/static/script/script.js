@@ -667,54 +667,187 @@ function abrirTab(tabId, btnElement) {
 }
 document.addEventListener("DOMContentLoaded", function () {
     if (document.querySelector(".dash-tabs") || document.querySelector(".panel-tabs")) {
-        let tabGuardada = localStorage.getItem("tabDashboardActiva") || "pedidos";
+        let tabGuardada = localStorage.getItem("tabDashboardActiva") || "inicio";
         let botonGuardado = document.getElementById("btn-tab-" + tabGuardada);
         if (botonGuardado && botonGuardado.hidden) {
-            tabGuardada = "pedidos";
-            botonGuardado = document.getElementById("btn-tab-pedidos");
+            tabGuardada = "inicio";
+            botonGuardado = document.getElementById("btn-tab-inicio");
         }
         abrirTab(tabGuardada, botonGuardado);
     }
 });
-function guardarConfiguracion(elemento) {
-    const panel = document.querySelector(".config-sistema");
-    if (!panel || !elemento) return;
-    const campo = elemento.dataset.configCampo;
-    const valor = elemento.type === "checkbox" ? (elemento.checked ? "1" : "0") : elemento.value;
-    const estado = document.getElementById("config-estado-guardado");
-    const csrf = document.querySelector("#config-csrf-form input[name=\"csrfmiddlewaretoken\"]");
-    if (!campo || !csrf) return;
-    const datos = new FormData();
-    datos.append("campo", campo);
-    datos.append("valor", valor);
-    if (estado) {
-        estado.textContent = "Guardando...";
-        estado.classList.remove("is-error");
-    }
-    elemento.disabled = true;
-    fetch(panel.dataset.configUrl, {
-        method: "POST",
-        body: datos,
-        headers: { "X-CSRFToken": csrf.value, "X-Requested-With": "XMLHttpRequest" }
-    }).then(async response => {
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok || data.status !== "ok") throw new Error(data.mensaje || "No se pudo guardar.");
-        return data;
-    }).then(data => {
-        if (estado) estado.textContent = "✓ Guardado";
-        if (campo === "buffet_habilitado") actualizarBotonPedidos(Boolean(data.valor));
-        if (campo === "salon_habilitado") actualizarModuloSalon(Boolean(data.valor));
-        window.setTimeout(() => { if (estado) estado.textContent = ""; }, 1600);
-    }).catch(error => {
-        if (elemento.type === "checkbox") elemento.checked = !elemento.checked;
-        if (estado) {
-            estado.textContent = "⚠ " + error.message;
-            estado.classList.add("is-error");
+// =========================================================
+// CONFIGURACIÓN RÁPIDA DEL SISTEMA
+// Guarda switches/campos del panel desde script.js
+// =========================================================
+function obtenerCSRFConfiguracion() {
+    const input = document.querySelector('#config-csrf-form input[name="csrfmiddlewaretoken"]');
+    if (input && input.value) return input.value;
+
+    const nombre = 'csrftoken=';
+    const cookies = document.cookie ? document.cookie.split(';') : [];
+    for (let cookie of cookies) {
+        cookie = cookie.trim();
+        if (cookie.startsWith(nombre)) {
+            return decodeURIComponent(cookie.substring(nombre.length));
         }
-    }).finally(() => {
-        elemento.disabled = false;
-    });
+    }
+    return '';
 }
+
+function mostrarEstadoConfiguracion(mensaje, tipo = 'ok') {
+    const estado = document.getElementById('config-estado-guardado');
+    if (!estado) return;
+
+    estado.textContent = mensaje;
+    estado.classList.toggle('is-error', tipo === 'error');
+    estado.style.color = tipo === 'error' ? '#ff4d4d' : 'var(--verde-sanmartin)';
+
+    clearTimeout(window.__timerConfigGuardado);
+    window.__timerConfigGuardado = setTimeout(() => {
+        estado.textContent = '';
+        estado.classList.remove('is-error');
+    }, tipo === 'error' ? 5000 : 2500);
+}
+
+async function respuestaJSONSegura(response) {
+    const texto = await response.text();
+    try {
+        return JSON.parse(texto);
+    } catch (error) {
+        if (response.status === 403) {
+            return {
+                status: 'error',
+                mensaje: 'No autorizado o CSRF vencido. Cerrá sesión del panel, volvé a entrar con el PIN y probá de nuevo.'
+            };
+        }
+        return {
+            status: 'error',
+            mensaje: texto ? texto.slice(0, 180) : 'Respuesta vacía del servidor.'
+        };
+    }
+}
+
+window.guardarConfiguracion = async function guardarConfiguracion(elemento) {
+    const panel = document.querySelector('.config-sistema');
+    if (!panel || !elemento) return;
+
+    const campo = elemento.dataset.configCampo;
+    if (!campo) return;
+
+    const url = panel.dataset.configUrl || '/dashboard/configuracion/actualizar/';
+    let valor = elemento.type === 'checkbox' ? (elemento.checked ? 'true' : 'false') : elemento.value;
+
+    if (campo === 'descuento_efectivo_porcentaje') {
+        let numero = parseInt(valor || '0', 10);
+        if (Number.isNaN(numero)) numero = 0;
+        numero = Math.max(0, Math.min(numero, 100));
+        elemento.value = numero;
+        valor = String(numero);
+    }
+
+    if (campo === 'hora_cierre' && !valor) {
+        mostrarEstadoConfiguracion('Ingresá una hora válida.', 'error');
+        return;
+    }
+
+    const valorAnterior = elemento.type === 'checkbox' ? !elemento.checked : elemento.defaultValue;
+    const datos = new FormData();
+    datos.append('campo', campo);
+    datos.append('valor', valor);
+
+    elemento.disabled = true;
+    mostrarEstadoConfiguracion('Guardando...');
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            credentials: 'same-origin',
+            body: datos,
+            headers: {
+                'X-CSRFToken': obtenerCSRFConfiguracion(),
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        const data = await respuestaJSONSegura(response);
+
+        if (!response.ok || data.status !== 'ok') {
+            throw new Error(data.mensaje || 'No se pudo guardar la configuración.');
+        }
+
+        if (elemento.type !== 'checkbox') {
+            elemento.defaultValue = elemento.value;
+        }
+
+        if (campo === 'buffet_habilitado') {
+            actualizarBotonPedidos(elemento.checked);
+        }
+
+        if (campo === 'salon_habilitado') {
+            actualizarModuloSalon(elemento.checked);
+        }
+
+        mostrarEstadoConfiguracion('Guardado ✓');
+    } catch (error) {
+        console.error('Error guardando configuración:', error);
+        mostrarEstadoConfiguracion(error.message, 'error');
+
+        if (elemento.type === 'checkbox') {
+            elemento.checked = valorAnterior;
+        } else {
+            elemento.value = valorAnterior;
+        }
+    } finally {
+        elemento.disabled = false;
+    }
+};
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.config-sistema [data-config-campo]').forEach(input => {
+        if (input.dataset.configListener === '1') return;
+        input.dataset.configListener = '1';
+
+        input.addEventListener('change', function () {
+            window.guardarConfiguracion(this);
+        });
+
+        if (input.type === 'number' || input.type === 'time') {
+            input.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    this.blur();
+                    window.guardarConfiguracion(this);
+                }
+            });
+        }
+    });
+
+    /*
+     * Fix importante:
+     * En las filas que tienen porcentaje/hora + switch, el click sobre el switch
+     * podía enfocar el input de número/hora en vez de activar el checkbox.
+     * Por eso forzamos el toggle desde el switch visual.
+     */
+    document.querySelectorAll('.config-sistema .config-switch').forEach(switchVisual => {
+        if (switchVisual.dataset.switchListener === '1') return;
+        switchVisual.dataset.switchListener = '1';
+
+        switchVisual.addEventListener('click', function (event) {
+            const checkbox = this.previousElementSibling;
+
+            if (!checkbox || checkbox.type !== 'checkbox' || checkbox.disabled) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            checkbox.checked = !checkbox.checked;
+            checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+    });
+});
 
 function actualizarBotonPedidos(habilitado) {
     const boton = document.getElementById("btn-estado-global");

@@ -455,8 +455,6 @@ def panel_control(request):
         'opiniones': opiniones,
         'opiniones_no_leidas': opiniones_no_leidas,
         'mozos': Mozo.objects.all().order_by('nombre'),
-
-        # Resumen amigable del panel
         'ventas_hoy_total': ventas_hoy_total,
         'pedidos_pendientes_count': pedidos_pendientes_count,
         'pedidos_preparacion_count': pedidos_preparacion_count,

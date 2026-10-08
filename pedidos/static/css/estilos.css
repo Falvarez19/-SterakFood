@@ -5184,3 +5184,263 @@ body.bienvenida-menu-abierta {
     }
 }
 
+
+/* ==========================================================================
+   FIX SWITCHES CONFIGURACIÓN CON INPUT DE PORCENTAJE / HORA
+   ========================================================================== */
+.config-fila--con-campo {
+    cursor: default;
+}
+
+.config-control-doble .config-switch-label {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 24px;
+    cursor: pointer;
+    flex: 0 0 auto;
+}
+
+.config-control-doble .config-switch-label > input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.config-control-doble .config-switch-label > input[type="checkbox"]:checked + .config-switch {
+    background: var(--verde-sanmartin);
+}
+
+.config-control-doble .config-switch-label > input[type="checkbox"]:checked + .config-switch::after {
+    transform: translateX(18px);
+}
+
+.config-control-doble .config-switch-label > input[type="checkbox"]:disabled + .config-switch {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+
+/* ==========================================================================
+   PANEL MÁS AMIGABLE V2 - STERAKFOOD
+   ========================================================================== */
+
+.panel-resumen-v2 {
+    margin: 10px 0 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.panel-resumen-v2__hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    padding: 26px;
+    border: 1px solid rgba(255, 102, 0, .28);
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at 10% 0%, rgba(255, 102, 0, .18), transparent 34%),
+        linear-gradient(135deg, rgba(255,255,255,.045), rgba(255,255,255,.015)),
+        var(--card-bg);
+    box-shadow: 0 18px 45px rgba(0,0,0,.28);
+}
+
+.panel-resumen-v2__hero h2 {
+    margin: 5px 0;
+    font-size: clamp(1.8rem, 3vw, 2.7rem);
+    color: var(--text-color);
+    letter-spacing: -.04em;
+}
+
+.panel-resumen-v2__hero p {
+    margin: 0;
+    color: var(--texto-mutado);
+}
+
+.panel-resumen-v2__estado {
+    padding: 12px 16px;
+    border-radius: 999px;
+    font-weight: 900;
+    white-space: nowrap;
+    border: 1px solid var(--borde);
+    background: rgba(255,255,255,.04);
+}
+
+.panel-resumen-v2__estado.is-online {
+    color: #10b981;
+    border-color: rgba(16,185,129,.4);
+    background: rgba(16,185,129,.09);
+}
+
+.panel-resumen-v2__estado.is-offline {
+    color: var(--error);
+    border-color: rgba(239,68,68,.4);
+    background: rgba(239,68,68,.09);
+}
+
+.panel-resumen-v2__cards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.panel-resumen-v2__cards article {
+    min-height: 138px;
+    padding: 18px;
+    border-radius: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--borde);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 12px 30px rgba(0,0,0,.22);
+}
+
+.panel-resumen-v2__cards small {
+    color: var(--texto-mutado);
+    text-transform: uppercase;
+    font-weight: 900;
+    letter-spacing: .08em;
+}
+
+.panel-resumen-v2__cards strong {
+    color: var(--naranja-brillo);
+    font-size: clamp(2rem, 3vw, 2.7rem);
+    line-height: 1;
+    margin: 12px 0;
+}
+
+.panel-resumen-v2__cards span {
+    color: var(--texto-mutado);
+    font-size: .9rem;
+}
+
+.panel-resumen-v2__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.panel-resumen-v2__acciones button,
+.panel-resumen-v2__acciones a,
+.panel-inicio-v2__opciones button,
+.panel-inicio-v2__opciones a {
+    border: 1px solid rgba(255, 102, 0, .36);
+    background: rgba(255, 102, 0, .10);
+    color: var(--naranja-brillo);
+    text-decoration: none;
+    border-radius: 16px;
+    padding: 14px 18px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform .2s ease, background .2s ease, color .2s ease;
+}
+
+.panel-resumen-v2__acciones button:hover,
+.panel-resumen-v2__acciones a:hover,
+.panel-inicio-v2__opciones button:hover,
+.panel-inicio-v2__opciones a:hover {
+    transform: translateY(-2px);
+    background: var(--naranja-sterak);
+    color: #000;
+}
+
+.panel-inicio-v2 {
+    margin-top: 18px;
+    padding: 24px;
+    border-radius: 24px;
+    background: var(--card-bg);
+    border: 1px solid var(--borde);
+}
+
+.panel-inicio-v2__mensaje h2 {
+    margin: 5px 0;
+    font-size: 2rem;
+}
+
+.panel-inicio-v2__mensaje p {
+    color: var(--texto-mutado);
+    margin: 0 0 18px;
+}
+
+.panel-inicio-v2__opciones {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.panel-inicio-v2__opciones button,
+.panel-inicio-v2__opciones a {
+    min-height: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    text-align: left;
+}
+
+.panel-inicio-v2__opciones strong {
+    font-size: 1.1rem;
+}
+
+.panel-inicio-v2__opciones span {
+    color: var(--texto-mutado);
+    line-height: 1.35;
+    font-weight: 600;
+}
+
+.config-ayuda-v2 {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.config-ayuda-v2 > div {
+    background: rgba(255,255,255,.035);
+    border: 1px solid var(--borde);
+    border-radius: 16px;
+    padding: 16px;
+}
+
+.config-ayuda-v2 strong {
+    display: block;
+    color: var(--text-color);
+    margin-bottom: 5px;
+}
+
+.config-ayuda-v2 span {
+    color: var(--texto-mutado);
+    font-size: .9rem;
+}
+
+@media (max-width: 980px) {
+    .panel-resumen-v2__cards,
+    .panel-inicio-v2__opciones {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .panel-resumen-v2__hero {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 680px) {
+    .panel-resumen-v2__cards,
+    .panel-inicio-v2__opciones,
+    .config-ayuda-v2 {
+        grid-template-columns: 1fr;
+    }
+
+    .panel-resumen-v2__acciones button,
+    .panel-resumen-v2__acciones a {
+        width: 100%;
+        text-align: center;
+    }
+}
+
