@@ -667,11 +667,11 @@ function abrirTab(tabId, btnElement) {
 }
 document.addEventListener("DOMContentLoaded", function () {
     if (document.querySelector(".dash-tabs") || document.querySelector(".panel-tabs")) {
-        let tabGuardada = localStorage.getItem("tabDashboardActiva") || "pedidos";
+        let tabGuardada = localStorage.getItem("tabDashboardActiva") || "inicio";
         let botonGuardado = document.getElementById("btn-tab-" + tabGuardada);
         if (botonGuardado && botonGuardado.hidden) {
-            tabGuardada = "pedidos";
-            botonGuardado = document.getElementById("btn-tab-pedidos");
+            tabGuardada = "inicio";
+            botonGuardado = document.getElementById("btn-tab-inicio");
         }
         abrirTab(tabGuardada, botonGuardado);
     }

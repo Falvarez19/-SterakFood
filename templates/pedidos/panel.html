@@ -30,7 +30,7 @@
                 margin-bottom: 0;
             "
         >
-            Si desactivás esto, nadie podrá realizar pedidos aunque tengan el link.
+            Estado general de la maqueta. Usá los accesos rápidos para trabajar más cómodo.
         </p>
         <div class="control-actions">
             <a
@@ -75,10 +75,17 @@
             letter-spacing: -0.5px;
         "
     >
-        Tablero de Control 🚀
+        Panel de control
     </h1>
     <!-- # TABS -->
     <div class="panel-tabs">
+        <button
+            class="panel-tab-btn"
+            onclick="abrirTab('inicio', this)"
+            id="btn-tab-inicio"
+        >
+            🏠 Inicio
+        </button>
         <button
             class="panel-tab-btn"
             onclick="abrirTab('pedidos', this)"
@@ -136,6 +143,107 @@
             ⚙️ Configuración
         </button>
     </div>
+
+    <!-- # TAB INICIO / RESUMEN AMIGABLE -->
+    <div id="tab-inicio" class="tab-content panel-home-tab">
+        <section class="panel-home">
+            <div class="panel-home__header">
+                <div>
+                    <span class="categoria-kicker">RESUMEN DEL DÍA</span>
+                    <h2>Hola, ¿qué necesitás hacer?</h2>
+                    <p>Acá tenés lo importante para manejar la maqueta sin perder tiempo.</p>
+                </div>
+
+                <div class="panel-home__estado {% if buffet_habilitado %}is-online{% else %}is-offline{% endif %}">
+                    {% if buffet_habilitado %}
+                        🟢 Pedidos online activos
+                    {% else %}
+                        🔴 Pedidos online pausados
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="panel-home__grid">
+                <article class="panel-kpi-card">
+                    <span class="panel-kpi-card__label">Ventas de hoy</span>
+                    <strong>${{ ventas_hoy_total|floatformat:0 }}</strong>
+                    <small>Total registrado del día.</small>
+                </article>
+
+                <article class="panel-kpi-card">
+                    <span class="panel-kpi-card__label">Pedidos pendientes</span>
+                    <strong>{{ pedidos_pendientes_count }}</strong>
+                    <small>Pedidos esperando atención.</small>
+                </article>
+
+                <article class="panel-kpi-card">
+                    <span class="panel-kpi-card__label">En preparación</span>
+                    <strong>{{ pedidos_preparacion_count }}</strong>
+                    <small>Pedidos que ya se están haciendo.</small>
+                </article>
+
+                <article class="panel-kpi-card">
+                    <span class="panel-kpi-card__label">Menú activo</span>
+                    <strong>{{ productos_activos_count }}</strong>
+                    <small>{{ productos_pausados_count }} producto{{ productos_pausados_count|pluralize }} pausado{{ productos_pausados_count|pluralize }}.</small>
+                </article>
+            </div>
+
+            <div class="panel-home__acciones">
+                <button type="button" onclick="abrirTab('pedidos', document.getElementById('btn-tab-pedidos'))">
+                    📝 Ver pedidos
+                </button>
+
+                {% if configuracion.salon_habilitado %}
+                <a href="{% url 'pedidos:salon' %}">
+                    🧾 Abrir Salón POS
+                </a>
+                {% endif %}
+
+                <button type="button" onclick="abrirTab('menu', document.getElementById('btn-tab-menu'))">
+                    🍔 Editar menú
+                </button>
+
+                <a href="{% url 'pedidos:agregar_producto' %}">
+                    ➕ Nuevo producto
+                </a>
+
+                <button type="button" onclick="abrirTab('config', document.getElementById('btn-tab-config'))">
+                    ⚙️ Configuración rápida
+                </button>
+            </div>
+
+            <div class="panel-home__ayuda">
+                <div>
+                    <strong>💵 Descuento efectivo</strong>
+                    <span>
+                        {% if configuracion.descuento_efectivo_activo %}
+                            Activo al {{ configuracion.descuento_efectivo_porcentaje }}%.
+                        {% else %}
+                            Desactivado.
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div>
+                    <strong>🕐 Cierre automático</strong>
+                    <span>
+                        {% if configuracion.cierre_automatico_activo %}
+                            Cierra a las {{ configuracion.hora_cierre|time:'H:i' }}.
+                        {% else %}
+                            Desactivado.
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div>
+                    <strong>💬 Opiniones</strong>
+                    <span>{{ opiniones_no_leidas }} comentario{{ opiniones_no_leidas|pluralize }} sin leer.</span>
+                </div>
+            </div>
+        </section>
+    </div>
+
     <!-- # TAB PEDIDOS -->
     <div
         id="tab-pedidos"
@@ -858,6 +966,22 @@
                     <p>Activá o desactivá las funciones más usadas sin tocar código.</p>
                 </div>
                 <span id="config-estado-guardado" class="config-guardado" aria-live="polite"></span>
+            </div>
+
+
+            <div class="config-ayuda-rapida">
+                <div>
+                    <strong>🟢 Pedidos online</strong>
+                    <span>Prendé o pausá el menú público.</span>
+                </div>
+                <div>
+                    <strong>💵 Descuento</strong>
+                    <span>Se aplica solo al pago en efectivo.</span>
+                </div>
+                <div>
+                    <strong>🕐 Cierre</strong>
+                    <span>Cuando llega esa hora, pausa los pedidos.</span>
+                </div>
             </div>
 
             <div class="config-grupo">

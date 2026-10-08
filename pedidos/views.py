@@ -395,19 +395,77 @@ def login_dashboard(request):
 def panel_control(request):
     if not request.session.get('dashboard_auth'):
         return redirect('pedidos:login_dashboard')
+
     Categoria.objects.get_or_create(nombre='Salon')
     config = obtener_configuracion()
-    pedidos = Pedido.objects.exclude(tipo_pago='ticket_salon_temporal').exclude(Q(tipo_pago__in=['mercadopago', 'nave']) & Q(estado='pendiente')).order_by('-fecha_creacion')
+
+    pedidos = (
+        Pedido.objects
+        .exclude(tipo_pago='ticket_salon_temporal')
+        .exclude(Q(tipo_pago__in=['mercadopago', 'nave']) & Q(estado='pendiente'))
+        .order_by('-fecha_creacion')
+    )
+
     productos = Producto.objects.all().order_by('categoria__nombre', 'orden', 'nombre')
+
     filtro_categoria = request.GET.get('categoria')
     filtro_puesto = request.GET.get('puesto')
+
     if filtro_categoria:
         productos = productos.filter(categoria__id=filtro_categoria)
+
     if filtro_puesto:
         productos = productos.filter(puntos_venta__id=filtro_puesto)
+
     opiniones = OpinionCliente.objects.all().order_by('-fecha_creacion')
     opiniones_no_leidas = opiniones.filter(leida=False).count()
-    return render(request, 'pedidos/panel.html', {'pedidos': pedidos, 'productos': productos, 'puestos': PuntoVenta.objects.all(), 'categorias': Categoria.objects.all(), 'filtro_categoria': filtro_categoria, 'filtro_puesto': filtro_puesto, 'buffet_habilitado': config.buffet_habilitado, 'configuracion': config, 'salon_habilitado': config.salon_habilitado, 'welcome_image_available': bienvenida_disponible(), 'opiniones': opiniones, 'opiniones_no_leidas': opiniones_no_leidas, 'mozos': Mozo.objects.all().order_by('nombre')})
+
+    hoy = timezone.localdate()
+    pedidos_hoy = (
+        Pedido.objects
+        .filter(fecha_creacion__date=hoy)
+        .exclude(tipo_pago='ticket_salon_temporal')
+    )
+
+    ventas_hoy_total = (
+        pedidos_hoy
+        .exclude(estado__in=['cancelado'])
+        .aggregate(total=Sum('total'))
+        .get('total')
+        or 0
+    )
+
+    pedidos_pendientes_count = pedidos.filter(estado='pendiente').count()
+    pedidos_preparacion_count = pedidos.filter(estado='preparacion').count()
+    pedidos_listos_count = pedidos.filter(estado='listo').count()
+    productos_activos_count = Producto.objects.filter(disponible=True).count()
+    productos_pausados_count = Producto.objects.filter(disponible=False).count()
+
+    contexto = {
+        'pedidos': pedidos,
+        'productos': productos,
+        'puestos': PuntoVenta.objects.all(),
+        'categorias': Categoria.objects.all(),
+        'filtro_categoria': filtro_categoria,
+        'filtro_puesto': filtro_puesto,
+        'buffet_habilitado': config.buffet_habilitado,
+        'configuracion': config,
+        'salon_habilitado': config.salon_habilitado,
+        'welcome_image_available': bienvenida_disponible(),
+        'opiniones': opiniones,
+        'opiniones_no_leidas': opiniones_no_leidas,
+        'mozos': Mozo.objects.all().order_by('nombre'),
+
+        # Resumen amigable del panel
+        'ventas_hoy_total': ventas_hoy_total,
+        'pedidos_pendientes_count': pedidos_pendientes_count,
+        'pedidos_preparacion_count': pedidos_preparacion_count,
+        'pedidos_listos_count': pedidos_listos_count,
+        'productos_activos_count': productos_activos_count,
+        'productos_pausados_count': productos_pausados_count,
+    }
+
+    return render(request, 'pedidos/panel.html', contexto)
 
 
 def agregar_producto(request):
