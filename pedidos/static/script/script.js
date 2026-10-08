@@ -667,7 +667,7 @@ function abrirTab(tabId, btnElement) {
 }
 document.addEventListener("DOMContentLoaded", function () {
     if (document.querySelector(".dash-tabs") || document.querySelector(".panel-tabs")) {
-        let tabGuardada = localStorage.getItem("tabDashboardActiva") || "inicio";
+        let tabGuardada = "inicio";
         let botonGuardado = document.getElementById("btn-tab-" + tabGuardada);
         if (botonGuardado && botonGuardado.hidden) {
             tabGuardada = "inicio";

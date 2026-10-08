@@ -19,55 +19,7 @@
     class="container dash-container"
     style="margin-top: 30px;"
 >
-    <!-- # CONTROL MAESTRO -->
-    <div class="dashboard-control-card">
-        <h2>
-            ⚙️ Control rápido del sistema
-        </h2>
-        <p
-            style="
-                color: var(--texto-mutado);
-                margin-bottom: 0;
-            "
-        >
-Estado general de la maqueta y accesos rápidos para trabajar más cómodo.
-        </p>
-        <div class="control-actions">
-            <a
-                href="{% url 'pedidos:cambiar_estado_global' %}"
-                id="btn-estado-global"
-                class="
-                    btn-master
-                    {% if buffet_habilitado %}
-                        btn-master-off
-                    {% else %}
-                        btn-master-on
-                    {% endif %}
-                "
-            >
-                {{ buffet_habilitado|yesno:"🔴 DESACTIVAR PEDIDOS,🟢 ACTIVAR PEDIDOS" }}
-            </a>
-            <a
-                href="{% url 'pedidos:descargar_backup' %}"
-                class="btn-master btn-master-backup"
-            >
-                📦 DESCARGAR BACKUP
-            </a>
-            <a
-                href="javascript:void(0)"
-                onclick="abrirCierreCaja()"
-                class="btn-master"
-                style="
-                    background: rgba(58, 134, 255, 0.05);
-                    border: 2px solid #3a86ff;
-                    color: #3a86ff;
-                "
-            >
-                📊 CIERRE DE CAJA
-            </a>
-        </div>
-    </div>
-    <h1
+<h1
         style="
             margin-bottom: 25px;
             font-size: 2rem;
@@ -75,63 +27,8 @@ Estado general de la maqueta y accesos rápidos para trabajar más cómodo.
             letter-spacing: -0.5px;
         "
     >
-        Panel del día
+        Panel SterakFood
     </h1>
-
-    <!-- # RESUMEN AMIGABLE SIEMPRE VISIBLE -->
-    <section class="panel-resumen-v2">
-        <div class="panel-resumen-v2__hero">
-            <div>
-                <span class="categoria-kicker">VISTA RÁPIDA</span>
-                <h2>Todo lo importante en un lugar</h2>
-                <p>Pedidos, salón, menú y configuración sin tener que buscar tanto.</p>
-            </div>
-
-            <div class="panel-resumen-v2__estado {% if buffet_habilitado %}is-online{% else %}is-offline{% endif %}">
-                {% if buffet_habilitado %}
-                    🟢 Pedidos online activos
-                {% else %}
-                    🔴 Pedidos online pausados
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="panel-resumen-v2__cards">
-            <article>
-                <small>Ventas de hoy</small>
-                <strong>${{ ventas_hoy_total|floatformat:0 }}</strong>
-                <span>Total registrado del día.</span>
-            </article>
-
-            <article>
-                <small>Pendientes</small>
-                <strong>{{ pedidos_pendientes_count }}</strong>
-                <span>Pedidos esperando atención.</span>
-            </article>
-
-            <article>
-                <small>En preparación</small>
-                <strong>{{ pedidos_preparacion_count }}</strong>
-                <span>Pedidos que ya se están haciendo.</span>
-            </article>
-
-            <article>
-                <small>Productos activos</small>
-                <strong>{{ productos_activos_count }}</strong>
-                <span>{{ productos_pausados_count }} pausado{{ productos_pausados_count|pluralize }}.</span>
-            </article>
-        </div>
-
-        <div class="panel-resumen-v2__acciones">
-            <button type="button" onclick="abrirTab('pedidos', document.getElementById('btn-tab-pedidos'))">📝 Ver pedidos</button>
-            <button type="button" onclick="abrirTab('menu', document.getElementById('btn-tab-menu'))">🍔 Editar menú</button>
-            <button type="button" onclick="abrirTab('config', document.getElementById('btn-tab-config'))">⚙️ Configuración</button>
-            {% if configuracion.salon_habilitado %}
-                <a href="{% url 'pedidos:salon' %}">🧾 Abrir Salón POS</a>
-            {% endif %}
-        </div>
-    </section>
-
     <!-- # TABS -->
     <div class="panel-tabs">
         <button
@@ -198,43 +95,75 @@ Estado general de la maqueta y accesos rápidos para trabajar más cómodo.
             ⚙️ Configuración
         </button>
     </div>
-
     <!-- # TAB INICIO -->
     <div id="tab-inicio" class="tab-content">
-        <section class="panel-inicio-v2">
-            <div class="panel-inicio-v2__mensaje">
-                <span class="categoria-kicker">INICIO</span>
-                <h2>Elegí qué querés manejar</h2>
-                <p>Esta pantalla es para entrar rápido a las partes más usadas del sistema.</p>
+        <section class="panel-inicio-v4">
+            <div class="panel-inicio-v4__header">
+                <div>
+                    <span class="categoria-kicker">VISTA RÁPIDA</span>
+                    <h2>Panel del día</h2>
+                    <p>Resumen general. Para navegar usá solo las pestañas de abajo.</p>
+                </div>
+
+                <div class="panel-inicio-v4__estado {% if buffet_habilitado %}is-online{% else %}is-offline{% endif %}">
+                    {% if buffet_habilitado %}
+                        🟢 Pedidos online activos
+                    {% else %}
+                        🔴 Pedidos online pausados
+                    {% endif %}
+                </div>
             </div>
 
-            <div class="panel-inicio-v2__opciones">
-                <button type="button" onclick="abrirTab('pedidos', document.getElementById('btn-tab-pedidos'))">
-                    <strong>📝 Pedidos</strong>
-                    <span>Ver, preparar, imprimir o cancelar pedidos.</span>
-                </button>
+            <div class="panel-inicio-v4__cards">
+                <article>
+                    <small>Ventas de hoy</small>
+                    <strong>${{ ventas_hoy_total|floatformat:0 }}</strong>
+                </article>
 
-                <button type="button" onclick="abrirTab('menu', document.getElementById('btn-tab-menu'))">
-                    <strong>🍔 Menú</strong>
-                    <span>Editar precios, productos, promos y disponibilidad.</span>
-                </button>
+                <article>
+                    <small>Pendientes</small>
+                    <strong>{{ pedidos_pendientes_count }}</strong>
+                </article>
 
-                <button type="button" onclick="abrirTab('config', document.getElementById('btn-tab-config'))">
-                    <strong>⚙️ Configuración</strong>
-                    <span>Pedidos online, descuento, cierre y funciones.</span>
-                </button>
+                <article>
+                    <small>Preparación</small>
+                    <strong>{{ pedidos_preparacion_count }}</strong>
+                </article>
 
-                {% if configuracion.salon_habilitado %}
-                <a href="{% url 'pedidos:salon' %}">
-                    <strong>🧾 Salón POS</strong>
-                    <span>Abrir mesas, cargar consumos y cobrar.</span>
-                </a>
-                {% endif %}
+                <article>
+                    <small>Menú activo</small>
+                    <strong>{{ productos_activos_count }}</strong>
+                </article>
+            </div>
+
+            <div class="panel-inicio-v4__herramientas">
+                <div>
+                    <strong>Herramientas rápidas</strong>
+                    <span>Acciones del sistema. No repiten la navegación principal.</span>
+                </div>
+
+                <div class="panel-inicio-v4__herramientas-botones">
+                    <a
+                        href="{% url 'pedidos:cambiar_estado_global' %}"
+                        id="btn-estado-global"
+                        class="{% if buffet_habilitado %}is-danger{% else %}is-success{% endif %}"
+                    >
+                        {{ buffet_habilitado|yesno:"🔴 Pausar pedidos,🟢 Activar pedidos" }}
+                    </a>
+
+                    <a href="{% url 'pedidos:descargar_backup' %}">
+                        📦 Backup
+                    </a>
+
+                    <button type="button" onclick="abrirCierreCaja()">
+                        📊 Cierre de caja
+                    </button>
+                </div>
             </div>
         </section>
     </div>
 
-    <!-- # TAB PEDIDOS -->
+<!-- # TAB PEDIDOS -->
     <div
         id="tab-pedidos"
         class="tab-content"
