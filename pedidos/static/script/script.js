@@ -3307,150 +3307,123 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 // ==========================================================================
-// FIX AGRESIVO CABECERA COMANDA POS
-// Detecta la cabecera aunque no tenga la clase esperada.
+// FIX REAL CABECERA COMANDA POS
+// Alinea la cabecera leyendo la posición real de las celdas.
 (function () {
-    var GRID = "140px 105px minmax(260px, 1fr) 130px 130px";
+    var labels = [
+        { key: "cant", text: "Cant.", selector: ".salon-pos__fila-cant", align: "center" },
+        { key: "codigo", text: "Cód.", selector: ".salon-pos__fila-codigo", align: "left" },
+        { key: "desc", text: "Descripción", selector: ".salon-pos__fila-descripcion", align: "left" },
+        { key: "unitario", text: "Unitario", selector: ".salon-pos__fila-unitario", align: "right" },
+        { key: "total", text: "Total", selector: ".salon-pos__fila-total", align: "right" }
+    ];
 
-    function normalizar(texto) {
-        return String(texto || "")
-            .toLowerCase()
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/\s+/g, " ")
-            .trim();
+    function buscarHeader(modal) {
+        var directo = modal.querySelector(".salon-pos__lista-head");
+        if (directo) return directo;
+
+        var candidatos = Array.prototype.slice.call(modal.querySelectorAll("div, section, header"));
+        for (var i = 0; i < candidatos.length; i++) {
+            var el = candidatos[i];
+            var texto = (el.textContent || "").toLowerCase().replace(/\s+/g, "");
+            if (
+                texto.indexOf("cant") !== -1 &&
+                texto.indexOf("codigo") !== -1 &&
+                texto.indexOf("descripcion") !== -1 &&
+                !el.querySelector("button,input,select,textarea") &&
+                texto.length < 90
+            ) {
+                return el;
+            }
+        }
+        return null;
     }
 
-    function aplicarGrid(el) {
-        if (!el) return;
-
-        el.style.setProperty("display", "grid", "important");
-        el.style.setProperty("grid-template-columns", GRID, "important");
-        el.style.setProperty("column-gap", "14px", "important");
-        el.style.setProperty("align-items", "center", "important");
-        el.style.setProperty("width", "100%", "important");
-        el.style.setProperty("box-sizing", "border-box", "important");
-    }
-
-    function aplicarHeader(head) {
+    function prepararHeader(head) {
         if (!head) return;
 
-        head.classList.add("salon-pos__lista-head", "salon-pos__lista-head--columnas-fijas");
-        head.innerHTML =
-            '<span class="pos-head-cant">Cant.</span>' +
-            '<span class="pos-head-codigo">Cód.</span>' +
-            '<span class="pos-head-desc">Descripción</span>' +
-            '<span class="pos-head-unitario">Unitario</span>' +
-            '<span class="pos-head-total">Total</span>';
+        head.className = (head.className || "") + " salon-pos__lista-head salon-pos__lista-head--real";
+        head.innerHTML = labels.map(function (item) {
+            return '<span data-comanda-head="' + item.key + '">' + item.text + '</span>';
+        }).join("");
 
-        aplicarGrid(head);
-
+        head.style.setProperty("display", "block", "important");
+        head.style.setProperty("position", "relative", "important");
+        head.style.setProperty("height", "38px", "important");
         head.style.setProperty("min-height", "38px", "important");
+        head.style.setProperty("width", "100%", "important");
+        head.style.setProperty("box-sizing", "border-box", "important");
         head.style.setProperty("padding", "0 12px", "important");
-        head.style.setProperty("font-size", ".74rem", "important");
-        head.style.setProperty("font-weight", "950", "important");
-        head.style.setProperty("text-transform", "uppercase", "important");
-        head.style.setProperty("letter-spacing", ".04em", "important");
-        head.style.setProperty("border-bottom", "1px solid #dfe3e8", "important");
-        head.style.setProperty("background", "#f3f5f8", "important");
-        head.style.setProperty("color", "#687282", "important");
-
-        Array.prototype.forEach.call(head.children, function (span, index) {
-            span.style.setProperty("display", "block", "important");
-            span.style.setProperty("min-width", "0", "important");
-            span.style.setProperty("overflow", "hidden", "important");
-            span.style.setProperty("text-overflow", "ellipsis", "important");
-            span.style.setProperty("white-space", "nowrap", "important");
-            span.style.setProperty("grid-column", String(index + 1), "important");
-            span.style.setProperty("text-align", index === 0 ? "center" : (index >= 3 ? "right" : "left"), "important");
-        });
+        head.style.setProperty("overflow", "visible", "important");
+        head.style.setProperty("white-space", "nowrap", "important");
     }
 
-    function posiblesHeaders() {
+    function posicionarSpan(head, key, left, width, align) {
+        var span = head.querySelector('[data-comanda-head="' + key + '"]');
+        if (!span) return;
+
+        span.style.setProperty("position", "absolute", "important");
+        span.style.setProperty("left", Math.max(0, left) + "px", "important");
+        span.style.setProperty("top", "50%", "important");
+        span.style.setProperty("transform", "translateY(-50%)", "important");
+        span.style.setProperty("width", Math.max(42, width) + "px", "important");
+        span.style.setProperty("display", "block", "important");
+        span.style.setProperty("min-width", "0", "important");
+        span.style.setProperty("overflow", "hidden", "important");
+        span.style.setProperty("text-overflow", "ellipsis", "important");
+        span.style.setProperty("white-space", "nowrap", "important");
+        span.style.setProperty("text-align", align, "important");
+    }
+
+    function fallback(head) {
+        var w = head.clientWidth || 1000;
+        posicionarSpan(head, "cant", 0, 135, "center");
+        posicionarSpan(head, "codigo", 150, 90, "left");
+        posicionarSpan(head, "desc", 255, Math.max(260, w - 540), "left");
+        posicionarSpan(head, "unitario", Math.max(0, w - 270), 120, "right");
+        posicionarSpan(head, "total", Math.max(0, w - 135), 120, "right");
+    }
+
+    function alinearCabecera() {
         var modal = document.getElementById("salon-comanda-modal") || document;
-        var directos = Array.prototype.slice.call(
-            modal.querySelectorAll(".salon-pos__lista-head, .salon-pos__lista-head--fix, .salon-pos__lista-head--columnas-fijas")
-        );
+        var head = buscarHeader(modal);
+        if (!head) return;
 
-        var porTexto = Array.prototype.slice.call(modal.querySelectorAll("div, section, header")).filter(function (el) {
-            var texto = normalizar(el.textContent);
-            if (!texto) return false;
+        prepararHeader(head);
 
-            var pareceHeader =
-                texto.indexOf("cant") !== -1 &&
-                (texto.indexOf("cod") !== -1 || texto.indexOf("codigo") !== -1) &&
-                texto.indexOf("descripcion") !== -1;
-
-            if (!pareceHeader) return false;
-            if (el.querySelector("button, input, select, textarea")) return false;
-            if (el.querySelector(".salon-pos__fila-pos")) return false;
-            if (texto.length > 80) return false;
-
-            return true;
-        });
-
-        return directos.concat(porTexto).filter(function (el, index, arr) {
-            return el && arr.indexOf(el) === index;
-        });
-    }
-
-    function aplicarCelda(el, col, align) {
-        if (!el) return;
-        el.style.setProperty("grid-column", String(col), "important");
-        el.style.setProperty("min-width", "0", "important");
-        el.style.setProperty("text-align", align, "important");
-
-        if (col >= 4) {
-            el.style.setProperty("white-space", "nowrap", "important");
-            el.style.setProperty("font-weight", "950", "important");
+        var row = modal.querySelector(".salon-pos__fila-pos");
+        if (!row) {
+            fallback(head);
+            return;
         }
-    }
 
-    function aplicarFila(fila) {
-        if (!fila) return;
+        var headRect = head.getBoundingClientRect();
 
-        aplicarGrid(fila);
-        fila.style.setProperty("min-height", "58px", "important");
-        fila.style.setProperty("padding", "8px 12px", "important");
+        labels.forEach(function (item) {
+            var cell = row.querySelector(item.selector);
+            if (!cell) return;
 
-        aplicarCelda(fila.querySelector(".salon-pos__fila-cant"), 1, "center");
-        aplicarCelda(fila.querySelector(".salon-pos__fila-codigo"), 2, "left");
-        aplicarCelda(fila.querySelector(".salon-pos__fila-descripcion"), 3, "left");
-        aplicarCelda(fila.querySelector(".salon-pos__fila-unitario"), 4, "right");
-        aplicarCelda(fila.querySelector(".salon-pos__fila-total"), 5, "right");
-
-        var nombre = fila.querySelector(".salon-pos__fila-descripcion > strong");
-        if (nombre) {
-            nombre.style.setProperty("white-space", "normal", "important");
-            nombre.style.setProperty("overflow", "visible", "important");
-            nombre.style.setProperty("text-overflow", "clip", "important");
-        }
-    }
-
-    function arreglarComanda() {
-        posiblesHeaders().forEach(aplicarHeader);
-        document.querySelectorAll(".salon-pos__fila-pos").forEach(aplicarFila);
-    }
-
-    function observar() {
-        var modal = document.getElementById("salon-comanda-modal") || document.body;
-        if (!modal || modal.dataset.comandaColumnasObserver === "1") return;
-
-        modal.dataset.comandaColumnasObserver = "1";
-        var observer = new MutationObserver(function () {
-            arreglarComanda();
-        });
-
-        observer.observe(modal, {
-            childList: true,
-            subtree: true,
-            characterData: true
+            var rect = cell.getBoundingClientRect();
+            var left = rect.left - headRect.left;
+            posicionarSpan(head, item.key, left, rect.width, item.align);
         });
     }
 
     function iniciar() {
-        arreglarComanda();
-        observar();
+        alinearCabecera();
+
+        var modal = document.getElementById("salon-comanda-modal") || document.body;
+        if (modal && modal.dataset.headerRealObserver !== "1") {
+            modal.dataset.headerRealObserver = "1";
+            var observer = new MutationObserver(function () {
+                window.requestAnimationFrame(alinearCabecera);
+            });
+            observer.observe(modal, {
+                childList: true,
+                subtree: true,
+                characterData: true
+            });
+        }
     }
 
     if (document.readyState === "loading") {
@@ -3460,19 +3433,19 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     window.addEventListener("load", iniciar);
+    window.addEventListener("resize", alinearCabecera);
 
-    [50, 150, 400, 900, 1600, 2600].forEach(function (t) {
+    [80, 200, 500, 1000, 1800].forEach(function (t) {
         window.setTimeout(iniciar, t);
     });
 
     document.addEventListener("click", function () {
-        window.setTimeout(iniciar, 40);
-        window.setTimeout(iniciar, 180);
-        window.setTimeout(iniciar, 600);
+        window.setTimeout(alinearCabecera, 60);
+        window.setTimeout(alinearCabecera, 220);
     });
 
     document.addEventListener("input", function () {
-        window.setTimeout(iniciar, 80);
+        window.setTimeout(alinearCabecera, 80);
     });
 })();
 
