@@ -25,7 +25,7 @@
 
     <link
         rel="stylesheet"
-        href="{% static 'css/estilos.css' %}?v=51"
+        href="{% static 'css/estilos.css' %}?v=60"
     >
 
     {% block extra_css %}
@@ -120,20 +120,16 @@
                 href="{% url 'pedidos:inicio' %}"
                 class="marca"
             >
-
                 <img
                     src="{% static 'img/logo.png' %}"
-                    class="nav-logo"
-                    alt="Logo SterakFood"
-                    style="
-                        height: 75px;
-                        width: auto;
-                        object-fit: contain;
-                        filter: drop-shadow(
-                            0px 2px 4px rgba(255, 102, 0, 0.2)
-                        );
-                        margin-right: 12px;
-                    "
+                    class="nav-logo logo-dark"
+                    alt="Logo SterakFood modo oscuro"
+                >
+
+                <img
+                    src="{% static 'img/logo_2.png' %}"
+                    class="nav-logo logo-light"
+                    alt="Logo SterakFood modo claro"
                 >
 
                 <span class="logo-texto">
@@ -623,7 +619,7 @@
          ===================================================== -->
 
     <script
-        src="{% static 'script/script.js' %}?v=51"
+        src="{% static 'script/script.js' %}?v=60"
     ></script>
 
     {% block extra_js %}
