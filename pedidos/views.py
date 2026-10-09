@@ -705,12 +705,13 @@ def api_pedidos_pendientes(request):
             imprimir_cobro = True
         else:
             imprimir_cobro = False
+        es_fiscal = bool(cache.get(f'fiscal_{p.id}'))
         nombre_final = p.nombre_cliente or 'Sin Nombre'
         if getattr(p, 'mozo', ''):
             nombre_final += f' · Mozo: {p.mozo}'
         if p.telefono_cliente:
             nombre_final += f' (Tel: {p.telefono_cliente})'
-        data.append({'id': p.id, 'hora': hora_pedido, 'cliente': nombre_final, 'entrega': p.tipo_entrega.upper() if p.tipo_entrega else 'MOSTRADOR', 'mesa': p.numero_mesa if p.numero_mesa else '-', 'mozo': getattr(p, 'mozo', '') or '', 'pago': p.tipo_pago.upper() if p.tipo_pago else 'EFECTIVO', 'total': f'${p.total:.2f}', 'imprimir_ticket_cobro': imprimir_cobro, 'items_caja': items_caja, 'items_cocina': items_cocina, 'items_barra': items_barra})
+        data.append({'id': p.id, 'hora': hora_pedido, 'cliente': nombre_final, 'entrega': p.tipo_entrega.upper() if p.tipo_entrega else 'MOSTRADOR', 'mesa': p.numero_mesa if p.numero_mesa else '-', 'mozo': getattr(p, 'mozo', '') or '', 'pago': ('FISCAL ' if es_fiscal else '') + (p.tipo_pago.upper() if p.tipo_pago else 'EFECTIVO'), 'fiscal': es_fiscal, 'tipo_cierre': 'fiscal' if es_fiscal else 'normal', 'total': f'${p.total:.2f}', 'imprimir_ticket_cobro': imprimir_cobro, 'items_caja': items_caja, 'items_cocina': items_cocina, 'items_barra': items_barra})
     return JsonResponse({'status': 'ok', 'pedidos': data})
 
 
@@ -727,6 +728,7 @@ def api_marcar_impreso(request, pedido_id):
         pedido.impreso_caja = True
         pedido.save()
         cache.delete(f'solo_cuenta_{pedido_id}')
+        cache.delete(f'fiscal_{pedido_id}')
         return JsonResponse({'status': 'ok'})
     except Pedido.DoesNotExist:
         return JsonResponse({'status': 'error', 'mensaje': 'Pedido no encontrado'})
@@ -1001,6 +1003,7 @@ def cobrar_mesa_salon(request):
     mesa = str(payload.get('mesa', '')).strip()
     mozo = str(payload.get('mozo', '')).strip()
     tipo_pago = str(payload.get('tipo_pago', '')).strip().lower()
+    modo_fiscal = bool(payload.get('modo_fiscal'))
     items = payload.get('items', [])
     medios_validos = {'efectivo', 'mercadopago', 'debito'}
     if not mesa:
@@ -1011,7 +1014,7 @@ def cobrar_mesa_salon(request):
         return JsonResponse({'status': 'error', 'mensaje': 'No hay productos para cobrar'}, status=400)
     try:
         with transaction.atomic():
-            pedido = Pedido.objects.create(estado='listo', total=Decimal('0.00'), nombre_cliente='POS SALON', tipo_entrega='mesa', numero_mesa=mesa[:10], mozo=mozo[:100], tipo_pago=tipo_pago, punto_venta=None, impreso_caja=False)
+            pedido = Pedido.objects.create(estado='listo', total=Decimal('0.00'), nombre_cliente='POS SALON FISCAL' if modo_fiscal else 'POS SALON', tipo_entrega='mesa', numero_mesa=mesa[:10], mozo=mozo[:100], tipo_pago=tipo_pago, punto_venta=None, impreso_caja=False)
             total_calculado = Decimal('0.00')
             detalles_creados = 0
             for item in items:
@@ -1051,8 +1054,10 @@ def cobrar_mesa_salon(request):
             pedido.total = total_calculado
             pedido.save(update_fields=['total'])
             cache.set(f'solo_cuenta_{pedido.id}', True, timeout=300)
+            if modo_fiscal:
+                cache.set(f'fiscal_{pedido.id}', True, timeout=300)
     except ValueError as error:
         return JsonResponse({'status': 'error', 'mensaje': str(error)}, status=400)
     except Exception as error:
         return JsonResponse({'status': 'error', 'mensaje': 'Error registrando el cobro: ' + str(error)}, status=500)
-    return JsonResponse({'status': 'ok', 'pedido_id': pedido.id, 'total': float(pedido.total), 'tipo_pago': pedido.tipo_pago, 'mensaje': 'Venta registrada en el cierre de caja y enviada a impresión.'})
+    return JsonResponse({'status': 'ok', 'pedido_id': pedido.id, 'total': float(pedido.total), 'tipo_pago': pedido.tipo_pago, 'modo_fiscal': modo_fiscal, 'mensaje': 'Venta registrada en el cierre de caja y enviada a impresión.'})

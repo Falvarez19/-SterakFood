@@ -5949,3 +5949,514 @@ body,
     }
 }
 
+
+/* ==========================================================================
+   FIX FINAL - ALINEACIÓN PANEL MENÚ + LOGO NUEVO
+   ========================================================================== */
+
+/* Mantener siempre el logo principal con cubiertos nuevos.
+   Esto evita que en modo claro aparezca logo_2.png. */
+.logo-light,
+[data-theme="light"] .logo-light {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+.logo-dark,
+[data-theme="light"] .logo-dark {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.nav-logo.logo-dark {
+    display: block !important;
+}
+
+/* La navbar no debe tapar el contenido del panel. */
+.dash-container {
+    padding-top: 18px !important;
+}
+
+/* Toolbar del menú más prolija. */
+.menu-admin-toolbar {
+    margin-top: 16px !important;
+    margin-bottom: 20px !important;
+    padding: 18px !important;
+    border-radius: 18px !important;
+    border: 1px solid var(--borde) !important;
+    background: var(--card-bg) !important;
+}
+
+.menu-admin-toolbar__fila {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 16px !important;
+    flex-wrap: wrap !important;
+}
+
+.menu-admin-toolbar__fila--busqueda {
+    display: grid !important;
+    grid-template-columns: minmax(320px, 1fr) minmax(260px, .7fr) !important;
+    align-items: center !important;
+    gap: 18px !important;
+}
+
+.menu-admin-buscador {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.menu-admin-ayuda {
+    margin: 0 !important;
+    line-height: 1.35 !important;
+}
+
+/* Lista de productos: columnas alineadas. */
+.menu-admin-producto {
+    grid-template-columns: minmax(360px, 1.6fr) 180px 250px 300px !important;
+    gap: 24px !important;
+    align-items: center !important;
+    padding: 22px 24px !important;
+}
+
+.menu-admin-producto__principal,
+.menu-admin-producto__precio,
+.menu-admin-producto__puestos,
+.menu-admin-producto__acciones {
+    min-width: 0 !important;
+    align-self: center !important;
+}
+
+.menu-admin-producto__precio,
+.menu-admin-producto__puestos {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+}
+
+.menu-admin-precio-form {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 180px !important;
+}
+
+.menu-admin-precio-input {
+    flex: 1 !important;
+    min-width: 118px !important;
+}
+
+.menu-admin-precio-form button {
+    flex: 0 0 52px !important;
+    min-width: 52px !important;
+}
+
+.menu-admin-puestos-lista {
+    display: flex !important;
+    align-items: center !important;
+    gap: 7px !important;
+    flex-wrap: wrap !important;
+}
+
+.menu-admin-puestos-lista span {
+    max-width: 150px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+.menu-admin-producto__acciones {
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    gap: 10px !important;
+    flex-wrap: nowrap !important;
+}
+
+.menu-admin-btn {
+    white-space: nowrap !important;
+    min-height: 44px !important;
+    border-radius: 10px !important;
+}
+
+.menu-admin-btn--estado,
+.menu-admin-btn--editar {
+    min-width: 112px !important;
+}
+
+.menu-admin-btn--borrar {
+    min-width: 48px !important;
+}
+
+/* En modo claro, que no se vea lavado ni corrido. */
+[data-theme="light"] .menu-admin-toolbar,
+[data-theme="light"] .menu-admin-producto,
+[data-theme="light"] .menu-admin-categoria summary {
+    background: #ffffff !important;
+}
+
+[data-theme="light"] .menu-admin-producto:nth-child(even) {
+    background: #fbfbfc !important;
+}
+
+[data-theme="light"] .menu-admin-producto h4,
+[data-theme="light"] .menu-admin-categoria__titulo {
+    color: #333740 !important;
+}
+
+[data-theme="light"] .menu-admin-producto__meta,
+[data-theme="light"] .menu-admin-ayuda {
+    color: #7a828f !important;
+}
+
+/* Responsive: en pantallas chicas pasa a formato tarjeta para no romper alineación. */
+@media (max-width: 1250px) {
+    .menu-admin-producto {
+        grid-template-columns: minmax(280px, 1fr) 170px 220px !important;
+    }
+
+    .menu-admin-producto__acciones {
+        grid-column: 1 / -1 !important;
+        justify-content: flex-start !important;
+        flex-wrap: wrap !important;
+    }
+}
+
+@media (max-width: 900px) {
+    .menu-admin-toolbar__fila--busqueda,
+    .menu-admin-producto {
+        grid-template-columns: 1fr !important;
+    }
+
+    .menu-admin-precio-form {
+        width: min(100%, 240px) !important;
+    }
+
+    .menu-admin-producto__acciones {
+        justify-content: stretch !important;
+    }
+
+    .menu-admin-producto__acciones .menu-admin-btn {
+        flex: 1 1 130px !important;
+    }
+}
+
+
+/* ==========================================================================
+   AJUSTES FINALES - LOGO DARK/LIGHT + TABS EN UNA SOLA LÍNEA
+   ========================================================================== */
+
+/* Se mantienen los dos logos:
+   - logo oscuro / principal para modo oscuro
+   - logo_2 / claro para modo claro
+   Este bloque pisa el fix anterior que ocultaba logo_2. */
+.logo-light {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+.logo-dark {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+body[data-theme="light"] .logo-dark,
+[data-theme="light"] .logo-dark {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+body[data-theme="light"] .logo-light,
+[data-theme="light"] .logo-light {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* En escritorio, Configuración entra en la misma fila. */
+.panel-tabs {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: clamp(10px, 1.55vw, 24px) !important;
+    overflow-x: visible !important;
+    white-space: nowrap !important;
+}
+
+.panel-tab-btn {
+    flex: 0 0 auto !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    font-size: clamp(.84rem, .95vw, 1rem) !important;
+    white-space: nowrap !important;
+}
+
+@media (max-width: 1150px) {
+    .panel-tabs {
+        overflow-x: auto !important;
+        flex-wrap: nowrap !important;
+        padding-bottom: 8px !important;
+    }
+}
+
+/* Leyenda de atajos para Salón POS */
+.salon-pos__atajos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0;
+}
+
+.salon-pos__atajos span {
+    border: 1px solid var(--borde);
+    background: rgba(255,255,255,.04);
+    color: var(--texto-mutado);
+    border-radius: 999px;
+    padding: 7px 10px;
+    font-size: .82rem;
+    font-weight: 800;
+}
+
+
+/* ==========================================================================
+   FIX COMANDA SALÓN POS - MODAL PROLIJO + COLUMNAS ALINEADAS
+   ========================================================================== */
+
+/* La comanda no ocupa media pantalla vacía: se adapta al contenido. */
+.salon-pos--clasico .salon-pos__comanda-modal {
+    width: min(1280px, calc(100vw - 26px)) !important;
+    height: auto !important;
+    max-height: calc(100vh - 24px) !important;
+    min-height: 0 !important;
+    border-radius: 16px !important;
+}
+
+/* Header más compacto y ordenado. */
+.salon-pos--clasico .salon-pos__comanda-header--pos {
+    min-height: 96px !important;
+    padding: 16px 18px !important;
+    grid-template-columns: minmax(0, 1fr) auto 46px !important;
+    gap: 16px !important;
+}
+
+.salon-pos--clasico .salon-pos__titulo-linea {
+    flex-wrap: wrap !important;
+}
+
+.salon-pos--clasico .salon-pos__resumen-superior {
+    min-width: 150px !important;
+}
+
+/* Cuerpo sin espacios gigantes. */
+.salon-pos--clasico .salon-pos__area-comanda:not([hidden]) {
+    padding: 14px 16px 0 !important;
+    max-height: calc(100vh - 155px) !important;
+    overflow: hidden !important;
+}
+
+.salon-pos--clasico .salon-pos__carga-rapida--pos {
+    grid-template-columns: 108px minmax(0, 1fr) !important;
+    gap: 10px !important;
+    margin-bottom: 10px !important;
+}
+
+/* Atajos debajo del buscador */
+.salon-pos--clasico .salon-pos__atajos {
+    grid-column: 2 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin: -3px 0 9px;
+}
+
+.salon-pos--clasico .salon-pos__atajos span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid var(--salon-border);
+    background: rgba(255,255,255,.04);
+    color: var(--salon-muted);
+    border-radius: 999px;
+    padding: 6px 9px;
+    font-size: .72rem;
+    font-weight: 850;
+}
+
+.salon-pos--clasico .salon-pos__atajos b {
+    color: var(--salon-orange);
+    font-size: .82rem;
+}
+
+/* Tabla de comanda: 5 columnas reales */
+.salon-pos--clasico .salon-pos__lista-wrap {
+    flex: 0 1 auto !important;
+    max-height: min(360px, calc(100vh - 360px)) !important;
+    min-height: 0 !important;
+}
+
+.salon-pos--clasico .salon-pos__lista-head,
+.salon-pos--clasico .salon-pos__fila-pos {
+    grid-template-columns: 128px 88px minmax(220px, 1fr) 110px 112px !important;
+    column-gap: 12px !important;
+}
+
+.salon-pos--clasico .salon-pos__lista-head {
+    min-height: 34px !important;
+    padding: 0 12px !important;
+}
+
+.salon-pos--clasico .salon-pos__lista-head > * {
+    white-space: nowrap !important;
+}
+
+.salon-pos--clasico .salon-pos__lista-head .col-cant {
+    text-align: center !important;
+}
+
+.salon-pos--clasico .salon-pos__lista-head .col-unitario,
+.salon-pos--clasico .salon-pos__lista-head .col-total {
+    text-align: right !important;
+}
+
+.salon-pos--clasico .salon-pos__fila-pos {
+    min-height: 58px !important;
+    padding: 8px 12px !important;
+}
+
+.salon-pos--clasico .salon-pos__fila-codigo,
+.salon-pos--clasico .salon-pos__fila-unitario,
+.salon-pos--clasico .salon-pos__fila-total {
+    white-space: nowrap !important;
+}
+
+.salon-pos--clasico .salon-pos__fila-unitario,
+.salon-pos--clasico .salon-pos__fila-total {
+    text-align: right !important;
+    font-weight: 950 !important;
+}
+
+.salon-pos--clasico .salon-pos__fila-unitario {
+    color: var(--salon-muted) !important;
+}
+
+.salon-pos--clasico .salon-pos__fila-total {
+    color: var(--salon-orange) !important;
+}
+
+/* Resumen inferior y botones compactos */
+.salon-pos--clasico .salon-pos__estado-seleccion {
+    min-height: 46px !important;
+    padding: 8px 2px !important;
+}
+
+.salon-pos--clasico .salon-pos__actionbar--pos {
+    grid-template-columns: 148px 170px minmax(260px, 1fr) !important;
+    gap: 10px !important;
+    padding: 10px 16px 12px !important;
+    margin: 0 -16px !important;
+}
+
+.salon-pos--clasico .salon-pos__btn {
+    min-height: 48px !important;
+    font-size: .88rem !important;
+    border-radius: 10px !important;
+}
+
+/* Modo claro prolijo dentro de la comanda */
+body[data-theme="light"] .salon-pos--clasico .salon-pos__comanda-modal,
+[data-theme="light"] .salon-pos--clasico .salon-pos__comanda-modal {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border-color: #d7dce3 !important;
+}
+
+body[data-theme="light"] .salon-pos--clasico .salon-pos__comanda-header--pos,
+[data-theme="light"] .salon-pos--clasico .salon-pos__comanda-header--pos {
+    background: #f7f8fa !important;
+    border-bottom-color: #dfe3e8 !important;
+}
+
+body[data-theme="light"] .salon-pos--clasico .salon-pos__lista-wrap,
+[data-theme="light"] .salon-pos--clasico .salon-pos__lista-wrap {
+    background: #ffffff !important;
+    border-color: #dfe3e8 !important;
+}
+
+body[data-theme="light"] .salon-pos--clasico .salon-pos__lista-head,
+[data-theme="light"] .salon-pos--clasico .salon-pos__lista-head {
+    background: #f2f4f7 !important;
+    color: #687282 !important;
+    border-bottom-color: #dfe3e8 !important;
+}
+
+body[data-theme="light"] .salon-pos--clasico .salon-pos__fila-pos,
+[data-theme="light"] .salon-pos--clasico .salon-pos__fila-pos {
+    border-bottom-color: #e7eaf0 !important;
+}
+
+body[data-theme="light"] .salon-pos--clasico .salon-pos__fila-pos:hover,
+[data-theme="light"] .salon-pos--clasico .salon-pos__fila-pos:hover {
+    background: #fbfbfc !important;
+}
+
+body[data-theme="light"] .salon-pos--clasico .salon-pos__fila-descripcion > strong,
+[data-theme="light"] .salon-pos--clasico .salon-pos__fila-descripcion > strong {
+    color: #20242c !important;
+}
+
+body[data-theme="light"] .salon-pos--clasico .salon-pos__fila-codigo,
+body[data-theme="light"] .salon-pos--clasico .salon-pos__fila-unitario,
+[data-theme="light"] .salon-pos--clasico .salon-pos__fila-codigo,
+[data-theme="light"] .salon-pos--clasico .salon-pos__fila-unitario {
+    color: #6b7280 !important;
+}
+
+body[data-theme="light"] .salon-pos--clasico .salon-pos__actionbar--pos,
+[data-theme="light"] .salon-pos--clasico .salon-pos__actionbar--pos {
+    background: #f7f8fa !important;
+    border-top-color: #dfe3e8 !important;
+}
+
+/* Pantallas chicas */
+@media (max-width: 820px) {
+    .salon-pos--clasico .salon-pos__comanda-header--pos {
+        grid-template-columns: 1fr 44px !important;
+    }
+
+    .salon-pos--clasico .salon-pos__resumen-superior {
+        grid-column: 1 / -1 !important;
+        grid-row: 2 !important;
+        text-align: left !important;
+    }
+
+    .salon-pos--clasico .salon-pos__carga-rapida--pos,
+    .salon-pos--clasico .salon-pos__lista-head,
+    .salon-pos--clasico .salon-pos__fila-pos,
+    .salon-pos--clasico .salon-pos__actionbar--pos {
+        grid-template-columns: 1fr !important;
+    }
+
+    .salon-pos--clasico .salon-pos__lista-head {
+        display: none !important;
+    }
+
+    .salon-pos--clasico .salon-pos__atajos {
+        grid-column: 1 !important;
+    }
+
+    .salon-pos--clasico .salon-pos__fila-pos {
+        gap: 7px !important;
+    }
+
+    .salon-pos--clasico .salon-pos__fila-unitario,
+    .salon-pos--clasico .salon-pos__fila-total {
+        text-align: left !important;
+    }
+}
+

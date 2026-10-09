@@ -2249,7 +2249,7 @@ function eliminarOpinion(opinionId, url) {
     }
     function buscarProductos(texto) {
         texto = String(texto || "").trim().toLowerCase();
-        if (!texto || texto === "..") {
+        if (!texto || texto === ".." || texto === "//" || texto === "*") {
             return [];
         }
         var exactos = [];
@@ -2439,11 +2439,12 @@ function eliminarOpinion(opinionId, url) {
                 html += "<div class=\"salon-pos__fila-pos" + clase + "\" data-index=\"" + index + "\">";
                 html += "<div class=\"salon-pos__fila-cant\" data-no-toggle=\"1\">" + "<button type=\"button\" data-action=\"restar\" data-index=\"" + index + "\">\u2212</button>" + "<strong>" + item.cantidad + "</strong>" + "<button type=\"button\" data-action=\"sumar\" data-index=\"" + index + "\">+</button>" + "</div>";
                 html += "<div class=\"salon-pos__fila-codigo\">" + escapar(item.codigo) + "</div>";
-                html += "<div class=\"salon-pos__fila-descripcion\">" + "<strong>" + escapar(item.nombre) + "</strong>" + "<small>" + dinero(item.precio) + " c/u" + "</small>";
+                html += "<div class=\"salon-pos__fila-descripcion\">" + "<strong>" + escapar(item.nombre) + "</strong>";
                 if (modoParcial && item.seleccionado) {
                     html += "<div class=\"salon-pos__pago-inline\" data-no-toggle=\"1\">" + "<span>Cobrar</span>" + "<button type=\"button\" data-action=\"pagar-menos\" data-index=\"" + index + "\">\u2212</button>" + "<strong>" + item.cant_pagar + "</strong>" + "<button type=\"button\" data-action=\"pagar-mas\" data-index=\"" + index + "\">+</button>" + "<small>de " + item.cantidad + "</small>" + "</div>";
                 }
                 html += "</div>";
+                html += "<div class=\"salon-pos__fila-unitario\">" + dinero(item.precio) + "</div>";
                 html += "<div class=\"salon-pos__fila-total\">" + dinero(item.precio * item.cantidad) + "</div>";
                 html += "</div>";
             });
@@ -2562,7 +2563,7 @@ function eliminarOpinion(opinionId, url) {
             color: "var(--text-color)"
         });
     }
-    function registrarCobroSalon(items, tipoPago) {
+    function registrarCobroSalon(items, tipoPago, modoFiscal) {
         var cuenta = cuentaActual();
         if (!cuenta || !items.length) {
             return Promise.reject(new Error("No hay productos para cobrar."));
@@ -2583,6 +2584,7 @@ function eliminarOpinion(opinionId, url) {
                 mesa: mesaActual,
                 mozo: cuenta.mozo_nombre || "",
                 tipo_pago: tipoPago,
+                modo_fiscal: Boolean(modoFiscal),
                 items: items
             })
         }).then(function (response) {
@@ -2636,7 +2638,7 @@ function eliminarOpinion(opinionId, url) {
         elegirMedioPago(resumen.total, "Cobro parcial \u00B7 Mesa " + mesaActual).then(function (resultado) {
             if (!resultado.isConfirmed)
                 return;
-            registrarCobroSalon(items, resultado.value).then(function () {
+            registrarCobroSalon(items, resultado.value, false).then(function () {
                 cuenta.items.forEach(function (item) {
                     if (!item.seleccionado)
                         return;
@@ -2678,27 +2680,50 @@ function eliminarOpinion(opinionId, url) {
             }).catch(mostrarError);
         });
     }
-    function cobrarMesa() {
+    function cobrarMesa(modoFiscal) {
         var cuenta = cuentaActual();
+        modoFiscal = Boolean(modoFiscal);
         if (!cuenta || !cuenta.items.length)
             return;
         var numeroMesa = mesaActual;
         var items = obtenerItemsTicket(cuenta, false);
-        elegirMedioPago(cuenta.total, "Cobrar Mesa " + numeroMesa).then(function (resultado) {
+        var titulo = modoFiscal ? "Cierre fiscal · Mesa " + numeroMesa : "Cobrar Mesa " + numeroMesa;
+        elegirMedioPago(cuenta.total, titulo).then(function (resultado) {
             if (!resultado.isConfirmed)
                 return;
-            registrarCobroSalon(items, resultado.value).then(function () {
+            registrarCobroSalon(items, resultado.value, modoFiscal).then(function () {
                 Swal.fire({
                     icon: "success",
-                    title: "Mesa cobrada",
-                    text: "La venta qued\u00F3 registrada en el cierre de caja.",
-                    timer: 1200,
+                    title: modoFiscal ? "Cierre fiscal registrado" : "Mesa cobrada",
+                    text: modoFiscal ? "La venta quedó marcada para facturación fiscal real." : "La venta quedó registrada en el cierre de caja.",
+                    timer: 1400,
                     showConfirmButton: false,
                     background: "var(--card-bg)",
                     color: "var(--text-color)"
                 });
                 liberarMesaActual();
             }).catch(mostrarError);
+        });
+    }
+
+    function cobrarMesaFiscal() {
+        var cuenta = cuentaActual();
+        if (!cuenta || !cuenta.items.length)
+            return;
+        Swal.fire({
+            icon: "warning",
+            title: "Cierre fiscal",
+            text: "Se va a cerrar la mesa como factura/ticket fiscal real.",
+            showCancelButton: true,
+            confirmButtonText: "Continuar",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "var(--naranja-sterak)",
+            background: "var(--card-bg)",
+            color: "var(--text-color)"
+        }).then(function (resultado) {
+            if (resultado.isConfirmed) {
+                cobrarMesa(true);
+            }
         });
     }
     botonesMesa.forEach(function (boton) {
@@ -2783,6 +2808,20 @@ function eliminarOpinion(opinionId, url) {
                 enfocarCantidad();
                 return;
             }
+            if (valor === "//") {
+                buscador.value = "";
+                cerrarSugerencias();
+                cobrarMesa(false);
+                enfocarCantidad();
+                return;
+            }
+            if (valor === "*") {
+                buscador.value = "";
+                cerrarSugerencias();
+                cobrarMesaFiscal();
+                enfocarCantidad();
+                return;
+            }
             if (sugerencias.length) {
                 var index = sugerenciaActiva >= 0 ? sugerenciaActiva : 0;
                 agregarProducto(sugerencias[index]);
@@ -2849,7 +2888,7 @@ function eliminarOpinion(opinionId, url) {
                 cobrarParcial();
             }
             else {
-                cobrarMesa();
+                cobrarMesa(false);
             }
         });
     }
@@ -2882,7 +2921,7 @@ function eliminarOpinion(opinionId, url) {
                 cobrarParcial();
             }
             else {
-                cobrarMesa();
+                cobrarMesa(false);
             }
             return;
         }
@@ -3010,3 +3049,30 @@ document.addEventListener("DOMContentLoaded", function () {
         }, { once: true });
     }
 });
+
+
+// ==========================================================================
+// AYUDA VISUAL DE ATAJOS SALÓN POS
+// ==========================================================================
+document.addEventListener("DOMContentLoaded", function () {
+    var root = document.getElementById("salon-pos");
+    var buscador = document.getElementById("buscador");
+    if (!root || !buscador) {
+        return;
+    }
+
+    buscador.placeholder = "Código o producto · .. ticket · // cobrar · * fiscal";
+
+    var campoBuscador = buscador.closest(".salon-pos__field--buscador") || buscador.closest(".salon-pos__field") || buscador.parentElement;
+    if (campoBuscador && !document.getElementById("salon-atajos-rapidos")) {
+        campoBuscador.insertAdjacentHTML(
+            "afterend",
+            '<div id="salon-atajos-rapidos" class="salon-pos__atajos">' +
+            '<span><b>..</b> imprimir ticket</span>' +
+            '<span><b>//</b> cobrar normal</span>' +
+            '<span><b>*</b> cierre fiscal</span>' +
+            '</div>'
+        );
+    }
+});
+
