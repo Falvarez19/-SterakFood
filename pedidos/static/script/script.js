@@ -3095,3 +3095,81 @@ document.addEventListener("DOMContentLoaded", function () {
         '<span class="col-total">Total</span>';
 });
 
+
+// ==========================================================================
+// FIX FUERTE ENCABEZADO COMANDA POS
+// Ejecuta ahora, en DOMContentLoaded y luego de renderizar.
+(function () {
+    function arreglarEncabezadoComandaPOS() {
+        document.querySelectorAll(".salon-pos__lista-head").forEach(function (head) {
+            head.classList.add("salon-pos__lista-head--fix");
+            head.innerHTML =
+                '<span class="col-cant">Cant.</span>' +
+                '<span class="col-codigo">Código</span>' +
+                '<span class="col-desc">Descripción</span>' +
+                '<span class="col-unitario">Unitario</span>' +
+                '<span class="col-total">Total</span>';
+        });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", arreglarEncabezadoComandaPOS);
+    } else {
+        arreglarEncabezadoComandaPOS();
+    }
+
+    window.addEventListener("load", arreglarEncabezadoComandaPOS);
+    window.setTimeout(arreglarEncabezadoComandaPOS, 250);
+    window.setTimeout(arreglarEncabezadoComandaPOS, 900);
+
+    document.addEventListener("click", function (event) {
+        if (
+            event.target.closest(".salon-pos__mesa") ||
+            event.target.closest("#btn-imprimir-mesa") ||
+            event.target.closest("#btn-accion-principal")
+        ) {
+            window.setTimeout(arreglarEncabezadoComandaPOS, 80);
+        }
+    });
+})();
+
+
+// ==========================================================================
+// FIX DEFINITIVO COLUMNAS COMANDA POS
+// Cant. | Cód. | Descripción | Unitario | Total
+(function () {
+    function columnasComandaPOS() {
+        document.querySelectorAll(".salon-pos__lista-head").forEach(function (head) {
+            head.className = "salon-pos__lista-head salon-pos__lista-head--columnas-fijas";
+            head.innerHTML =
+                '<span class="pos-col pos-col-cant">Cant.</span>' +
+                '<span class="pos-col pos-col-codigo">Cód.</span>' +
+                '<span class="pos-col pos-col-desc">Descripción</span>' +
+                '<span class="pos-col pos-col-unitario">Unitario</span>' +
+                '<span class="pos-col pos-col-total">Total</span>';
+        });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", columnasComandaPOS);
+    } else {
+        columnasComandaPOS();
+    }
+
+    window.addEventListener("load", columnasComandaPOS);
+    window.setTimeout(columnasComandaPOS, 150);
+    window.setTimeout(columnasComandaPOS, 600);
+    window.setTimeout(columnasComandaPOS, 1200);
+
+    document.addEventListener("click", function (event) {
+        if (
+            event.target.closest(".salon-pos__mesa") ||
+            event.target.closest("#btn-imprimir-mesa") ||
+            event.target.closest("#btn-accion-principal") ||
+            event.target.closest(".salon-pos__fila-pos")
+        ) {
+            window.setTimeout(columnasComandaPOS, 60);
+        }
+    });
+})();
+
