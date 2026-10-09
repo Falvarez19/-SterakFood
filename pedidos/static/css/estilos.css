@@ -7263,3 +7263,58 @@ body[data-theme="light"] .hero-logo-side--solo img,
     }
 }
 
+
+/* ==========================================================================
+   FIX HERO OSCURO / CLARO - MISMO TAMAÑO DE FOTO
+   ========================================================================== */
+
+/* El bloque del hero queda con el mismo alto en modo claro y oscuro */
+.hero-solo-fondo .hero-content {
+    min-height: 245px !important;
+    padding-top: 22px !important;
+    padding-bottom: 22px !important;
+}
+
+/* La foto usa el mismo encuadre en ambos modos */
+.hero-solo-fondo {
+    background-size: cover !important;
+    background-position: center 45% !important;
+    background-repeat: no-repeat !important;
+}
+
+/* Modo oscuro: mantiene el overlay oscuro, pero con el mismo tamaño que el claro */
+body[data-theme="dark"] .hero-solo-fondo,
+[data-theme="dark"] .hero-solo-fondo {
+    background-image:
+        linear-gradient(90deg, rgba(10, 11, 13, 0.78) 0%, rgba(10, 11, 13, 0.48) 45%, rgba(10, 11, 13, 0.78) 100%),
+        url('../img/fondo-buffet.png') !important;
+    background-size: cover !important;
+    background-position: center 45% !important;
+    background-repeat: no-repeat !important;
+}
+
+/* Modo claro: se mantiene como lo dejaste aprobado */
+body[data-theme="light"] .hero-solo-fondo,
+[data-theme="light"] .hero-solo-fondo {
+    background-image: url('../img/fondo-buffet.png') !important;
+    background-size: cover !important;
+    background-position: center 45% !important;
+    background-repeat: no-repeat !important;
+}
+
+/* Logo lateral del hero: un poco más parejo entre claro y oscuro */
+.hero-logo-side--solo img {
+    width: 118px !important;
+    opacity: .96 !important;
+}
+
+@media (max-width: 768px) {
+    .hero-solo-fondo .hero-content {
+        min-height: 220px !important;
+    }
+
+    .hero-logo-side--solo img {
+        width: 94px !important;
+    }
+}
+
