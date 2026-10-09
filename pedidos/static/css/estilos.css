@@ -6460,3 +6460,177 @@ body[data-theme="light"] .salon-pos--clasico .salon-pos__actionbar--pos,
     }
 }
 
+
+/* ==========================================================================
+   FIX FINAL 2 - MENÚ ADMIN + FILTRO + COMANDA POS
+   ========================================================================== */
+
+/* Si JS pone hidden=true, que CSS no lo pise con display:grid/flex */
+.categoria-menu[hidden],
+.fila-producto-menu[hidden],
+.menu-admin-producto[hidden] {
+    display: none !important;
+}
+
+/* Menú admin: que entren Activar, Editar y Eliminar sin cortarse */
+.menu-admin-producto {
+    grid-template-columns: minmax(280px, 1fr) 230px 230px 285px !important;
+    gap: 14px !important;
+    padding-right: 18px !important;
+    overflow: visible !important;
+}
+
+.menu-admin-producto__acciones {
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+}
+
+.menu-admin-producto__acciones .menu-admin-btn {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+}
+
+.menu-admin-btn--estado,
+.menu-admin-btn--editar {
+    width: 96px !important;
+    min-width: 96px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+}
+
+.menu-admin-btn--borrar {
+    width: 44px !important;
+    min-width: 44px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* Precio y mostrador más compactos para liberar lugar al eliminar */
+.menu-admin-precio-form {
+    width: 210px !important;
+}
+
+.menu-admin-precio-input {
+    min-width: 120px !important;
+}
+
+.menu-admin-precio-form button {
+    min-width: 58px !important;
+}
+
+.menu-admin-puestos-lista span {
+    max-width: 130px !important;
+}
+
+/* Header de comanda: ahora son 5 columnas reales */
+.salon-pos--clasico .salon-pos__lista-head,
+.salon-pos--clasico .salon-pos__fila-pos {
+    grid-template-columns: 132px 96px minmax(260px, 1fr) 128px 128px !important;
+    column-gap: 14px !important;
+    align-items: center !important;
+}
+
+.salon-pos--clasico .salon-pos__lista-head {
+    display: grid !important;
+    padding: 0 12px !important;
+    min-height: 36px !important;
+}
+
+.salon-pos--clasico .salon-pos__lista-head span {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+.salon-pos--clasico .salon-pos__lista-head .col-cant {
+    text-align: center !important;
+}
+
+.salon-pos--clasico .salon-pos__lista-head .col-unitario,
+.salon-pos--clasico .salon-pos__lista-head .col-total {
+    text-align: right !important;
+}
+
+/* Filas comanda alineadas con el header */
+.salon-pos--clasico .salon-pos__fila-cant {
+    justify-content: center !important;
+}
+
+.salon-pos--clasico .salon-pos__fila-codigo {
+    text-align: left !important;
+    font-weight: 900 !important;
+}
+
+.salon-pos--clasico .salon-pos__fila-descripcion {
+    min-width: 0 !important;
+}
+
+.salon-pos--clasico .salon-pos__fila-unitario,
+.salon-pos--clasico .salon-pos__fila-total {
+    text-align: right !important;
+    white-space: nowrap !important;
+}
+
+.salon-pos--clasico .salon-pos__fila-unitario {
+    color: var(--salon-muted) !important;
+}
+
+.salon-pos--clasico .salon-pos__fila-total {
+    color: var(--salon-orange) !important;
+}
+
+/* Modo claro: contraste limpio */
+body[data-theme="light"] .salon-pos--clasico .salon-pos__lista-head,
+[data-theme="light"] .salon-pos--clasico .salon-pos__lista-head {
+    background: #f3f5f8 !important;
+    color: #687282 !important;
+}
+
+body[data-theme="light"] .salon-pos--clasico .salon-pos__fila-codigo,
+body[data-theme="light"] .salon-pos--clasico .salon-pos__fila-unitario,
+[data-theme="light"] .salon-pos--clasico .salon-pos__fila-codigo,
+[data-theme="light"] .salon-pos--clasico .salon-pos__fila-unitario {
+    color: #6b7280 !important;
+}
+
+/* Responsive del menú admin */
+@media (max-width: 1180px) {
+    .menu-admin-producto {
+        grid-template-columns: 1fr !important;
+    }
+
+    .menu-admin-producto__acciones {
+        justify-content: flex-start !important;
+        flex-wrap: wrap !important;
+    }
+
+    .menu-admin-btn--estado,
+    .menu-admin-btn--editar {
+        width: auto !important;
+        min-width: 120px !important;
+    }
+}
+
+/* Responsive comanda */
+@media (max-width: 900px) {
+    .salon-pos--clasico .salon-pos__lista-head {
+        display: none !important;
+    }
+
+    .salon-pos--clasico .salon-pos__fila-pos {
+        grid-template-columns: 1fr !important;
+        row-gap: 8px !important;
+    }
+
+    .salon-pos--clasico .salon-pos__fila-unitario,
+    .salon-pos--clasico .salon-pos__fila-total {
+        text-align: left !important;
+    }
+}
+

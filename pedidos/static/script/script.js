@@ -3076,3 +3076,22 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
+
+// ==========================================================================
+// FIX ENCABEZADO COMANDA POS
+// ==========================================================================
+document.addEventListener("DOMContentLoaded", function () {
+    var head = document.querySelector(".salon-pos__lista-head");
+    if (!head || head.dataset.headFix === "1") {
+        return;
+    }
+
+    head.dataset.headFix = "1";
+    head.innerHTML =
+        '<span class="col-cant">Cant.</span>' +
+        '<span class="col-codigo">Código</span>' +
+        '<span class="col-desc">Descripción</span>' +
+        '<span class="col-unitario">Unitario</span>' +
+        '<span class="col-total">Total</span>';
+});
+
