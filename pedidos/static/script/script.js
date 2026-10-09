@@ -3173,3 +3173,135 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 })();
 
+
+// ==========================================================================
+// FIX INLINE COLUMNAS COMANDA POS
+// Cant. | Cód. | Descripción | Unitario | Total
+(function () {
+    var GRID = "150px 110px minmax(260px, 1fr) 140px 140px";
+
+    function aplicarEstiloHeader(head) {
+        if (!head) return;
+
+        head.innerHTML =
+            '<span data-pos-head="cant">Cant.</span>' +
+            '<span data-pos-head="codigo">Cód.</span>' +
+            '<span data-pos-head="desc">Descripción</span>' +
+            '<span data-pos-head="unitario">Unitario</span>' +
+            '<span data-pos-head="total">Total</span>';
+
+        head.style.setProperty("display", "grid", "important");
+        head.style.setProperty("grid-template-columns", GRID, "important");
+        head.style.setProperty("column-gap", "16px", "important");
+        head.style.setProperty("align-items", "center", "important");
+        head.style.setProperty("width", "100%", "important");
+        head.style.setProperty("box-sizing", "border-box", "important");
+        head.style.setProperty("padding", "0 12px", "important");
+        head.style.setProperty("min-height", "38px", "important");
+        head.style.setProperty("white-space", "nowrap", "important");
+
+        var hijos = Array.prototype.slice.call(head.children);
+        hijos.forEach(function (span, index) {
+            span.style.setProperty("display", "block", "important");
+            span.style.setProperty("min-width", "0", "important");
+            span.style.setProperty("overflow", "hidden", "important");
+            span.style.setProperty("text-overflow", "ellipsis", "important");
+            span.style.setProperty("white-space", "nowrap", "important");
+            span.style.setProperty("grid-column", String(index + 1), "important");
+            span.style.setProperty("text-align", index >= 3 ? "right" : (index === 0 ? "center" : "left"), "important");
+        });
+    }
+
+    function aplicarEstiloCelda(elemento, columna, alineacion) {
+        if (!elemento) return;
+        elemento.style.setProperty("grid-column", String(columna), "important");
+        elemento.style.setProperty("min-width", "0", "important");
+        elemento.style.setProperty("text-align", alineacion || "left", "important");
+        if (columna >= 4) {
+            elemento.style.setProperty("white-space", "nowrap", "important");
+            elemento.style.setProperty("font-weight", "950", "important");
+        }
+    }
+
+    function aplicarEstiloFila(fila) {
+        if (!fila) return;
+
+        fila.style.setProperty("display", "grid", "important");
+        fila.style.setProperty("grid-template-columns", GRID, "important");
+        fila.style.setProperty("column-gap", "16px", "important");
+        fila.style.setProperty("align-items", "center", "important");
+        fila.style.setProperty("width", "100%", "important");
+        fila.style.setProperty("box-sizing", "border-box", "important");
+        fila.style.setProperty("padding", "8px 12px", "important");
+
+        aplicarEstiloCelda(fila.querySelector(".salon-pos__fila-cant"), 1, "center");
+        aplicarEstiloCelda(fila.querySelector(".salon-pos__fila-codigo"), 2, "left");
+        aplicarEstiloCelda(fila.querySelector(".salon-pos__fila-descripcion"), 3, "left");
+        aplicarEstiloCelda(fila.querySelector(".salon-pos__fila-unitario"), 4, "right");
+        aplicarEstiloCelda(fila.querySelector(".salon-pos__fila-total"), 5, "right");
+
+        var descStrong = fila.querySelector(".salon-pos__fila-descripcion > strong");
+        if (descStrong) {
+            descStrong.style.setProperty("white-space", "normal", "important");
+            descStrong.style.setProperty("overflow", "visible", "important");
+            descStrong.style.setProperty("text-overflow", "clip", "important");
+        }
+    }
+
+    function arreglarColumnasComanda() {
+        document.querySelectorAll(".salon-pos__lista-head").forEach(aplicarEstiloHeader);
+        document.querySelectorAll(".salon-pos__fila-pos").forEach(aplicarEstiloFila);
+    }
+
+    function observarComanda() {
+        var lista = document.getElementById("lista-comanda") || document.querySelector(".salon-pos__lista-pos");
+        if (!lista || lista.dataset.columnasObserver === "1") return;
+
+        lista.dataset.columnasObserver = "1";
+        var observer = new MutationObserver(function () {
+            arreglarColumnasComanda();
+        });
+
+        observer.observe(lista, {
+            childList: true,
+            subtree: true
+        });
+    }
+
+    function iniciarFix() {
+        arreglarColumnasComanda();
+        observarComanda();
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", iniciarFix);
+    } else {
+        iniciarFix();
+    }
+
+    window.addEventListener("load", iniciarFix);
+
+    [100, 300, 700, 1200, 2000].forEach(function (tiempo) {
+        window.setTimeout(iniciarFix, tiempo);
+    });
+
+    document.addEventListener("click", function (event) {
+        if (
+            event.target.closest(".salon-pos__mesa") ||
+            event.target.closest(".salon-pos__fila-pos") ||
+            event.target.closest("#btn-imprimir-mesa") ||
+            event.target.closest("#btn-accion-principal") ||
+            event.target.closest("[data-action]")
+        ) {
+            window.setTimeout(iniciarFix, 50);
+            window.setTimeout(iniciarFix, 180);
+        }
+    });
+
+    document.addEventListener("input", function (event) {
+        if (event.target && event.target.id === "buscador") {
+            window.setTimeout(iniciarFix, 80);
+        }
+    });
+})();
+

@@ -7052,3 +7052,160 @@ body[data-theme="dark"] .salon-pos__fila-descripcion > strong,
     }
 }
 
+
+/* ==========================================================================
+   RESPALDO VISUAL COLUMNAS COMANDA POS
+   El JS aplica inline; esto deja base limpia.
+   ========================================================================== */
+
+.salon-pos__lista-head,
+.salon-pos__fila-pos {
+    grid-template-columns: 150px 110px minmax(260px, 1fr) 140px 140px !important;
+    column-gap: 16px !important;
+    align-items: center !important;
+}
+
+.salon-pos__lista-head {
+    white-space: nowrap !important;
+}
+
+.salon-pos__fila-unitario,
+.salon-pos__fila-total {
+    text-align: right !important;
+    white-space: nowrap !important;
+}
+
+@media (max-width: 900px) {
+    .salon-pos__lista-head {
+        display: none !important;
+    }
+
+    .salon-pos__fila-pos {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+
+/* ==========================================================================
+   PULIDO FINAL MODO CLARO - NAVBAR + HERO
+   Mantiene el modo oscuro como está.
+   ========================================================================== */
+
+/* NAVBAR EN MODO CLARO */
+body[data-theme="light"] .navbar,
+[data-theme="light"] .navbar {
+    background: rgba(255, 255, 255, 0.96) !important;
+    border-bottom: 1px solid rgba(17, 24, 39, 0.10) !important;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12) !important;
+    backdrop-filter: blur(12px) !important;
+    padding: 7px 0 !important;
+}
+
+body[data-theme="light"] .nav-container,
+[data-theme="light"] .nav-container {
+    min-height: 68px !important;
+}
+
+body[data-theme="light"] .marca,
+[data-theme="light"] .marca {
+    gap: 12px !important;
+}
+
+body[data-theme="light"] .nav-logo,
+[data-theme="light"] .nav-logo {
+    height: 52px !important;
+    max-height: 52px !important;
+    width: auto !important;
+    object-fit: contain !important;
+    filter: drop-shadow(0 6px 12px rgba(255, 102, 0, 0.18)) !important;
+}
+
+body[data-theme="light"] .logo-texto,
+[data-theme="light"] .logo-texto {
+    color: var(--naranja-sterak, #ff6600) !important;
+    font-size: clamp(1.55rem, 2.4vw, 2rem) !important;
+    text-shadow: none !important;
+}
+
+/* HERO EN MODO CLARO: menos gigante, menos lavado, más legible */
+body[data-theme="light"] .hero-solo-fondo,
+[data-theme="light"] .hero-solo-fondo {
+    background-image:
+        linear-gradient(90deg, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.54) 44%, rgba(255,255,255,0.84) 100%),
+        url('../img/fondo-buffet.png') !important;
+    background-size: 100% auto !important;
+    background-position: center 46% !important;
+    background-repeat: no-repeat !important;
+    background-color: #f8fafc !important;
+}
+
+body[data-theme="light"] .hero-solo-fondo .hero-content,
+[data-theme="light"] .hero-solo-fondo .hero-content {
+    min-height: 330px !important;
+    padding-top: 28px !important;
+    padding-bottom: 28px !important;
+}
+
+body[data-theme="light"] .hero-menu-moderno,
+[data-theme="light"] .hero-menu-moderno {
+    margin-bottom: 20px !important;
+}
+
+body[data-theme="light"] .hero-menu-moderno .hero-kicker,
+[data-theme="light"] .hero-menu-moderno .hero-kicker {
+    color: var(--naranja-sterak, #ff6600) !important;
+    text-shadow: none !important;
+}
+
+body[data-theme="light"] .hero-menu-moderno .hero-texto h1,
+[data-theme="light"] .hero-menu-moderno .hero-texto h1 {
+    color: #111827 !important;
+    text-shadow: 0 2px 12px rgba(255,255,255,0.85) !important;
+}
+
+body[data-theme="light"] .hero-menu-moderno .hero-texto p,
+[data-theme="light"] .hero-menu-moderno .hero-texto p {
+    color: #374151 !important;
+    text-shadow: 0 1px 8px rgba(255,255,255,0.90) !important;
+    font-weight: 700 !important;
+}
+
+/* Logo grande del hero en claro: más fino, menos invasivo */
+body[data-theme="light"] .hero-logo-side--solo img,
+[data-theme="light"] .hero-logo-side--solo img {
+    width: 128px !important;
+    opacity: 0.96 !important;
+    filter: drop-shadow(0 8px 16px rgba(15, 23, 42, 0.22)) !important;
+}
+
+/* Franja de descuento más limpia en claro */
+body[data-theme="light"] .franja-descuento,
+[data-theme="light"] .franja-descuento {
+    box-shadow: 0 8px 20px rgba(255,102,0,0.16) inset !important;
+}
+
+/* En pantallas chicas, el hero claro no ocupa tanto */
+@media (max-width: 768px) {
+    body[data-theme="light"] .nav-logo,
+    [data-theme="light"] .nav-logo {
+        height: 46px !important;
+        max-height: 46px !important;
+    }
+
+    body[data-theme="light"] .hero-solo-fondo,
+    [data-theme="light"] .hero-solo-fondo {
+        background-size: auto 100% !important;
+        background-position: center center !important;
+    }
+
+    body[data-theme="light"] .hero-solo-fondo .hero-content,
+    [data-theme="light"] .hero-solo-fondo .hero-content {
+        min-height: 300px !important;
+    }
+
+    body[data-theme="light"] .hero-logo-side--solo img,
+    [data-theme="light"] .hero-logo-side--solo img {
+        width: 104px !important;
+    }
+}
+
