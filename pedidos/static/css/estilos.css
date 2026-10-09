@@ -7318,3 +7318,58 @@ body[data-theme="light"] .hero-solo-fondo,
     }
 }
 
+
+/* ==========================================================================
+   RESPALDO FIX AGRESIVO CABECERA COMANDA POS
+   ========================================================================== */
+
+.salon-pos__lista-head,
+.salon-pos__lista-head--fix,
+.salon-pos__lista-head--columnas-fijas,
+.salon-pos__fila-pos {
+    display: grid !important;
+    grid-template-columns: 140px 105px minmax(260px, 1fr) 130px 130px !important;
+    column-gap: 14px !important;
+    align-items: center !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.salon-pos__lista-head,
+.salon-pos__lista-head--fix,
+.salon-pos__lista-head--columnas-fijas {
+    padding: 0 12px !important;
+    min-height: 38px !important;
+}
+
+.salon-pos__lista-head > span,
+.salon-pos__lista-head--fix > span,
+.salon-pos__lista-head--columnas-fijas > span {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+}
+
+.salon-pos__fila-pos {
+    padding: 8px 12px !important;
+}
+
+.salon-pos__fila-cant { grid-column: 1 !important; justify-content: center !important; }
+.salon-pos__fila-codigo { grid-column: 2 !important; text-align: left !important; }
+.salon-pos__fila-descripcion { grid-column: 3 !important; text-align: left !important; min-width: 0 !important; }
+.salon-pos__fila-unitario { grid-column: 4 !important; text-align: right !important; white-space: nowrap !important; }
+.salon-pos__fila-total { grid-column: 5 !important; text-align: right !important; white-space: nowrap !important; }
+
+@media (max-width: 900px) {
+    .salon-pos__lista-head,
+    .salon-pos__lista-head--fix,
+    .salon-pos__lista-head--columnas-fijas {
+        display: none !important;
+    }
+
+    .salon-pos__fila-pos {
+        grid-template-columns: 1fr !important;
+    }
+}
+

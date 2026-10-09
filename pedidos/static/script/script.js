@@ -3305,3 +3305,174 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 })();
 
+
+// ==========================================================================
+// FIX AGRESIVO CABECERA COMANDA POS
+// Detecta la cabecera aunque no tenga la clase esperada.
+(function () {
+    var GRID = "140px 105px minmax(260px, 1fr) 130px 130px";
+
+    function normalizar(texto) {
+        return String(texto || "")
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/\s+/g, " ")
+            .trim();
+    }
+
+    function aplicarGrid(el) {
+        if (!el) return;
+
+        el.style.setProperty("display", "grid", "important");
+        el.style.setProperty("grid-template-columns", GRID, "important");
+        el.style.setProperty("column-gap", "14px", "important");
+        el.style.setProperty("align-items", "center", "important");
+        el.style.setProperty("width", "100%", "important");
+        el.style.setProperty("box-sizing", "border-box", "important");
+    }
+
+    function aplicarHeader(head) {
+        if (!head) return;
+
+        head.classList.add("salon-pos__lista-head", "salon-pos__lista-head--columnas-fijas");
+        head.innerHTML =
+            '<span class="pos-head-cant">Cant.</span>' +
+            '<span class="pos-head-codigo">Cód.</span>' +
+            '<span class="pos-head-desc">Descripción</span>' +
+            '<span class="pos-head-unitario">Unitario</span>' +
+            '<span class="pos-head-total">Total</span>';
+
+        aplicarGrid(head);
+
+        head.style.setProperty("min-height", "38px", "important");
+        head.style.setProperty("padding", "0 12px", "important");
+        head.style.setProperty("font-size", ".74rem", "important");
+        head.style.setProperty("font-weight", "950", "important");
+        head.style.setProperty("text-transform", "uppercase", "important");
+        head.style.setProperty("letter-spacing", ".04em", "important");
+        head.style.setProperty("border-bottom", "1px solid #dfe3e8", "important");
+        head.style.setProperty("background", "#f3f5f8", "important");
+        head.style.setProperty("color", "#687282", "important");
+
+        Array.prototype.forEach.call(head.children, function (span, index) {
+            span.style.setProperty("display", "block", "important");
+            span.style.setProperty("min-width", "0", "important");
+            span.style.setProperty("overflow", "hidden", "important");
+            span.style.setProperty("text-overflow", "ellipsis", "important");
+            span.style.setProperty("white-space", "nowrap", "important");
+            span.style.setProperty("grid-column", String(index + 1), "important");
+            span.style.setProperty("text-align", index === 0 ? "center" : (index >= 3 ? "right" : "left"), "important");
+        });
+    }
+
+    function posiblesHeaders() {
+        var modal = document.getElementById("salon-comanda-modal") || document;
+        var directos = Array.prototype.slice.call(
+            modal.querySelectorAll(".salon-pos__lista-head, .salon-pos__lista-head--fix, .salon-pos__lista-head--columnas-fijas")
+        );
+
+        var porTexto = Array.prototype.slice.call(modal.querySelectorAll("div, section, header")).filter(function (el) {
+            var texto = normalizar(el.textContent);
+            if (!texto) return false;
+
+            var pareceHeader =
+                texto.indexOf("cant") !== -1 &&
+                (texto.indexOf("cod") !== -1 || texto.indexOf("codigo") !== -1) &&
+                texto.indexOf("descripcion") !== -1;
+
+            if (!pareceHeader) return false;
+            if (el.querySelector("button, input, select, textarea")) return false;
+            if (el.querySelector(".salon-pos__fila-pos")) return false;
+            if (texto.length > 80) return false;
+
+            return true;
+        });
+
+        return directos.concat(porTexto).filter(function (el, index, arr) {
+            return el && arr.indexOf(el) === index;
+        });
+    }
+
+    function aplicarCelda(el, col, align) {
+        if (!el) return;
+        el.style.setProperty("grid-column", String(col), "important");
+        el.style.setProperty("min-width", "0", "important");
+        el.style.setProperty("text-align", align, "important");
+
+        if (col >= 4) {
+            el.style.setProperty("white-space", "nowrap", "important");
+            el.style.setProperty("font-weight", "950", "important");
+        }
+    }
+
+    function aplicarFila(fila) {
+        if (!fila) return;
+
+        aplicarGrid(fila);
+        fila.style.setProperty("min-height", "58px", "important");
+        fila.style.setProperty("padding", "8px 12px", "important");
+
+        aplicarCelda(fila.querySelector(".salon-pos__fila-cant"), 1, "center");
+        aplicarCelda(fila.querySelector(".salon-pos__fila-codigo"), 2, "left");
+        aplicarCelda(fila.querySelector(".salon-pos__fila-descripcion"), 3, "left");
+        aplicarCelda(fila.querySelector(".salon-pos__fila-unitario"), 4, "right");
+        aplicarCelda(fila.querySelector(".salon-pos__fila-total"), 5, "right");
+
+        var nombre = fila.querySelector(".salon-pos__fila-descripcion > strong");
+        if (nombre) {
+            nombre.style.setProperty("white-space", "normal", "important");
+            nombre.style.setProperty("overflow", "visible", "important");
+            nombre.style.setProperty("text-overflow", "clip", "important");
+        }
+    }
+
+    function arreglarComanda() {
+        posiblesHeaders().forEach(aplicarHeader);
+        document.querySelectorAll(".salon-pos__fila-pos").forEach(aplicarFila);
+    }
+
+    function observar() {
+        var modal = document.getElementById("salon-comanda-modal") || document.body;
+        if (!modal || modal.dataset.comandaColumnasObserver === "1") return;
+
+        modal.dataset.comandaColumnasObserver = "1";
+        var observer = new MutationObserver(function () {
+            arreglarComanda();
+        });
+
+        observer.observe(modal, {
+            childList: true,
+            subtree: true,
+            characterData: true
+        });
+    }
+
+    function iniciar() {
+        arreglarComanda();
+        observar();
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", iniciar);
+    } else {
+        iniciar();
+    }
+
+    window.addEventListener("load", iniciar);
+
+    [50, 150, 400, 900, 1600, 2600].forEach(function (t) {
+        window.setTimeout(iniciar, t);
+    });
+
+    document.addEventListener("click", function () {
+        window.setTimeout(iniciar, 40);
+        window.setTimeout(iniciar, 180);
+        window.setTimeout(iniciar, 600);
+    });
+
+    document.addEventListener("input", function () {
+        window.setTimeout(iniciar, 80);
+    });
+})();
+
