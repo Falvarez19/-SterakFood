@@ -3471,3 +3471,206 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 })();
 
+
+// ==========================================================================
+// FIX OCULTAR LINEA VIEJA CABECERA COMANDA
+// Oculta cualquier cabecera antigua que haya quedado arriba del header nuevo.
+(function () {
+    function normalizar(texto) {
+        return String(texto || "")
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/\s+/g, "")
+            .trim();
+    }
+
+    function ocultarElemento(el) {
+        if (!el || el.id === "comanda-header-nuevo") return;
+        el.classList.add("comanda-header-viejo-oculto");
+        el.style.setProperty("display", "none", "important");
+        el.style.setProperty("height", "0", "important");
+        el.style.setProperty("min-height", "0", "important");
+        el.style.setProperty("max-height", "0", "important");
+        el.style.setProperty("padding", "0", "important");
+        el.style.setProperty("margin", "0", "important");
+        el.style.setProperty("border", "0", "important");
+        el.style.setProperty("overflow", "hidden", "important");
+        el.style.setProperty("opacity", "0", "important");
+        el.style.setProperty("visibility", "hidden", "important");
+    }
+
+    function ocultarLineaVieja() {
+        var modal = document.getElementById("salon-comanda-modal") || document;
+        var nuevo = document.getElementById("comanda-header-nuevo");
+
+        modal.querySelectorAll(".salon-pos__lista-head, .salon-pos__lista-head--fix, .salon-pos__lista-head--real, .salon-pos__lista-head--columnas-fijas").forEach(function (el) {
+            ocultarElemento(el);
+        });
+
+        // Si quedó una línea de texto suelta arriba del header nuevo, la detectamos por contenido.
+        modal.querySelectorAll("div, section, header, p, span").forEach(function (el) {
+            if (!el || el.id === "comanda-header-nuevo") return;
+            if (nuevo && nuevo.contains(el)) return;
+            if (el.querySelector("button,input,select,textarea")) return;
+            if (el.querySelector("#comanda-header-nuevo")) return;
+            if (el.querySelector(".salon-pos__fila-pos")) return;
+
+            var texto = normalizar(el.textContent);
+            if (!texto) return;
+
+            var pareceCabecera =
+                texto === "cant.codigo.descripcionunitariototal" ||
+                texto === "cant.cod.descripcionunitariototal" ||
+                texto === "cant.cod.descripcionunitario" ||
+                texto === "cant.codigodescripcionunitario" ||
+                (
+                    texto.indexOf("cant") !== -1 &&
+                    texto.indexOf("codigo") !== -1 &&
+                    texto.indexOf("descripcion") !== -1 &&
+                    texto.length <= 55
+                );
+
+            if (pareceCabecera) {
+                ocultarElemento(el);
+            }
+        });
+    }
+
+    function iniciarOcultador() {
+        ocultarLineaVieja();
+
+        var modal = document.getElementById("salon-comanda-modal") || document.body;
+        if (modal && modal.dataset.ocultarHeaderViejoObserver !== "1") {
+            modal.dataset.ocultarHeaderViejoObserver = "1";
+            new MutationObserver(function () {
+                window.requestAnimationFrame(ocultarLineaVieja);
+            }).observe(modal, {
+                childList: true,
+                subtree: true,
+                characterData: true
+            });
+        }
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", iniciarOcultador);
+    } else {
+        iniciarOcultador();
+    }
+
+    window.addEventListener("load", iniciarOcultador);
+    [100, 300, 800, 1500, 2500].forEach(function (t) {
+        window.setTimeout(iniciarOcultador, t);
+    });
+
+    document.addEventListener("click", function () {
+        window.setTimeout(ocultarLineaVieja, 60);
+        window.setTimeout(ocultarLineaVieja, 250);
+    });
+})();
+
+
+// ==========================================================================
+// FIX MESA VACÍA COMANDA POS
+// Oculta la cabecera cuando no hay productos y centra "Mesa vacía".
+(function () {
+    function tieneProductosComanda(lista) {
+        if (!lista) return false;
+
+        if (lista.querySelector(".salon-pos__fila-pos")) return true;
+        if (lista.querySelector("tr")) return true;
+
+        return String(lista.textContent || "").trim().length > 0;
+    }
+
+    function arreglarMesaVaciaComanda() {
+        var lista = document.getElementById("lista-comanda");
+        var vacia = document.getElementById("salon-lista-vacia");
+        var headerNuevo = document.getElementById("comanda-header-nuevo");
+        var wrap = lista ? lista.closest(".salon-pos__tabla-wrap") : null;
+
+        var hayProductos = tieneProductosComanda(lista);
+
+        if (wrap) {
+            wrap.classList.toggle("is-empty", !hayProductos);
+            wrap.classList.toggle("has-products", hayProductos);
+        }
+
+        if (headerNuevo) {
+            headerNuevo.style.setProperty("display", hayProductos ? "block" : "none", "important");
+            headerNuevo.style.setProperty("height", hayProductos ? "38px" : "0", "important");
+            headerNuevo.style.setProperty("min-height", hayProductos ? "38px" : "0", "important");
+            headerNuevo.style.setProperty("margin", hayProductos ? "8px 0 0" : "0", "important");
+            headerNuevo.style.setProperty("padding", hayProductos ? "0 12px" : "0", "important");
+            headerNuevo.style.setProperty("overflow", "hidden", "important");
+            headerNuevo.style.setProperty("visibility", hayProductos ? "visible" : "hidden", "important");
+            headerNuevo.style.setProperty("opacity", hayProductos ? "1" : "0", "important");
+        }
+
+        if (vacia) {
+            if (hayProductos) {
+                vacia.hidden = true;
+                vacia.style.setProperty("display", "none", "important");
+            } else {
+                vacia.hidden = false;
+                vacia.style.setProperty("display", "flex", "important");
+                vacia.style.setProperty("position", "relative", "important");
+                vacia.style.setProperty("inset", "auto", "important");
+                vacia.style.setProperty("transform", "none", "important");
+                vacia.style.setProperty("width", "100%", "important");
+                vacia.style.setProperty("min-height", "96px", "important");
+                vacia.style.setProperty("align-items", "center", "important");
+                vacia.style.setProperty("justify-content", "center", "important");
+                vacia.style.setProperty("flex-direction", "column", "important");
+                vacia.style.setProperty("text-align", "center", "important");
+                vacia.style.setProperty("margin", "8px 0 0", "important");
+                vacia.style.setProperty("pointer-events", "none", "important");
+            }
+        }
+    }
+
+    function iniciarFixMesaVacia() {
+        arreglarMesaVaciaComanda();
+
+        var modal = document.getElementById("salon-comanda-modal") || document.body;
+        if (modal && modal.dataset.mesaVaciaObserver !== "1") {
+            modal.dataset.mesaVaciaObserver = "1";
+
+            new MutationObserver(function () {
+                window.requestAnimationFrame(arreglarMesaVaciaComanda);
+                window.setTimeout(arreglarMesaVaciaComanda, 80);
+            }).observe(modal, {
+                childList: true,
+                subtree: true,
+                characterData: true,
+                attributes: true
+            });
+        }
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", iniciarFixMesaVacia);
+    } else {
+        iniciarFixMesaVacia();
+    }
+
+    window.addEventListener("load", iniciarFixMesaVacia);
+    window.addEventListener("resize", arreglarMesaVaciaComanda);
+
+    [80, 200, 500, 1000, 1800, 3000].forEach(function (t) {
+        window.setTimeout(iniciarFixMesaVacia, t);
+    });
+
+    document.addEventListener("click", function () {
+        window.setTimeout(arreglarMesaVaciaComanda, 50);
+        window.setTimeout(arreglarMesaVaciaComanda, 180);
+        window.setTimeout(arreglarMesaVaciaComanda, 500);
+    });
+
+    document.addEventListener("input", function () {
+        window.setTimeout(arreglarMesaVaciaComanda, 80);
+        window.setTimeout(arreglarMesaVaciaComanda, 220);
+    });
+})();
+

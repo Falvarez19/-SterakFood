@@ -6914,3 +6914,91 @@ body[data-theme="light"] .hero-solo-fondo,
     }
 }
 
+
+/* ==========================================================================
+   FIX OCULTAR LINEA VIEJA CABECERA COMANDA
+   ========================================================================== */
+
+.comanda-header-viejo-oculto {
+    display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* Toda cabecera vieja con estas clases queda oculta.
+   La única visible debe ser #comanda-header-nuevo. */
+.salon-pos__lista-head:not(#comanda-header-nuevo),
+.salon-pos__lista-head--fix:not(#comanda-header-nuevo),
+.salon-pos__lista-head--real:not(#comanda-header-nuevo),
+.salon-pos__lista-head--columnas-fijas:not(#comanda-header-nuevo) {
+    display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* ==========================================================================
+   FIX MESA VACÍA COMANDA POS
+   ========================================================================== */
+
+.salon-pos__tabla-wrap.is-empty #comanda-header-nuevo,
+.salon-pos__tabla-wrap.is-empty .comanda-header-nuevo {
+    display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+.salon-pos__tabla-wrap.is-empty .salon-pos__tabla {
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+}
+
+.salon-pos__tabla-wrap.is-empty #lista-comanda {
+    display: none !important;
+}
+
+.salon-pos__tabla-wrap.is-empty #salon-lista-vacia,
+#salon-lista-vacia:not([hidden]) {
+    display: flex !important;
+    position: relative !important;
+    inset: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    min-height: 96px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-direction: column !important;
+    text-align: center !important;
+    margin: 8px 0 0 !important;
+    padding: 14px !important;
+    pointer-events: none !important;
+}
+
+.salon-pos__tabla-wrap.has-products #salon-lista-vacia {
+    display: none !important;
+}
+
+.salon-pos__tabla-wrap.has-products #lista-comanda {
+    display: table-row-group !important;
+}
+
