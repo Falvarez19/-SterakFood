@@ -3674,3 +3674,133 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 })();
 
+
+// ==========================================================================
+// STERAKFOOD V100 - CUENTAS: NO SALTAR AL INICIO + ENTER AVANZA CAMPOS
+// ==========================================================================
+
+(function () {
+    function abrirCuentasDesdeUrl() {
+        var params = new URLSearchParams(window.location.search);
+        var tab = params.get('tab');
+        var hash = window.location.hash || '';
+
+        if (tab !== 'cuentas' && hash.indexOf('cuenta-') === -1 && hash !== '#tab-cuentas') {
+            return;
+        }
+
+        var btn = document.getElementById('btn-tab-cuentas');
+
+        if (typeof abrirTab === 'function') {
+            abrirTab('cuentas', btn);
+        }
+
+        if (hash.indexOf('cuenta-') !== -1) {
+            var cuenta = document.querySelector(hash);
+            if (cuenta) {
+                cuenta.open = true;
+                window.setTimeout(function () {
+                    cuenta.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                }, 120);
+            }
+        }
+    }
+
+    function camposNavegables(form) {
+        return Array.prototype.slice.call(
+            form.querySelectorAll(
+                'input:not([type="hidden"]):not([type="checkbox"]), select, textarea, button[type="submit"]'
+            )
+        ).filter(function (campo) {
+            return (
+                !campo.disabled
+                &&
+                campo.offsetParent !== null
+            );
+        });
+    }
+
+    function instalarEnterCuentas() {
+        var panel = document.querySelector('.cuentas-panel');
+
+        if (!panel || panel.dataset.enterCuentasV100 === '1') {
+            return;
+        }
+
+        panel.dataset.enterCuentasV100 = '1';
+
+        panel.addEventListener('keydown', function (event) {
+            if (event.key !== 'Enter') {
+                return;
+            }
+
+            var target = event.target;
+
+            if (!target.matches('input, select, textarea')) {
+                return;
+            }
+
+            // En textarea dejamos Shift+Enter para salto de línea si algún día se usa.
+            if (target.tagName === 'TEXTAREA' && event.shiftKey) {
+                return;
+            }
+
+            var form = target.closest('form');
+
+            if (!form || !panel.contains(form)) {
+                return;
+            }
+
+            var campos = camposNavegables(form);
+            var index = campos.indexOf(target);
+
+            if (index === -1) {
+                return;
+            }
+
+            event.preventDefault();
+
+            var siguiente = campos[index + 1];
+
+            if (siguiente) {
+                siguiente.focus();
+
+                if (
+                    siguiente.tagName === 'INPUT'
+                    &&
+                    siguiente.type !== 'file'
+                    &&
+                    typeof siguiente.select === 'function'
+                ) {
+                    siguiente.select();
+                }
+
+                return;
+            }
+
+            // Si ya estás en el último campo, recién ahí manda el formulario.
+            var boton = form.querySelector('button[type="submit"]');
+            if (boton) {
+                boton.focus();
+                boton.click();
+            }
+        });
+    }
+
+    function iniciarCuentasV100() {
+        abrirCuentasDesdeUrl();
+        instalarEnterCuentas();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', iniciarCuentasV100);
+    } else {
+        iniciarCuentasV100();
+    }
+
+    window.addEventListener('load', iniciarCuentasV100);
+})();
+

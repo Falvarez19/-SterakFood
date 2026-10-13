@@ -7330,3 +7330,186 @@ body[data-theme="light"] .hero-solo-fondo,
         grid-template-columns: 1fr;
     }
 }
+
+/* ==========================================================================
+   STERAKFOOD V99 - CUENTAS PLEGABLES COMPACTAS
+   ========================================================================== */
+
+.cuentas-lista {
+    gap: 10px !important;
+}
+
+.cuenta-card {
+    padding: 0 !important;
+    overflow: hidden !important;
+    border-radius: 16px !important;
+}
+
+.cuenta-card__summary {
+    list-style: none !important;
+    cursor: pointer !important;
+    padding: 13px 16px !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 14px !important;
+    align-items: center !important;
+}
+
+.cuenta-card__summary::-webkit-details-marker {
+    display: none !important;
+}
+
+.cuenta-card__top {
+    margin: 0 !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 16px !important;
+    width: 100% !important;
+}
+
+.cuenta-card__persona {
+    min-width: 0 !important;
+}
+
+.cuenta-card__estado {
+    margin: 0 0 5px !important;
+    padding: 3px 8px !important;
+    font-size: .64rem !important;
+}
+
+.cuenta-card h3 {
+    margin: 0 0 3px !important;
+    font-size: 1.05rem !important;
+    line-height: 1.1 !important;
+}
+
+.cuenta-card p {
+    font-size: .86rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 620px !important;
+}
+
+.cuenta-card__saldo {
+    min-width: 150px !important;
+    text-align: right !important;
+}
+
+.cuenta-card__saldo small {
+    margin-bottom: 2px !important;
+    font-size: .62rem !important;
+}
+
+.cuenta-card__saldo strong {
+    font-size: 1.05rem !important;
+    line-height: 1.1 !important;
+}
+
+.cuenta-card__toggle {
+    min-width: 92px !important;
+    display: inline-flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 8px 10px !important;
+    border: 1px solid var(--borde) !important;
+    border-radius: 999px !important;
+    background: rgba(255,255,255,.035) !important;
+    color: var(--texto-mutado) !important;
+    font-size: .78rem !important;
+    font-weight: 900 !important;
+}
+
+.cuenta-card__toggle::after {
+    content: "Ver ▼" !important;
+}
+
+.cuenta-card[open] .cuenta-card__toggle::after {
+    content: "Ocultar ▲" !important;
+}
+
+.cuenta-card__body {
+    display: grid !important;
+    gap: 10px !important;
+    padding: 12px 16px 14px !important;
+    border-top: 1px solid var(--borde) !important;
+    background: rgba(0,0,0,.08) !important;
+}
+
+.cuenta-mov-form {
+    margin: 0 !important;
+    padding: 10px !important;
+    grid-template-columns: minmax(160px, .9fr) 115px minmax(180px, 1fr) 95px !important;
+    gap: 8px !important;
+    border-radius: 12px !important;
+}
+
+.cuenta-mov-form input,
+.cuenta-mov-form select {
+    min-height: 36px !important;
+    padding: 7px 10px !important;
+    border-radius: 10px !important;
+}
+
+.cuenta-mov-form button {
+    min-height: 36px !important;
+    padding: 7px 12px !important;
+    border-radius: 10px !important;
+}
+
+.cuenta-historial {
+    gap: 7px !important;
+    max-height: 235px !important;
+    overflow-y: auto !important;
+    padding-right: 3px !important;
+}
+
+.cuenta-historial > strong {
+    font-size: .76rem !important;
+}
+
+.cuenta-movimiento {
+    padding: 8px 9px !important;
+    border-radius: 10px !important;
+    grid-template-columns: minmax(0, 1fr) 100px 32px !important;
+}
+
+.cuenta-movimiento span {
+    font-size: .68rem !important;
+}
+
+.cuenta-movimiento p {
+    font-size: .84rem !important;
+}
+
+.cuenta-eliminar-form {
+    margin-top: 0 !important;
+}
+
+.cuenta-eliminar-form button {
+    min-height: 32px !important;
+    padding: 7px 10px !important;
+    font-size: .78rem !important;
+}
+
+@media (max-width: 760px) {
+    .cuenta-card__summary,
+    .cuenta-card__top {
+        grid-template-columns: 1fr !important;
+    }
+
+    .cuenta-card__saldo {
+        text-align: left !important;
+        min-width: 0 !important;
+    }
+
+    .cuenta-card__toggle {
+        width: 100% !important;
+    }
+
+    .cuenta-mov-form {
+        grid-template-columns: 1fr !important;
+    }
+}
+

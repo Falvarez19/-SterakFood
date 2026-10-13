@@ -10,6 +10,7 @@ from decimal import Decimal, InvalidOperation
 from django.conf import settings
 from django.core.management import call_command
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 from django.http import JsonResponse, HttpResponse, Http404
 from django.contrib import messages
 from django.contrib.staticfiles import finders
@@ -393,6 +394,16 @@ def login_dashboard(request):
 
 
 
+
+def _redirect_tab_cuentas(cuenta_id=None):
+    url = reverse('pedidos:panel_control') + '?tab=cuentas'
+    if cuenta_id:
+        url += f'#cuenta-{cuenta_id}'
+    else:
+        url += '#tab-cuentas'
+    return redirect(url)
+
+
 def _decimal_desde_form(valor):
     valor = str(valor or '').strip().replace('$', '').replace(' ', '')
     if not valor:
@@ -516,7 +527,7 @@ def crear_cuenta_corriente(request):
     if not request.session.get('dashboard_auth'):
         return redirect('pedidos:login_dashboard')
     if request.method != 'POST':
-        return redirect('pedidos:panel_control')
+        return _redirect_tab_cuentas()
 
     nombre = request.POST.get('nombre', '').strip()
     telefono = request.POST.get('telefono', '').strip()
@@ -526,7 +537,7 @@ def crear_cuenta_corriente(request):
 
     if not nombre:
         messages.error(request, 'Ingresá el nombre de la persona.')
-        return redirect('pedidos:panel_control')
+        return _redirect_tab_cuentas()
 
     cuenta = CuentaCorriente.objects.create(
         nombre=nombre,
@@ -557,14 +568,14 @@ def crear_cuenta_corriente(request):
         )
 
     messages.success(request, f'Cuenta creada para {cuenta.nombre}.')
-    return redirect('pedidos:panel_control')
+    return _redirect_tab_cuentas(cuenta.id)
 
 
 def agregar_movimiento_cuenta(request, cuenta_id):
     if not request.session.get('dashboard_auth'):
         return redirect('pedidos:login_dashboard')
     if request.method != 'POST':
-        return redirect('pedidos:panel_control')
+        return _redirect_tab_cuentas()
 
     cuenta = get_object_or_404(CuentaCorriente, id=cuenta_id)
     tipo_form = request.POST.get('tipo', 'consumo')
@@ -574,11 +585,11 @@ def agregar_movimiento_cuenta(request, cuenta_id):
         monto = abs(_decimal_desde_form(request.POST.get('monto', '0')))
     except (InvalidOperation, ValueError):
         messages.error(request, 'Ingresá un monto válido.')
-        return redirect('pedidos:panel_control')
+        return _redirect_tab_cuentas(cuenta.id)
 
     if monto <= 0:
         messages.error(request, 'El monto tiene que ser mayor a cero.')
-        return redirect('pedidos:panel_control')
+        return _redirect_tab_cuentas(cuenta.id)
 
     if tipo_form == 'consumo':
         monto_final = monto * Decimal('-1')
@@ -602,7 +613,7 @@ def agregar_movimiento_cuenta(request, cuenta_id):
         descripcion = descripcion or 'Ajuste: a favor'
     else:
         messages.error(request, 'Tipo de movimiento inválido.')
-        return redirect('pedidos:panel_control')
+        return _redirect_tab_cuentas(cuenta.id)
 
     MovimientoCuentaCorriente.objects.create(
         cuenta=cuenta,
@@ -612,7 +623,7 @@ def agregar_movimiento_cuenta(request, cuenta_id):
     )
 
     messages.success(request, f'Movimiento agregado a {cuenta.nombre}.')
-    return redirect('pedidos:panel_control')
+    return _redirect_tab_cuentas(cuenta.id)
 
 
 def eliminar_movimiento_cuenta(request, movimiento_id):
@@ -621,9 +632,11 @@ def eliminar_movimiento_cuenta(request, movimiento_id):
     movimiento = get_object_or_404(MovimientoCuentaCorriente, id=movimiento_id)
     if request.method == 'POST':
         nombre = movimiento.cuenta.nombre
+        cuenta_id = movimiento.cuenta_id
         movimiento.delete()
         messages.success(request, f'Movimiento eliminado de {nombre}.')
-    return redirect('pedidos:panel_control')
+        return _redirect_tab_cuentas(cuenta_id)
+    return _redirect_tab_cuentas()
 
 
 def eliminar_cuenta_corriente(request, cuenta_id):
@@ -634,7 +647,7 @@ def eliminar_cuenta_corriente(request, cuenta_id):
         nombre = cuenta.nombre
         cuenta.delete()
         messages.success(request, f'Cuenta eliminada: {nombre}.')
-    return redirect('pedidos:panel_control')
+    return _redirect_tab_cuentas()
 
 def agregar_producto(request):
     Categoria.objects.get_or_create(nombre='Salon')

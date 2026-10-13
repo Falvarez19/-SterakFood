@@ -951,29 +951,33 @@
 
             <div class="cuentas-lista">
                 {% for cuenta in cuentas_corrientes %}
-                    <article class="cuenta-card cuenta-card--{{ cuenta.estado_clase }}">
-                        <div class="cuenta-card__top">
-                            <div>
-                                <span class="cuenta-card__estado">{{ cuenta.estado_panel }}</span>
-                                <h3>{{ cuenta.nombre }}</h3>
-                                <p>
-                                    {% if cuenta.telefono %}📞 {{ cuenta.telefono }}{% else %}Sin teléfono{% endif %}
-                                    {% if cuenta.nota %} · {{ cuenta.nota }}{% endif %}
-                                </p>
+                    <details id="cuenta-{{ cuenta.id }}" class="cuenta-card cuenta-card--{{ cuenta.estado_clase }}">
+                        <summary class="cuenta-card__summary">
+                            <div class="cuenta-card__top">
+                                <div class="cuenta-card__persona">
+                                    <span class="cuenta-card__estado">{{ cuenta.estado_panel }}</span>
+                                    <h3>{{ cuenta.nombre }}</h3>
+                                    <p>
+                                        {% if cuenta.telefono %}📞 {{ cuenta.telefono }}{% else %}Sin teléfono{% endif %}
+                                        {% if cuenta.nota %} · {{ cuenta.nota }}{% endif %}
+                                    </p>
+                                </div>
+                                <div class="cuenta-card__saldo">
+                                    <small>Saldo</small>
+                                    {% if cuenta.saldo_panel < 0 %}
+                                        <strong class="is-deuda">Debe ${{ cuenta.saldo_abs|floatformat:0 }}</strong>
+                                    {% elif cuenta.saldo_panel > 0 %}
+                                        <strong class="is-favor">A favor ${{ cuenta.saldo_abs|floatformat:0 }}</strong>
+                                    {% else %}
+                                        <strong>Al día</strong>
+                                    {% endif %}
+                                </div>
                             </div>
-                            <div class="cuenta-card__saldo">
-                                <small>Saldo</small>
-                                {% if cuenta.saldo_panel < 0 %}
-                                    <strong class="is-deuda">Debe ${{ cuenta.saldo_abs|floatformat:0 }}</strong>
-                                {% elif cuenta.saldo_panel > 0 %}
-                                    <strong class="is-favor">A favor ${{ cuenta.saldo_abs|floatformat:0 }}</strong>
-                                {% else %}
-                                    <strong>Al día</strong>
-                                {% endif %}
-                            </div>
-                        </div>
+                            <span class="cuenta-card__toggle" aria-hidden="true"></span>
+                        </summary>
 
-                        <form class="cuenta-mov-form" action="{% url 'pedidos:agregar_movimiento_cuenta' cuenta.id %}" method="post">
+                        <div class="cuenta-card__body">
+                            <form class="cuenta-mov-form" action="{% url 'pedidos:agregar_movimiento_cuenta' cuenta.id %}" method="post">
                             {% csrf_token %}
                             <select name="tipo">
                                 <option value="consumo">Consumo / suma deuda</option>
@@ -1012,11 +1016,12 @@
                             {% endfor %}
                         </div>
 
-                        <form class="cuenta-eliminar-form" action="{% url 'pedidos:eliminar_cuenta_corriente' cuenta.id %}" method="post" onsubmit="return confirm('¿Eliminar la cuenta completa de {{ cuenta.nombre }}?');">
-                            {% csrf_token %}
-                            <button type="submit">🗑 Eliminar cuenta</button>
-                        </form>
-                    </article>
+                            <form class="cuenta-eliminar-form" action="{% url 'pedidos:eliminar_cuenta_corriente' cuenta.id %}" method="post" onsubmit="return confirm('¿Eliminar la cuenta completa de {{ cuenta.nombre }}?');">
+                                {% csrf_token %}
+                                <button type="submit">🗑 Eliminar cuenta</button>
+                            </form>
+                        </div>
+                    </details>
                 {% empty %}
                     <div class="cuentas-vacio">
                         <span>💳</span>
