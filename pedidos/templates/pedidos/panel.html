@@ -91,6 +91,13 @@
                 <span class="opiniones-badge">{{ opiniones_no_leidas }}</span>
             {% endif %}
         </button>
+        <button
+            class="panel-tab-btn"
+            onclick="abrirTab('cuentas', this)"
+            id="btn-tab-cuentas"
+        >
+            💳 Cuentas
+        </button>
         <button class="panel-tab-btn" onclick="abrirTab('config', this)" id="btn-tab-config">
             ⚙️ Configuración
         </button>
@@ -874,6 +881,153 @@
             {% endfor %}
         </div>
     </div>
+
+    <!-- # TAB CUENTAS CORRIENTES -->
+    <div id="tab-cuentas" class="tab-content">
+        <section class="cuentas-panel">
+            <div class="cuentas-panel__header">
+                <div>
+                    <span class="categoria-kicker">CUENTAS CORRIENTES</span>
+                    <h2>💳 Cuentas</h2>
+                    <p>Cargá consumos, pagos y dinero a favor de clientes frecuentes.</p>
+                </div>
+                <div class="cuentas-resumen">
+                    <article>
+                        <small>Total deben</small>
+                        <strong class="is-deuda">${{ cuentas_total_deuda|floatformat:0 }}</strong>
+                    </article>
+                    <article>
+                        <small>Total a favor</small>
+                        <strong class="is-favor">${{ cuentas_total_favor|floatformat:0 }}</strong>
+                    </article>
+                </div>
+            </div>
+
+            <div class="cuentas-layout">
+                <form class="cuentas-form-card" action="{% url 'pedidos:crear_cuenta_corriente' %}" method="post">
+                    {% csrf_token %}
+                    <div class="cuentas-form-card__title">
+                        <strong>+ Nueva cuenta</strong>
+                        <small>Creá una cuenta para una persona.</small>
+                    </div>
+                    <div class="cuentas-form-grid">
+                        <label>
+                            <span>Nombre</span>
+                            <input type="text" name="nombre" placeholder="Ej: Juan Pérez" required>
+                        </label>
+                        <label>
+                            <span>Teléfono</span>
+                            <input type="text" name="telefono" placeholder="Opcional">
+                        </label>
+                        <label>
+                            <span>Saldo inicial</span>
+                            <input type="text" name="saldo_inicial" placeholder="Ej: 10000">
+                        </label>
+                        <label>
+                            <span>Tipo inicial</span>
+                            <select name="estado_inicial">
+                                <option value="debe">Debe</option>
+                                <option value="favor">Dinero a favor</option>
+                            </select>
+                        </label>
+                        <label class="is-full">
+                            <span>Nota</span>
+                            <input type="text" name="nota" placeholder="Opcional: equipo, área, referencia...">
+                        </label>
+                    </div>
+                    <button type="submit" class="cuentas-btn cuentas-btn--crear">Crear cuenta</button>
+                </form>
+
+                <div class="cuentas-ayuda-card">
+                    <strong>Cómo funciona</strong>
+                    <p><b>Consumo</b> aumenta la deuda. <b>Pago</b> o <b>dinero a favor</b> baja la deuda o deja saldo positivo.</p>
+                    <ul>
+                        <li>Saldo positivo: cliente tiene plata a favor.</li>
+                        <li>Saldo negativo: cliente debe.</li>
+                        <li>Saldo cero: cuenta al día.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="cuentas-lista">
+                {% for cuenta in cuentas_corrientes %}
+                    <article class="cuenta-card cuenta-card--{{ cuenta.estado_clase }}">
+                        <div class="cuenta-card__top">
+                            <div>
+                                <span class="cuenta-card__estado">{{ cuenta.estado_panel }}</span>
+                                <h3>{{ cuenta.nombre }}</h3>
+                                <p>
+                                    {% if cuenta.telefono %}📞 {{ cuenta.telefono }}{% else %}Sin teléfono{% endif %}
+                                    {% if cuenta.nota %} · {{ cuenta.nota }}{% endif %}
+                                </p>
+                            </div>
+                            <div class="cuenta-card__saldo">
+                                <small>Saldo</small>
+                                {% if cuenta.saldo_panel < 0 %}
+                                    <strong class="is-deuda">Debe ${{ cuenta.saldo_abs|floatformat:0 }}</strong>
+                                {% elif cuenta.saldo_panel > 0 %}
+                                    <strong class="is-favor">A favor ${{ cuenta.saldo_abs|floatformat:0 }}</strong>
+                                {% else %}
+                                    <strong>Al día</strong>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <form class="cuenta-mov-form" action="{% url 'pedidos:agregar_movimiento_cuenta' cuenta.id %}" method="post">
+                            {% csrf_token %}
+                            <select name="tipo">
+                                <option value="consumo">Consumo / suma deuda</option>
+                                <option value="pago">Pago recibido</option>
+                                <option value="favor">Cargar dinero a favor</option>
+                                <option value="ajuste_debe">Ajuste: debe</option>
+                                <option value="ajuste_favor">Ajuste: a favor</option>
+                            </select>
+                            <input type="text" name="monto" placeholder="Monto" required>
+                            <input type="text" name="descripcion" placeholder="Detalle opcional">
+                            <button type="submit">Agregar</button>
+                        </form>
+
+                        <div class="cuenta-historial">
+                            <strong>Historial</strong>
+                            {% for movimiento in cuenta.movimientos.all|slice:":6" %}
+                                <div class="cuenta-movimiento {% if movimiento.monto < 0 %}is-deuda{% else %}is-favor{% endif %}">
+                                    <div>
+                                        <span>{{ movimiento.fecha|date:"d/m H:i" }}</span>
+                                        <p>{{ movimiento.descripcion|default:movimiento.get_tipo_display }}</p>
+                                    </div>
+                                    <div class="cuenta-movimiento__monto">
+                                        {% if movimiento.monto < 0 %}
+                                            -${{ movimiento.monto|floatformat:0|slice:"1:" }}
+                                        {% else %}
+                                            +${{ movimiento.monto|floatformat:0 }}
+                                        {% endif %}
+                                    </div>
+                                    <form action="{% url 'pedidos:eliminar_movimiento_cuenta' movimiento.id %}" method="post" onsubmit="return confirm('¿Eliminar este movimiento?');">
+                                        {% csrf_token %}
+                                        <button type="submit" title="Eliminar movimiento">×</button>
+                                    </form>
+                                </div>
+                            {% empty %}
+                                <p class="cuenta-historial__vacio">Todavía no hay movimientos.</p>
+                            {% endfor %}
+                        </div>
+
+                        <form class="cuenta-eliminar-form" action="{% url 'pedidos:eliminar_cuenta_corriente' cuenta.id %}" method="post" onsubmit="return confirm('¿Eliminar la cuenta completa de {{ cuenta.nombre }}?');">
+                            {% csrf_token %}
+                            <button type="submit">🗑 Eliminar cuenta</button>
+                        </form>
+                    </article>
+                {% empty %}
+                    <div class="cuentas-vacio">
+                        <span>💳</span>
+                        <strong>Todavía no cargaste cuentas.</strong>
+                        <p>Creá una cuenta arriba para empezar a registrar consumos, pagos o dinero a favor.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+
     <!-- # TAB CONFIGURACIÓN -->
     <div id="tab-config" class="tab-content">
         <section class="config-sistema" data-config-url="{% url 'pedidos:actualizar_configuracion' %}">

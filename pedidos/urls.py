@@ -258,6 +258,37 @@ urlpatterns = [
     ),
 
 
+
+
+    # ======================================================================
+    # 4.B CUENTAS CORRIENTES
+    # ======================================================================
+
+    path(
+        'dashboard/cuentas/crear/',
+        views.crear_cuenta_corriente,
+        name='crear_cuenta_corriente'
+    ),
+
+    path(
+        'dashboard/cuentas/<int:cuenta_id>/movimiento/',
+        views.agregar_movimiento_cuenta,
+        name='agregar_movimiento_cuenta'
+    ),
+
+    path(
+        'dashboard/cuentas/<int:cuenta_id>/eliminar/',
+        views.eliminar_cuenta_corriente,
+        name='eliminar_cuenta_corriente'
+    ),
+
+    path(
+        'dashboard/cuentas/movimiento/<int:movimiento_id>/eliminar/',
+        views.eliminar_movimiento_cuenta,
+        name='eliminar_movimiento_cuenta'
+    ),
+
+
     # ======================================================================
     # 5. POS DE SALÓN
     # ======================================================================

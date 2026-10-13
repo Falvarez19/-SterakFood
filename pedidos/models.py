@@ -167,3 +167,56 @@ class OpinionCliente(models.Model):
 
     def __str__(self):
         return f"{self.get_tipo_display()} - {self.fecha_creacion.strftime('%d/%m %H:%M')}"
+
+
+
+# ==========================================
+# MODELO: CUENTAS CORRIENTES DE CLIENTES
+# ==========================================
+class CuentaCorriente(models.Model):
+    nombre = models.CharField(max_length=120)
+    telefono = models.CharField(max_length=30, blank=True, default='')
+    nota = models.TextField(blank=True, default='')
+    activa = models.BooleanField(default=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['nombre']
+        verbose_name = 'Cuenta corriente'
+        verbose_name_plural = 'Cuentas corrientes'
+
+    def __str__(self):
+        return self.nombre
+
+    @property
+    def saldo_actual(self):
+        total = self.movimientos.aggregate(total=models.Sum('monto')).get('total')
+        return total or 0
+
+
+class MovimientoCuentaCorriente(models.Model):
+    TIPO_CHOICES = [
+        ('consumo', 'Consumo'),
+        ('pago', 'Pago'),
+        ('favor', 'Dinero a favor'),
+        ('ajuste', 'Ajuste manual'),
+    ]
+
+    cuenta = models.ForeignKey(
+        CuentaCorriente,
+        related_name='movimientos',
+        on_delete=models.CASCADE,
+    )
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='consumo')
+    descripcion = models.CharField(max_length=180, blank=True, default='')
+    monto = models.DecimalField(max_digits=12, decimal_places=2)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-fecha']
+        verbose_name = 'Movimiento de cuenta corriente'
+        verbose_name_plural = 'Movimientos de cuentas corrientes'
+
+    def __str__(self):
+        return f'{self.cuenta.nombre} - {self.get_tipo_display()} - {self.monto}'

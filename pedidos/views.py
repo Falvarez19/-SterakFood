@@ -20,7 +20,7 @@ from django.core.cache import cache
 from django.db import connection, transaction
 from django.db.models import Q, Sum
 from .forms import ProductoForm
-from .models import Producto, Pedido, DetallePedido, PuntoVenta, Categoria, Configuracion, OpinionCliente, Mozo
+from .models import Producto, Pedido, DetallePedido, PuntoVenta, Categoria, Configuracion, OpinionCliente, Mozo, CuentaCorriente, MovimientoCuentaCorriente
 from django.core.exceptions import PermissionDenied
 
 
@@ -392,6 +392,47 @@ def login_dashboard(request):
     return render(request, 'pedidos/login_dashboard.html')
 
 
+
+def _decimal_desde_form(valor):
+    valor = str(valor or '').strip().replace('$', '').replace(' ', '')
+    if not valor:
+        return Decimal('0.00')
+    if ',' in valor and '.' in valor:
+        valor = valor.replace('.', '').replace(',', '.')
+    else:
+        valor = valor.replace(',', '.')
+    return Decimal(valor)
+
+
+def _preparar_cuentas_corrientes():
+    cuentas = list(
+        CuentaCorriente.objects
+        .prefetch_related('movimientos')
+        .order_by('nombre')
+    )
+
+    total_deuda = Decimal('0.00')
+    total_favor = Decimal('0.00')
+
+    for cuenta in cuentas:
+        saldo = sum((movimiento.monto for movimiento in cuenta.movimientos.all()), Decimal('0.00'))
+        cuenta.saldo_panel = saldo
+        cuenta.saldo_abs = abs(saldo)
+
+        if saldo < 0:
+            cuenta.estado_panel = 'Debe'
+            cuenta.estado_clase = 'debe'
+            total_deuda += abs(saldo)
+        elif saldo > 0:
+            cuenta.estado_panel = 'A favor'
+            cuenta.estado_clase = 'favor'
+            total_favor += saldo
+        else:
+            cuenta.estado_panel = 'Al día'
+            cuenta.estado_clase = 'aldia'
+
+    return cuentas, total_deuda, total_favor
+
 def panel_control(request):
     if not request.session.get('dashboard_auth'):
         return redirect('pedidos:login_dashboard')
@@ -419,6 +460,7 @@ def panel_control(request):
 
     opiniones = OpinionCliente.objects.all().order_by('-fecha_creacion')
     opiniones_no_leidas = opiniones.filter(leida=False).count()
+    cuentas_corrientes, cuentas_total_deuda, cuentas_total_favor = _preparar_cuentas_corrientes()
 
     hoy = timezone.localdate()
     pedidos_hoy = (
@@ -461,10 +503,138 @@ def panel_control(request):
         'pedidos_listos_count': pedidos_listos_count,
         'productos_activos_count': productos_activos_count,
         'productos_pausados_count': productos_pausados_count,
+        'cuentas_corrientes': cuentas_corrientes,
+        'cuentas_total_deuda': cuentas_total_deuda,
+        'cuentas_total_favor': cuentas_total_favor,
     }
 
     return render(request, 'pedidos/panel.html', contexto)
 
+
+
+def crear_cuenta_corriente(request):
+    if not request.session.get('dashboard_auth'):
+        return redirect('pedidos:login_dashboard')
+    if request.method != 'POST':
+        return redirect('pedidos:panel_control')
+
+    nombre = request.POST.get('nombre', '').strip()
+    telefono = request.POST.get('telefono', '').strip()
+    nota = request.POST.get('nota', '').strip()
+    saldo_inicial = request.POST.get('saldo_inicial', '').strip()
+    estado_inicial = request.POST.get('estado_inicial', 'debe')
+
+    if not nombre:
+        messages.error(request, 'Ingresá el nombre de la persona.')
+        return redirect('pedidos:panel_control')
+
+    cuenta = CuentaCorriente.objects.create(
+        nombre=nombre,
+        telefono=telefono,
+        nota=nota,
+    )
+
+    try:
+        monto = abs(_decimal_desde_form(saldo_inicial))
+    except (InvalidOperation, ValueError):
+        monto = Decimal('0.00')
+
+    if monto > 0:
+        if estado_inicial == 'favor':
+            monto_final = monto
+            tipo = 'favor'
+            descripcion = 'Saldo inicial a favor'
+        else:
+            monto_final = monto * Decimal('-1')
+            tipo = 'consumo'
+            descripcion = 'Deuda inicial'
+
+        MovimientoCuentaCorriente.objects.create(
+            cuenta=cuenta,
+            tipo=tipo,
+            descripcion=descripcion,
+            monto=monto_final,
+        )
+
+    messages.success(request, f'Cuenta creada para {cuenta.nombre}.')
+    return redirect('pedidos:panel_control')
+
+
+def agregar_movimiento_cuenta(request, cuenta_id):
+    if not request.session.get('dashboard_auth'):
+        return redirect('pedidos:login_dashboard')
+    if request.method != 'POST':
+        return redirect('pedidos:panel_control')
+
+    cuenta = get_object_or_404(CuentaCorriente, id=cuenta_id)
+    tipo_form = request.POST.get('tipo', 'consumo')
+    descripcion = request.POST.get('descripcion', '').strip()
+
+    try:
+        monto = abs(_decimal_desde_form(request.POST.get('monto', '0')))
+    except (InvalidOperation, ValueError):
+        messages.error(request, 'Ingresá un monto válido.')
+        return redirect('pedidos:panel_control')
+
+    if monto <= 0:
+        messages.error(request, 'El monto tiene que ser mayor a cero.')
+        return redirect('pedidos:panel_control')
+
+    if tipo_form == 'consumo':
+        monto_final = monto * Decimal('-1')
+        tipo = 'consumo'
+        descripcion = descripcion or 'Consumo manual'
+    elif tipo_form == 'pago':
+        monto_final = monto
+        tipo = 'pago'
+        descripcion = descripcion or 'Pago recibido'
+    elif tipo_form == 'favor':
+        monto_final = monto
+        tipo = 'favor'
+        descripcion = descripcion or 'Dinero a favor'
+    elif tipo_form == 'ajuste_debe':
+        monto_final = monto * Decimal('-1')
+        tipo = 'ajuste'
+        descripcion = descripcion or 'Ajuste: debe'
+    elif tipo_form == 'ajuste_favor':
+        monto_final = monto
+        tipo = 'ajuste'
+        descripcion = descripcion or 'Ajuste: a favor'
+    else:
+        messages.error(request, 'Tipo de movimiento inválido.')
+        return redirect('pedidos:panel_control')
+
+    MovimientoCuentaCorriente.objects.create(
+        cuenta=cuenta,
+        tipo=tipo,
+        descripcion=descripcion,
+        monto=monto_final,
+    )
+
+    messages.success(request, f'Movimiento agregado a {cuenta.nombre}.')
+    return redirect('pedidos:panel_control')
+
+
+def eliminar_movimiento_cuenta(request, movimiento_id):
+    if not request.session.get('dashboard_auth'):
+        return redirect('pedidos:login_dashboard')
+    movimiento = get_object_or_404(MovimientoCuentaCorriente, id=movimiento_id)
+    if request.method == 'POST':
+        nombre = movimiento.cuenta.nombre
+        movimiento.delete()
+        messages.success(request, f'Movimiento eliminado de {nombre}.')
+    return redirect('pedidos:panel_control')
+
+
+def eliminar_cuenta_corriente(request, cuenta_id):
+    if not request.session.get('dashboard_auth'):
+        return redirect('pedidos:login_dashboard')
+    cuenta = get_object_or_404(CuentaCorriente, id=cuenta_id)
+    if request.method == 'POST':
+        nombre = cuenta.nombre
+        cuenta.delete()
+        messages.success(request, f'Cuenta eliminada: {nombre}.')
+    return redirect('pedidos:panel_control')
 
 def agregar_producto(request):
     Categoria.objects.get_or_create(nombre='Salon')

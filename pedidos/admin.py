@@ -8,6 +8,8 @@ from .models import (
     Mozo,
     OpinionCliente,
     Configuracion,
+    CuentaCorriente,
+    MovimientoCuentaCorriente,
 )
 
 class CategoriaAdmin(admin.ModelAdmin):
@@ -21,3 +23,6 @@ admin.site.register(DetallePedido)
 admin.site.register(Mozo)
 admin.site.register(OpinionCliente)
 admin.site.register(Configuracion)
+
+admin.site.register(CuentaCorriente)
+admin.site.register(MovimientoCuentaCorriente)

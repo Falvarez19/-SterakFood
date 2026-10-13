@@ -7002,3 +7002,331 @@ body[data-theme="light"] .hero-solo-fondo,
     display: table-row-group !important;
 }
 
+
+/* ==========================================================================
+   STERAKFOOD V98 - CUENTAS CORRIENTES
+   ========================================================================== */
+.cuentas-panel {
+    display: grid;
+    gap: 18px;
+}
+
+.cuentas-panel__header {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: center;
+    padding: 26px;
+    border: 1px solid var(--borde);
+    border-radius: 18px;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--naranja-sterak) 15%, var(--card-bg) 85%), var(--card-bg));
+}
+
+.cuentas-panel__header h2 {
+    margin: 6px 0 6px;
+    font-size: clamp(1.7rem, 3vw, 2.4rem);
+    font-weight: 950;
+}
+
+.cuentas-panel__header p {
+    margin: 0;
+    color: var(--texto-mutado);
+}
+
+.cuentas-resumen {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.cuentas-resumen article {
+    min-width: 155px;
+    padding: 14px 16px;
+    border: 1px solid var(--borde);
+    border-radius: 16px;
+    background: rgba(0,0,0,.18);
+}
+
+.cuentas-resumen small,
+.cuenta-card__saldo small {
+    display: block;
+    color: var(--texto-mutado);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    font-size: .72rem;
+    margin-bottom: 4px;
+}
+
+.cuentas-resumen strong,
+.cuenta-card__saldo strong {
+    font-size: 1.45rem;
+    font-weight: 950;
+}
+
+.is-deuda { color: #ff5c5c !important; }
+.is-favor { color: #22c55e !important; }
+
+.cuentas-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(280px, .55fr);
+    gap: 14px;
+    align-items: stretch;
+}
+
+.cuentas-form-card,
+.cuentas-ayuda-card,
+.cuenta-card,
+.cuentas-vacio {
+    border: 1px solid var(--borde);
+    border-radius: 18px;
+    background: var(--card-bg);
+    box-shadow: 0 16px 35px rgba(0,0,0,.12);
+}
+
+.cuentas-form-card,
+.cuentas-ayuda-card {
+    padding: 18px;
+}
+
+.cuentas-form-card__title strong,
+.cuentas-ayuda-card strong {
+    display: block;
+    font-size: 1.08rem;
+    font-weight: 950;
+    margin-bottom: 4px;
+}
+
+.cuentas-form-card__title small,
+.cuentas-ayuda-card p,
+.cuentas-ayuda-card li {
+    color: var(--texto-mutado);
+}
+
+.cuentas-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin: 14px 0;
+}
+
+.cuentas-form-grid label,
+.cuenta-mov-form label {
+    display: grid;
+    gap: 5px;
+}
+
+.cuentas-form-grid label span {
+    color: var(--texto-mutado);
+    font-size: .78rem;
+    font-weight: 900;
+}
+
+.cuentas-form-grid .is-full { grid-column: 1 / -1; }
+
+.cuentas-form-grid input,
+.cuentas-form-grid select,
+.cuenta-mov-form input,
+.cuenta-mov-form select {
+    width: 100%;
+    min-height: 42px;
+    border: 1px solid var(--borde);
+    border-radius: 12px;
+    background: var(--input-bg, #0b0f17);
+    color: var(--text-color);
+    padding: 9px 12px;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.cuentas-form-grid input:focus,
+.cuentas-form-grid select:focus,
+.cuenta-mov-form input:focus,
+.cuenta-mov-form select:focus {
+    border-color: var(--naranja-sterak);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--naranja-sterak) 18%, transparent);
+}
+
+.cuentas-btn,
+.cuenta-mov-form button {
+    border: 0;
+    border-radius: 12px;
+    min-height: 42px;
+    padding: 9px 16px;
+    font-weight: 950;
+    cursor: pointer;
+}
+
+.cuentas-btn--crear,
+.cuenta-mov-form button {
+    background: var(--verde-sanmartin, #16a34a);
+    color: white;
+}
+
+.cuentas-lista {
+    display: grid;
+    gap: 14px;
+}
+
+.cuenta-card {
+    padding: 18px;
+    border-left: 4px solid var(--borde);
+}
+
+.cuenta-card--debe { border-left-color: #ff5c5c; }
+.cuenta-card--favor { border-left-color: #22c55e; }
+.cuenta-card--aldia { border-left-color: var(--naranja-sterak); }
+
+.cuenta-card__top {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+}
+
+.cuenta-card__estado {
+    display: inline-flex;
+    width: max-content;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.08);
+    color: var(--texto-mutado);
+    font-size: .72rem;
+    font-weight: 950;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-bottom: 8px;
+}
+
+.cuenta-card h3 {
+    margin: 0 0 5px;
+    font-size: 1.35rem;
+    font-weight: 950;
+}
+
+.cuenta-card p { margin: 0; color: var(--texto-mutado); }
+
+.cuenta-card__saldo { text-align: right; min-width: 170px; }
+
+.cuenta-mov-form {
+    display: grid;
+    grid-template-columns: minmax(175px, .9fr) 120px minmax(200px, 1fr) 105px;
+    gap: 9px;
+    align-items: center;
+    padding: 12px;
+    border: 1px solid var(--borde);
+    border-radius: 14px;
+    background: rgba(0,0,0,.12);
+    margin-bottom: 14px;
+}
+
+.cuenta-historial {
+    display: grid;
+    gap: 8px;
+}
+
+.cuenta-historial > strong {
+    font-size: .9rem;
+    color: var(--texto-mutado);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+
+.cuenta-movimiento {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 110px 34px;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 10px;
+    border: 1px solid var(--borde);
+    border-radius: 12px;
+    background: rgba(255,255,255,.025);
+}
+
+.cuenta-movimiento span {
+    color: var(--texto-mutado);
+    font-size: .75rem;
+    font-weight: 800;
+}
+
+.cuenta-movimiento p {
+    margin: 2px 0 0;
+    color: var(--text-color);
+    font-weight: 800;
+}
+
+.cuenta-movimiento__monto {
+    font-weight: 950;
+    text-align: right;
+}
+
+.cuenta-movimiento form button,
+.cuenta-eliminar-form button {
+    border: 1px solid rgba(255,92,92,.35);
+    background: rgba(255,92,92,.12);
+    color: #ff5c5c;
+    border-radius: 10px;
+    cursor: pointer;
+    min-height: 30px;
+    font-weight: 950;
+}
+
+.cuenta-movimiento form button { width: 30px; }
+
+.cuenta-eliminar-form {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+}
+
+.cuenta-eliminar-form button {
+    padding: 8px 12px;
+}
+
+.cuenta-historial__vacio,
+.cuentas-vacio {
+    color: var(--texto-mutado);
+}
+
+.cuentas-vacio {
+    text-align: center;
+    padding: 38px 20px;
+}
+
+.cuentas-vacio span {
+    display: block;
+    font-size: 2rem;
+    margin-bottom: 8px;
+}
+
+.cuentas-vacio strong {
+    display: block;
+    color: var(--text-color);
+    font-size: 1.15rem;
+    margin-bottom: 5px;
+}
+
+@media (max-width: 980px) {
+    .cuentas-panel__header,
+    .cuenta-card__top {
+        flex-direction: column;
+    }
+    .cuentas-resumen,
+    .cuenta-card__saldo {
+        justify-content: flex-start;
+        text-align: left;
+    }
+    .cuentas-layout,
+    .cuenta-mov-form {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .cuentas-form-grid,
+    .cuenta-movimiento {
+        grid-template-columns: 1fr;
+    }
+}
