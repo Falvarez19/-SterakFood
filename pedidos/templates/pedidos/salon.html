@@ -23,6 +23,7 @@
     data-print-url="{% url 'pedidos:imprimir_ticket_salon' %}"
 
     data-charge-url="{% url 'pedidos:cobrar_mesa_salon' %}"
+    data-web-pedidos-url="{% url 'pedidos:salon_pedidos_web_api' %}"
 
 >
 
@@ -65,6 +66,25 @@
         </div>
 
     </div>
+
+    <!-- Gestor de mozos dentro del mismo Salón POS, sin pestaña Mesas duplicada -->
+    <details class="salon-pos__personal" id="salon-gestion-mozos">
+        <summary>👤 Mozos del turno <span>Gestionar personal ▾</span></summary>
+        <div class="salon-pos__personal-contenido">
+            <form action="{% url 'pedidos:agregar_mozo' %}" id="salon-form-agregar-mozo" method="post">
+                {% csrf_token %}
+                <input type="text" name="nombre" maxlength="100" placeholder="Nombre del mozo" required autocomplete="off" aria-label="Nombre del mozo">
+                <button type="submit">+ Agregar</button>
+            </form>
+            <div class="salon-pos__personal-lista">
+                {% for mozo in mozos %}
+                    <span class="salon-pos__personal-chip">{{ mozo.nombre }}
+                        <button type="button" title="Eliminar mozo" data-salon-borrar-mozo="{% url 'pedidos:eliminar_mozo' mozo.id %}" data-nombre="{{ mozo.nombre }}">×</button>
+                    </span>
+                {% empty %}<small>Todavía no cargaste mozos.</small>{% endfor %}
+            </div>
+        </div>
+    </details>
 
     <section class="salon-pos__card salon-pos__mesas-panel">
 
@@ -408,10 +428,10 @@
 
             <div class="salon-pos__tabla-wrap">
 
-                <table class="salon-pos__tabla">
-                    <tbody id="lista-comanda"></tbody>
-
-                </table>
+                <div class="salon-pos__lista-head" aria-label="Columnas de la comanda">
+                    <span>CANT.</span><span>CÓD.</span><span>DESCRIPCIÓN</span><span class="col-unitario">UNITARIO</span><span class="col-total">TOTAL</span>
+                </div>
+                <div id="lista-comanda" class="salon-pos__lista-comanda"></div>
 
                 <div
 
@@ -550,5 +570,6 @@
 {{ productos|json_script:"salon-productos-data" }}
 
 {{ mozos|json_script:"salon-mozos-data" }}
+{{ pedidos_web_salon|json_script:"salon-pedidos-web-data" }}
 
 {% endblock %}

@@ -1836,6 +1836,10 @@ function eliminarOpinion(opinionId, url) {
     }).filter(function (mozo) {
         return (mozo.id && mozo.nombre);
     });
+    var pedidosWebData = document.getElementById('salon-pedidos-web-data');
+    var pedidosWebIniciales = [];
+    try { pedidosWebIniciales = JSON.parse(pedidosWebData ? pedidosWebData.textContent : '[]'); }
+    catch (error) { console.warn('No se pudo leer pedidos web de mesa',error); }
     var storageKey = "sistemasm_salon_cuentas_v2";
     var storageAnteriores = [
         "sistemasm_salon_cuentas_v1",
@@ -1977,12 +1981,66 @@ function eliminarOpinion(opinionId, url) {
                 precio: Number(item.precio || 0),
                 cantidad: cantidad,
                 seleccionado: Boolean(item.seleccionado),
-                cant_pagar: cantPagar
+                cant_pagar: cantPagar,
+                origen: String(item.origen || ''),
+                pedido_id: Number(item.pedido_id || 0),
+                detalle_id: Number(item.detalle_id || 0)
             };
         });
         recalcular(cuentas[clave]);
         return cuentas[clave];
     }
+    // Pedidos del menú público se fusionan por ID: NO se crean ventas POS duplicadas.
+    function sincronizarPedidosWebSalon(itemsWeb) {
+        if (!Array.isArray(itemsWeb)) return;
+        var pendientes = new Map();
+        itemsWeb.forEach(function (web) {
+            var id = Number(web.detalle_id || 0);
+            var mesa = String(web.mesa || '').trim();
+            if (id && mesa) pendientes.set(id, web);
+        });
+        Object.keys(cuentas).forEach(function (clave) {
+            var cuenta = normalizarCuenta(clave);
+            cuenta.items = cuenta.items.filter(function (item) {
+                return item.origen !== 'web' || pendientes.has(Number(item.detalle_id || 0));
+            });
+            recalcular(cuenta);
+        });
+        pendientes.forEach(function (web, detalleId) {
+            var mesa = String(web.mesa || '').trim();
+            var cuenta = normalizarCuenta(mesa);
+            var existente = cuenta.items.find(function (item) {
+                return item.origen === 'web' && Number(item.detalle_id) === detalleId;
+            });
+            var cantidad = Math.max(1, Number(web.cantidad || 1));
+            if (existente) {
+                existente.cantidad = cantidad;
+                existente.cant_pagar = Math.max(1,Math.min(Number(existente.cant_pagar || cantidad),cantidad));
+                existente.precio = Number(web.precio || 0);
+                existente.nombre = String(web.nombre || 'Producto');
+            } else {
+                cuenta.items.push({
+                    producto_id: Number(web.producto_id || 0),codigo: String(web.codigo || ''),
+                    nombre: String(web.nombre || 'Producto'),precio: Number(web.precio || 0),
+                    cantidad: cantidad,seleccionado: false,cant_pagar: cantidad,
+                    origen: 'web',pedido_id: Number(web.pedido_id || 0),detalle_id: detalleId
+                });
+            }
+            recalcular(cuenta);
+        });
+        guardar();
+        if (mesaActual) render();
+        else actualizarMesas();
+    }
+    function refrescarPedidosWebSalon() {
+        var url = root.getAttribute('data-web-pedidos-url');
+        if (!url || enviando || modoParcial || document.hidden) return;
+        fetch(url, {credentials:'same-origin',cache:'no-store'})
+          .then(function (resp) { if (!resp.ok) throw new Error('No se pudo sincronizar salón');return resp.json(); })
+          .then(function (resp) { if (resp.status === 'ok') sincronizarPedidosWebSalon(resp.items); })
+          .catch(function (error) {console.warn('Sincronización de pedidos web:',error.message);});
+    }
+
     function cuentaActual() {
         if (!mesaActual) {
             return null;
@@ -2437,12 +2495,17 @@ function eliminarOpinion(opinionId, url) {
                     clase += " is-teclado";
                 }
                 html += "<div class=\"salon-pos__fila-pos" + clase + "\" data-index=\"" + index + "\">";
-                html += "<div class=\"salon-pos__fila-cant\" data-no-toggle=\"1\">" + "<button type=\"button\" data-action=\"restar\" data-index=\"" + index + "\">\u2212</button>" + "<strong>" + item.cantidad + "</strong>" + "<button type=\"button\" data-action=\"sumar\" data-index=\"" + index + "\">+</button>" + "</div>";
+                if (item.origen === 'web') {
+                    html += "<div class=\"salon-pos__fila-cant\" data-no-toggle=\"1\"><strong>" + item.cantidad + "</strong></div>";
+                } else {
+                    html += "<div class=\"salon-pos__fila-cant\" data-no-toggle=\"1\">" + "<button type=\"button\" data-action=\"restar\" data-index=\"" + index + "\">\u2212</button>" + "<strong>" + item.cantidad + "</strong>" + "<button type=\"button\" data-action=\"sumar\" data-index=\"" + index + "\">+</button>" + "</div>";
+                }
                 html += "<div class=\"salon-pos__fila-codigo\">" + escapar(item.codigo) + "</div>";
                 html += "<div class=\"salon-pos__fila-descripcion\">" + "<strong>" + escapar(item.nombre) + "</strong>";
                 if (modoParcial && item.seleccionado) {
                     html += "<div class=\"salon-pos__pago-inline\" data-no-toggle=\"1\">" + "<span>Cobrar</span>" + "<button type=\"button\" data-action=\"pagar-menos\" data-index=\"" + index + "\">\u2212</button>" + "<strong>" + item.cant_pagar + "</strong>" + "<button type=\"button\" data-action=\"pagar-mas\" data-index=\"" + index + "\">+</button>" + "<small>de " + item.cantidad + "</small>" + "</div>";
                 }
+                if (item.origen === 'web') html += '<small class="salon-pos__origen-web">Pedido web</small>';
                 html += "</div>";
                 html += "<div class=\"salon-pos__fila-unitario\">" + dinero(item.precio) + "</div>";
                 html += "<div class=\"salon-pos__fila-total\">" + dinero(item.precio * item.cantidad) + "</div>";
@@ -2499,7 +2562,10 @@ function eliminarOpinion(opinionId, url) {
                 codigo: item.codigo,
                 nombre: item.nombre,
                 precio: item.precio,
-                cantidad: cantidad
+                cantidad: cantidad,
+                origen: item.origen || '',
+                pedido_id: item.pedido_id || 0,
+                detalle_id: item.detalle_id || 0
             });
         });
         return items;
@@ -2977,6 +3043,9 @@ function eliminarOpinion(opinionId, url) {
             cerrarSugerencias();
         }
     });
+    sincronizarPedidosWebSalon(pedidosWebIniciales);
+    window.setInterval(refrescarPedidosWebSalon, 15000);
+    document.addEventListener('visibilitychange',function () { if (!document.hidden) refrescarPedidosWebSalon(); });
     window.addEventListener("pagehide", guardar);
     window.addEventListener("beforeunload", guardar);
     if (mesaActual && document.querySelector(".salon-pos__mesa[data-mesa=\"" + mesaActual + "\"]")) {
@@ -3804,3 +3873,111 @@ document.addEventListener("DOMContentLoaded", function () {
     window.addEventListener('load', iniciarCuentasV100);
 })();
 
+
+
+// ==========================================================================
+// STERAKFOOD V102 - BUSCADOR INMEDIATO DE CUENTAS
+// Busca nombre, teléfono o nota; filtra estado y mantiene los acordeones.
+// ==========================================================================
+(function () {
+    function iniciarBuscadorCuentasV102() {
+        var panel = document.getElementById('tab-cuentas');
+        if (!panel || panel.dataset.buscadorCuentasV102 === '1') return;
+        panel.dataset.buscadorCuentasV102 = '1';
+
+        var entrada = panel.querySelector('#cuentas-buscar');
+        var estado = panel.querySelector('#cuentas-filtro-estado');
+        var borrar = panel.querySelector('#cuentas-limpiar');
+        var contador = panel.querySelector('#cuentas-resultados');
+        var vacio = panel.querySelector('#cuentas-sin-resultados');
+        var cuentas = Array.prototype.slice.call(panel.querySelectorAll('.cuentas-lista .cuenta-card'));
+
+        if (!entrada || !estado) return;
+
+        function normalizar(valor) {
+            return String(valor || '').normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLocaleLowerCase('es')
+                .trim();
+        }
+
+        // Solo se busca en datos de la persona, no en sus movimientos.
+        var catalogo = cuentas.map(function (card) {
+            return {
+                card: card,
+                texto: normalizar([
+                    card.dataset.cuentaNombre,
+                    card.dataset.cuentaTelefono,
+                    card.dataset.cuentaNota
+                ].join(' ')),
+                estado: card.dataset.cuentaEstado || ''
+            };
+        });
+
+        function filtrar() {
+            var palabras = normalizar(entrada.value).split(/\s+/).filter(Boolean);
+            var tipo = estado.value;
+            var visibles = 0;
+
+            catalogo.forEach(function (item) {
+                var coincideTexto = palabras.every(function (p) { return item.texto.includes(p); });
+                var coincideEstado = tipo === 'todos' || item.estado === tipo;
+                var mostrar = coincideTexto && coincideEstado;
+                item.card.hidden = !mostrar;
+                if (mostrar) visibles += 1;
+            });
+
+            if (contador) contador.textContent = visibles + ' de ' + catalogo.length;
+            if (vacio) vacio.hidden = visibles !== 0 || catalogo.length === 0;
+        }
+
+        entrada.addEventListener('input', filtrar);
+        estado.addEventListener('change', filtrar);
+        if (borrar) borrar.addEventListener('click', function () {
+            entrada.value = '';
+            estado.value = 'todos';
+            filtrar();
+            entrada.focus();
+        });
+
+        filtrar();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', iniciarBuscadorCuentasV102);
+    } else {
+        iniciarBuscadorCuentasV102();
+    }
+})();
+
+// STERAK V103 - Personal de Salón dentro del POS unificado
+(function(){
+    function init(){
+        var form=document.getElementById('salon-form-agregar-mozo');
+        var bloque=document.getElementById('salon-gestion-mozos');
+        if(!form||!bloque||bloque.dataset.iniciado==='1')return;
+        bloque.dataset.iniciado='1';
+        var csrf=form.querySelector('input[name="csrfmiddlewaretoken"]');
+        form.addEventListener('submit',function(event){
+            event.preventDefault();
+            var boton=form.querySelector('button[type="submit"]');
+            if(boton)boton.disabled=true;
+            fetch(form.action,{method:'POST',credentials:'same-origin',headers:{'X-CSRFToken':csrf.value},body:new FormData(form)})
+              .then(function(r){return r.json().then(function(d){if(!r.ok||d.status!=='ok')throw Error(d.mensaje||'No se pudo agregar');return d;});})
+              .then(function(){location.reload();})
+              .catch(function(e){alert(e.message);if(boton)boton.disabled=false;});
+        });
+        bloque.addEventListener('click',function(event){
+            var boton=event.target.closest('[data-salon-borrar-mozo]');
+            if(!boton)return;
+            if(!confirm('¿Eliminar a '+(boton.dataset.nombre||'este mozo')+'?'))return;
+            boton.disabled=true;
+            fetch(boton.dataset.salonBorrarMozo,{method:'POST',credentials:'same-origin',headers:{'X-CSRFToken':csrf.value}})
+              .then(function(r){return r.json().then(function(d){if(!r.ok||d.status!=='ok')throw Error(d.mensaje||'No se pudo eliminar');return d;});})
+              .then(function(){location.reload();})
+              .catch(function(e){alert(e.message);boton.disabled=false;});
+        });
+    }
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
+    else init();
+})();

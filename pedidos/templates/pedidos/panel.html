@@ -45,15 +45,6 @@
         >
             📝 Pedidos
         </button>
-        <button
-            class="panel-tab-btn"
-            onclick="abrirTab('mesas', this); renderizarMesas();"
-            id="btn-tab-mesas"
-            data-requiere-salon
-            {% if not configuracion.salon_habilitado %}hidden{% endif %}
-        >
-            🍽️ Mesas
-        </button>
         <a
             href="{% url 'pedidos:salon' %}"
             class="panel-tab-btn"
@@ -459,85 +450,6 @@
             </tbody>
         </table>
     </div>
-    <!-- # TAB MESAS -->
-    <div
-        id="tab-mesas"
-        class="tab-content"
-        style="display: none;"
-    >
-        <div
-            class="dashboard-header-row"
-            style="margin-bottom: 10px;"
-        >
-            <div>
-                <h3
-                    style="
-                        margin: 0;
-                        font-size: 1.5rem;
-                    "
-                >
-                    Cuentas por Mesa
-                </h3>
-                <p
-                    style="
-                        margin: 5px 0 0 0;
-                        color: var(--texto-mutado);
-                        font-size: 0.9rem;
-                    "
-                >
-                    Agrupa automáticamente los pedidos en EFECTIVO que aún no fueron cobrados.
-                </p>
-            </div>
-            <button
-                onclick="if(typeof renderizarMesas === 'function') renderizarMesas();"
-                class="btn-panel btn-azul"
-                style="border-radius: 8px;"
-            >
-                🔄 Refrescar
-            </button>
-        </div>
-        <section class="mozos-admin">
-            <div class="mozos-admin__encabezado">
-                <div>
-                    <span class="categoria-kicker">PERSONAL DE SALÓN</span>
-                    <h3>👤 Mozos del turno</h3>
-                    <p>Agregá o eliminá los mozos disponibles. Después podés asignarlos cuando abrís una mesa en Salón POS.</p>
-                </div>
-            </div>
-
-            <form
-                id="form-agregar-mozo"
-                class="mozos-admin__form"
-                action="{% url 'pedidos:agregar_mozo' %}"
-                method="POST"
-                onsubmit="agregarMozoDashboard(event, this)"
-            >
-                {% csrf_token %}
-                <input type="text" name="nombre" maxlength="100" placeholder="Nombre del mozo..." autocomplete="off" required>
-                <button type="submit" class="btn-panel btn-verde">+ Agregar mozo</button>
-            </form>
-
-            <div id="lista-mozos-admin" class="mozos-admin__lista">
-                {% for mozo in mozos %}
-                    <div class="mozo-chip" id="mozo-admin-{{ mozo.id }}">
-                        <span>👤 {{ mozo.nombre }}</span>
-                        <button
-                            type="button"
-                            title="Eliminar mozo"
-                            onclick="eliminarMozoDashboard({{ mozo.id }}, '{% url 'pedidos:eliminar_mozo' mozo.id %}')"
-                        >×</button>
-                    </div>
-                {% empty %}
-                    <div class="mozos-admin__vacio" id="mozos-admin-vacio">Todavía no cargaste mozos.</div>
-                {% endfor %}
-            </div>
-        </section>
-
-        <div
-            id="grid-mesas"
-            class="mesas-grid"
-        ></div>
-    </div>
     <!-- # TAB MENÚ -->
     <div id="tab-menu" class="tab-content">
         <div class="menu-admin-toolbar">
@@ -904,13 +816,13 @@
             </div>
 
             <div class="cuentas-quickbar">
+                <details class="cuentas-alta-acordeon">
+                    <summary class="cuentas-alta-toggle">
+                        <span><strong>＋ Nueva cuenta</strong><small>Crear una cuenta para otro cliente</small></span>
+                        <span class="cuentas-alta-flecha" aria-hidden="true">⌄</span>
+                    </summary>
                 <form class="cuentas-form-card cuentas-form-card--simple" action="{% url 'pedidos:crear_cuenta_corriente' %}" method="post">
                     {% csrf_token %}
-                    <div class="cuentas-form-card__title">
-                        <strong>+ Nueva cuenta</strong>
-                        <small>Alta rápida: nombre, saldo y estado.</small>
-                    </div>
-
                     <div class="cuentas-form-grid cuentas-form-grid--simple">
                         <label>
                             <span>Nombre</span>
@@ -951,11 +863,30 @@
                         <span><b>A favor</b> queda crédito</span>
                     </div>
                 </form>
+                </details>
+            </div>
+
+            <div class="cuentas-filtros" role="search" aria-label="Buscar cuentas corrientes">
+                <label class="cuentas-filtros__buscador" for="cuentas-buscar">
+                    <span aria-hidden="true">⌕</span>
+                    <input id="cuentas-buscar" type="search" placeholder="Buscar por nombre, teléfono o nota..." autocomplete="off" aria-label="Buscar cuentas">
+                </label>
+                <label class="cuentas-filtros__estado">
+                    <span class="sr-only">Filtrar por saldo</span>
+                    <select id="cuentas-filtro-estado" aria-label="Filtrar por estado">
+                        <option value="todos">Todas las cuentas</option>
+                        <option value="debe">Deben</option>
+                        <option value="favor">A favor</option>
+                        <option value="aldia">Al día</option>
+                    </select>
+                </label>
+                <span class="cuentas-filtros__contador" id="cuentas-resultados" aria-live="polite"></span>
+                <button id="cuentas-limpiar" class="cuentas-filtros__limpiar" type="button">Limpiar</button>
             </div>
 
             <div class="cuentas-lista">
                 {% for cuenta in cuentas_corrientes %}
-                    <details id="cuenta-{{ cuenta.id }}" class="cuenta-card cuenta-card--{{ cuenta.estado_clase }}">
+                    <details id="cuenta-{{ cuenta.id }}" class="cuenta-card cuenta-card--{{ cuenta.estado_clase }}" data-cuenta-estado="{{ cuenta.estado_clase }}" data-cuenta-nombre="{{ cuenta.nombre }}" data-cuenta-telefono="{{ cuenta.telefono|default:'' }}" data-cuenta-nota="{{ cuenta.nota|default:'' }}">
                         <summary class="cuenta-card__summary">
                             <div class="cuenta-card__top">
                                 <div class="cuenta-card__persona">
@@ -1033,6 +964,9 @@
                         <p>Creá una cuenta arriba para empezar a registrar consumos, pagos o dinero a favor.</p>
                     </div>
                 {% endfor %}
+                <div class="cuentas-sin-resultados" id="cuentas-sin-resultados" hidden>
+                    No encontramos cuentas con esa búsqueda.
+                </div>
             </div>
         </section>
     </div>

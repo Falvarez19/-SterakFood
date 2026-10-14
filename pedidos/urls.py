@@ -9,6 +9,8 @@ app_name = 'pedidos'
 
 
 urlpatterns = [
+    path('salon/pedidos-web/', views.salon_pedidos_web_api, name='salon_pedidos_web_api'),
+
 
     # ======================================================================
     # 1. RUTAS PÚBLICAS

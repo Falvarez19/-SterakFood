@@ -1,4 +1,5 @@
 import json
+import unicodedata
 import re
 import requests
 import urllib.parse
@@ -419,7 +420,17 @@ def _preparar_cuentas_corrientes():
     cuentas = list(
         CuentaCorriente.objects
         .prefetch_related('movimientos')
-        .order_by('nombre')
+        .all()
+    )
+    # Orden A-Z independientemente de tildes y mayúsculas.
+    cuentas.sort(
+        key=lambda c: (
+            ''.join(
+                letra for letra in unicodedata.normalize('NFD', c.nombre.casefold())
+                if not unicodedata.combining(letra)
+            ),
+            c.pk,
+        )
     )
 
     total_deuda = Decimal('0.00')
@@ -1155,6 +1166,46 @@ def imprimir_ticket_salon(request):
         return JsonResponse({'status': 'error', 'mensaje': 'Error preparando el ticket: ' + str(error)}, status=500)
 
 
+def _salon_items_pedidos_web():
+    """Pending cash orders at a numbered table, excluding POS-origin transactions."""
+    pedidos = (Pedido.objects.filter(tipo_entrega='mesa', tipo_pago='efectivo')
+        .exclude(numero_mesa__isnull=True).exclude(numero_mesa__exact='')
+        .exclude(estado__in=['cancelado', 'entregado'])
+        .exclude(nombre_cliente__istartswith='POS SALON')
+        .prefetch_related('items__producto')
+        .order_by('fecha_creacion','id'))
+    salida = []
+    for pedido in pedidos:
+        mesa = str(pedido.numero_mesa or '').strip()
+        if not mesa.isdigit() or not (1 <= int(mesa) <= 100):
+            continue
+        for detalle in pedido.items.all():
+            if detalle.cantidad <= 0:
+                continue
+            producto = detalle.producto
+            salida.append({
+                'mesa': str(int(mesa)), 'pedido_id': pedido.id,
+                'detalle_id': detalle.id, 'producto_id': producto.id if producto else 0,
+                'codigo': (producto.codigo_rapido or str(producto.pk)) if producto else '',
+                'nombre': producto.nombre if producto else 'Producto eliminado',
+                'precio': float(detalle.precio_unitario), 'cantidad': detalle.cantidad,
+                'origen': 'web',
+            })
+    return salida
+
+
+def salon_pedidos_web_api(request):
+    if not request.session.get('dashboard_auth'):
+        return JsonResponse({'status':'error', 'mensaje':'No autorizado'}, status=403)
+    if not obtener_configuracion().salon_habilitado:
+        return JsonResponse({'status':'error','mensaje':'Salón desactivado'}, status=403)
+    if request.method != 'GET':
+        return JsonResponse({'status':'error','mensaje':'Método no permitido'}, status=405)
+    respuesta = JsonResponse({'status':'ok','items':_salon_items_pedidos_web()})
+    respuesta['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    return respuesta
+
+
 def salon(request):
     if not request.session.get('dashboard_auth'):
         return redirect('pedidos:login_dashboard')
@@ -1164,7 +1215,10 @@ def salon(request):
     productos_bd = Producto.objects.filter(disponible=True).select_related('categoria').order_by('categoria__nombre', 'orden', 'nombre')
     productos_js = [{'id': producto.id, 'codigo': producto.codigo_rapido if producto.codigo_rapido else str(producto.id), 'nombre': producto.nombre, 'precio': float(producto.precio)} for producto in productos_bd]
     mozos_js = [{'id': mozo.id, 'nombre': mozo.nombre} for mozo in Mozo.objects.all().order_by('nombre')]
-    return render(request, 'pedidos/salon.html', {'mesas': range(1, 101), 'productos': productos_js, 'mozos': mozos_js})
+    return render(request, 'pedidos/salon.html', {
+        'mesas': range(1,101), 'productos': productos_js,
+        'mozos': mozos_js, 'pedidos_web_salon': _salon_items_pedidos_web(),
+    })
 
 
 # ===========================================================================
@@ -1174,73 +1228,170 @@ def salon(request):
 
 def cobrar_mesa_salon(request):
     if not request.session.get('dashboard_auth'):
-        return JsonResponse({'status': 'error', 'mensaje': 'No autorizado'}, status=403)
+        return JsonResponse({'status':'error','mensaje':'No autorizado'}, status=403)
     if not obtener_configuracion().salon_habilitado:
-        return JsonResponse({'status': 'error', 'mensaje': 'El módulo Salón / Mesas está desactivado.'}, status=403)
+        return JsonResponse({'status':'error','mensaje':'Salón desactivado'}, status=403)
     if request.method != 'POST':
-        return JsonResponse({'status': 'error', 'mensaje': 'Método no permitido'}, status=405)
+        return JsonResponse({'status':'error','mensaje':'Método no permitido'}, status=405)
     try:
-        payload = json.loads(request.body.decode('utf-8') or '{}')
-    except (json.JSONDecodeError, UnicodeDecodeError):
-        return JsonResponse({'status': 'error', 'mensaje': 'JSON inválido'}, status=400)
-    mesa = str(payload.get('mesa', '')).strip()
-    mozo = str(payload.get('mozo', '')).strip()
-    tipo_pago = str(payload.get('tipo_pago', '')).strip().lower()
-    modo_fiscal = bool(payload.get('modo_fiscal'))
-    items = payload.get('items', [])
-    medios_validos = {'efectivo', 'mercadopago', 'debito'}
-    if not mesa:
-        return JsonResponse({'status': 'error', 'mensaje': 'Falta el número de mesa'}, status=400)
-    if tipo_pago not in medios_validos:
-        return JsonResponse({'status': 'error', 'mensaje': 'Elegí un medio de pago válido.'}, status=400)
-    if not isinstance(items, list) or not items:
-        return JsonResponse({'status': 'error', 'mensaje': 'No hay productos para cobrar'}, status=400)
+        data = json.loads(request.body.decode('utf-8') or '{}')
+        mesa = str(data.get('mesa','')).strip()
+        medio = str(data.get('tipo_pago','')).lower().strip()
+        mozo = str(data.get('mozo','')).strip()[:100]
+        fiscal = bool(data.get('modo_fiscal'))
+        items = data.get('items', [])
+        if not mesa.isdigit() or not (1 <= int(mesa) <= 100):
+            raise ValueError('Mesa inválida.')
+        mesa = str(int(mesa))
+        if medio not in ('efectivo','mercadopago','debito'):
+            raise ValueError('Elegí un medio de pago válido.')
+        if not isinstance(items,list) or not items:
+            raise ValueError('No hay productos para cobrar.')
+    except (ValueError, UnicodeDecodeError, TypeError) as exc:
+        return JsonResponse({'status':'error','mensaje':str(exc)}, status=400)
+
     try:
         with transaction.atomic():
-            pedido = Pedido.objects.create(estado='listo', total=Decimal('0.00'), nombre_cliente='POS SALON FISCAL' if modo_fiscal else 'POS SALON', tipo_entrega='mesa', numero_mesa=mesa[:10], mozo=mozo[:100], tipo_pago=tipo_pago, punto_venta=None, impreso_caja=False)
-            total_calculado = Decimal('0.00')
-            detalles_creados = 0
-            for item in items:
-                if not isinstance(item, dict):
-                    continue
-                producto = None
-                producto_id = item.get('producto_id')
-                codigo = str(item.get('codigo', '')).strip()
-                if producto_id:
+            filas_pos = []
+            web_solicitados = {}
+            for fila in items:
+                if not isinstance(fila,dict):
+                    raise ValueError('Hay productos inválidos.')
+                detalle_id = fila.get('detalle_id')
+                if detalle_id:
                     try:
-                        producto = Producto.objects.filter(id=int(producto_id)).first()
+                        did = int(detalle_id)
+                        pedido_id = int(fila.get('pedido_id') or 0)
+                        cantidad = int(fila.get('cantidad') or 0)
                     except (TypeError, ValueError):
-                        producto = None
-                if producto is None and codigo:
-                    producto = Producto.objects.filter(codigo_rapido=codigo).first()
-                if producto is None and codigo.isdigit():
-                    producto = Producto.objects.filter(id=int(codigo)).first()
-                if producto is None:
-                    continue
-                try:
-                    cantidad = int(item.get('cantidad', 1))
-                except (TypeError, ValueError):
-                    cantidad = 1
-                if cantidad < 1:
-                    cantidad = 1
-                try:
-                    precio = Decimal(str(item.get('precio', producto.precio)))
-                except (InvalidOperation, TypeError, ValueError):
-                    precio = Decimal(str(producto.precio))
-                if precio < 0:
-                    precio = Decimal('0.00')
-                DetallePedido.objects.create(pedido=pedido, producto=producto, cantidad=cantidad, precio_unitario=precio)
-                total_calculado += precio * cantidad
-                detalles_creados += 1
-            if detalles_creados == 0:
-                raise ValueError('No se pudo relacionar ningún producto con la base de datos.')
-            pedido.total = total_calculado
-            pedido.save(update_fields=['total'])
-            cache.set(f'solo_cuenta_{pedido.id}', True, timeout=300)
-            if modo_fiscal:
-                cache.set(f'fiscal_{pedido.id}', True, timeout=300)
-    except ValueError as error:
-        return JsonResponse({'status': 'error', 'mensaje': str(error)}, status=400)
-    except Exception as error:
-        return JsonResponse({'status': 'error', 'mensaje': 'Error registrando el cobro: ' + str(error)}, status=500)
-    return JsonResponse({'status': 'ok', 'pedido_id': pedido.id, 'total': float(pedido.total), 'tipo_pago': pedido.tipo_pago, 'modo_fiscal': modo_fiscal, 'mensaje': 'Venta registrada en el cierre de caja y enviada a impresión.'})
+                        raise ValueError('Datos de pedido web inválidos.')
+                    if did <= 0 or pedido_id <= 0 or cantidad <= 0 or did in web_solicitados:
+                        raise ValueError('Pedido web repetido o cantidad inválida.')
+                    web_solicitados[did] = (pedido_id, cantidad)
+                else:
+                    filas_pos.append(fila)
+
+            web_por_pedido = {}
+            pedidos_web_bloqueados = {}
+            if web_solicitados:
+                # Bloquea primero la orden completa para evitar dobles cobros concurrentes.
+                ids_pedidos = {pid for pid, cant in web_solicitados.values()}
+                pedidos_web_bloqueados = {
+                    p.pk: p for p in Pedido.objects.select_for_update()
+                    .filter(pk__in=ids_pedidos).order_by('pk')
+                }
+                detalles = (DetallePedido.objects.select_for_update()
+                    .select_related('producto')
+                    .filter(pk__in=web_solicitados.keys())
+                    .order_by('pedido_id','pk'))
+                if detalles.count() != len(web_solicitados):
+                    raise ValueError('Un producto web ya no está disponible. Actualizá el salón.')
+                for d in detalles:
+                    pid, cant = web_solicitados[d.pk]
+                    pedido = pedidos_web_bloqueados.get(d.pedido_id)
+                    if pedido is None:
+                        raise ValueError('El pedido web ya no está disponible.')
+                    numero = str(pedido.numero_mesa or '').strip()
+                    if (pid != pedido.pk or not numero.isdigit() or str(int(numero)) != mesa
+                        or pedido.tipo_entrega != 'mesa' or pedido.tipo_pago != 'efectivo'
+                        or pedido.estado in ('cancelado','entregado')
+                        or (pedido.nombre_cliente or '').upper().startswith('POS SALON')
+                        or cant > d.cantidad):
+                        raise ValueError('El pedido web fue modificado o ya se cobró. Actualizá el salón.')
+                    web_por_pedido.setdefault(pid,[]).append((d,cant))
+
+            total_cobrado = Decimal('0.00')
+            cerrados = []
+            pedido_pos = None
+            if filas_pos:
+                pedido_pos = Pedido.objects.create(
+                    estado='listo', total=Decimal('0.00'),
+                    nombre_cliente='POS SALON FISCAL' if fiscal else 'POS SALON',
+                    tipo_entrega='mesa', numero_mesa=mesa, mozo=mozo,
+                    tipo_pago=medio, punto_venta=None, impreso_caja=False,
+                )
+                subtotal=Decimal('0.00')
+                for item in filas_pos:
+                    try:
+                        producto_id = int(item.get('producto_id') or 0)
+                        codigo = str(item.get('codigo') or '').strip()
+                        cantidad = int(item.get('cantidad') or 0)
+                        precio = Decimal(str(item.get('precio')))
+                    except (TypeError, ValueError, InvalidOperation):
+                        raise ValueError('Precio o cantidad inválida.')
+                    producto = Producto.objects.filter(pk=producto_id).first() if producto_id else None
+                    if producto is None and codigo:
+                        producto = Producto.objects.filter(codigo_rapido=codigo).first()
+                    if producto is None and codigo.isdigit():
+                        producto = Producto.objects.filter(pk=int(codigo)).first()
+                    if not producto or cantidad <= 0 or precio < 0:
+                        raise ValueError('Un producto del POS ya no es válido.')
+                    DetallePedido.objects.create(pedido=pedido_pos, producto=producto,
+                        cantidad=cantidad, precio_unitario=precio)
+                    subtotal += precio*cantidad
+                pedido_pos.total=subtotal
+                pedido_pos.save(update_fields=['total'])
+                total_cobrado += subtotal
+                cache.set(f'solo_cuenta_{pedido_pos.pk}',True,timeout=300)
+                if fiscal:
+                    cache.set(f'fiscal_{pedido_pos.pk}',True,timeout=300)
+
+            for pid, tomados in web_por_pedido.items():
+                pedido_web = pedidos_web_bloqueados[pid]
+                all_details = list(DetallePedido.objects.filter(pedido_id=pid).order_by('pk'))
+                cantidades = {d.pk: cant for d,cant in tomados}
+                es_total = all(d.pk in cantidades and cantidades[d.pk]==d.cantidad for d in all_details)
+                subtotal_web = sum((d.precio_unitario*cant for d,cant in tomados),Decimal('0.00'))
+                if es_total:
+                    pedido_web.estado='entregado'
+                    pedido_web.tipo_pago=medio
+                    pedido_web.mozo=mozo
+                    pedido_web.save(update_fields=['estado','tipo_pago','mozo'])
+                    cerrados.append(pid)
+                    if fiscal:
+                        cache.set(f'fiscal_{pid}',True,timeout=300)
+                else:
+                    # Mantener la parte aún no cobrada en el pedido original.
+                    pagado=Pedido.objects.create(
+                        estado='entregado', total=subtotal_web, nombre_cliente='POS SALON PARCIAL',
+                        tipo_entrega='mesa', numero_mesa=mesa, mozo=mozo,
+                        tipo_pago=medio, punto_venta=pedido_web.punto_venta,
+                        impreso_caja=False,
+                    )
+                    for detalle,cant in tomados:
+                        DetallePedido.objects.create(
+                            pedido=pagado,producto=detalle.producto,
+                            cantidad=cant,precio_unitario=detalle.precio_unitario,
+                            variante_elegida=detalle.variante_elegida,
+                            guarnicion_elegida=detalle.guarnicion_elegida,
+                            punto_coccion_elegido=detalle.punto_coccion_elegido,
+                            relleno_elegido=detalle.relleno_elegido,
+                            salsa_elegida=detalle.salsa_elegida,
+                            adicional_elegido=detalle.adicional_elegido,
+                            hielo_elegido=detalle.hielo_elegido,
+                        )
+                        if cant == detalle.cantidad:
+                            detalle.delete()
+                        else:
+                            detalle.cantidad -= cant
+                            detalle.save(update_fields=['cantidad'])
+                    pedido_web.total = sum((d.precio_unitario*d.cantidad for d in pedido_web.items.all()),Decimal('0.00'))
+                    pedido_web.save(update_fields=['total'])
+                    cerrados.append(pagado.pk)
+                    if fiscal:
+                        cache.set(f'fiscal_{pagado.pk}',True,timeout=300)
+                total_cobrado += subtotal_web
+
+            if not filas_pos and not web_por_pedido:
+                raise ValueError('No hay productos para cobrar.')
+
+    except ValueError as exc:
+        return JsonResponse({'status':'error','mensaje':str(exc)},status=400)
+    except Exception as exc:
+        return JsonResponse({'status':'error','mensaje':'No se pudo cerrar la mesa. Revisá los pedidos y probá otra vez.'},status=500)
+    return JsonResponse({'status':'ok','pedido_id':pedido_pos.pk if pedido_pos else (cerrados[0] if cerrados else None),
+        'pedidos_web_cerrados':cerrados,'total':float(total_cobrado),
+        'tipo_pago':medio,'modo_fiscal':fiscal,
+        'mensaje':'Cobro registrado y mesa actualizada.'})
+
+

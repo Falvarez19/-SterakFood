@@ -7724,3 +7724,139 @@ body[data-theme="light"] .hero-solo-fondo,
     }
 }
 
+
+
+/* =======================================================================
+   STERAKFOOD V102 - CUENTAS ORDENADAS, BUSCADOR Y ACORDEÓN COMPACTO
+   ======================================================================= */
+#tab-cuentas .cuentas-panel { gap: 12px !important; }
+#tab-cuentas .cuentas-alta-acordeon {
+    border: 1px solid var(--borde);
+    border-radius: 13px;
+    overflow: hidden;
+    background: var(--card-bg, #181b21);
+}
+#tab-cuentas .cuentas-alta-toggle {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 12px 15px; cursor: pointer; list-style: none;
+}
+#tab-cuentas .cuentas-alta-toggle::-webkit-details-marker { display: none; }
+#tab-cuentas .cuentas-alta-toggle strong {
+    display: block; color: var(--naranja-sterak, #ff6a00);
+    font-weight: 850; font-size: .96rem;
+}
+#tab-cuentas .cuentas-alta-toggle small {
+    display: block; margin-top: 2px; color: var(--texto-mutado, #9ca3af);
+    font-size: .76rem;
+}
+#tab-cuentas .cuentas-alta-flecha { font-size: 1.4rem; transition: transform .2s; }
+#tab-cuentas .cuentas-alta-acordeon[open] .cuentas-alta-flecha { transform: rotate(180deg); }
+#tab-cuentas .cuentas-alta-acordeon .cuentas-form-card {
+    margin: 0 !important; border: 0 !important; border-top: 1px solid var(--borde) !important;
+    border-radius: 0 !important; padding: 12px 15px !important;
+}
+
+#tab-cuentas .cuentas-filtros {
+    display: flex; align-items: center; flex-wrap: wrap;
+    gap: 9px; padding: 9px; border-radius: 13px;
+    background: var(--card-bg, #181b21);
+    border: 1px solid var(--borde);
+}
+#tab-cuentas .cuentas-filtros__buscador {
+    flex: 1 1 310px; min-width: 0; display: flex;
+    align-items: center; gap: 9px;
+    padding: 0 11px; border-radius: 9px;
+    border: 1px solid var(--borde);
+    background: var(--bg-color, #0b0f16);
+}
+#tab-cuentas .cuentas-filtros__buscador span {
+    font-size: 1.25rem; color: var(--texto-mutado, #9ca3af);
+}
+#tab-cuentas #cuentas-buscar {
+    flex: 1; min-width: 0; width: 100%; height: 39px !important;
+    border: 0 !important; outline: 0 !important;
+    box-shadow: none !important; background: transparent !important;
+    color: var(--text-color, #fff); font-size: .88rem;
+}
+#tab-cuentas #cuentas-filtro-estado {
+    height: 40px; min-width: 145px; max-width: 185px;
+    border-radius: 9px; padding: 0 9px; border: 1px solid var(--borde);
+    background: var(--bg-color, #0b0f16); color: var(--text-color, #fff);
+    font-size: .82rem;
+}
+#tab-cuentas .cuentas-filtros__contador {
+    white-space: nowrap; font-size: .78rem;
+    color: var(--texto-mutado, #9ca3af); margin-left: auto;
+}
+#tab-cuentas .cuentas-filtros__limpiar {
+    border: 1px solid var(--borde); border-radius: 9px;
+    padding: 8px 11px; color: var(--text-color, #fff);
+    background: transparent; cursor: pointer; font-weight: 700;
+    font-size: .78rem;
+}
+#tab-cuentas .cuentas-filtros__limpiar:hover { border-color: var(--naranja-sterak, #ff6a00); }
+#tab-cuentas .cuentas-sin-resultados {
+    padding: 18px; border: 1px dashed var(--borde);
+    border-radius: 12px; text-align: center;
+    color: var(--texto-mutado, #9ca3af); font-size: .86rem;
+}
+#tab-cuentas .cuentas-sin-resultados[hidden],
+#tab-cuentas .cuenta-card[hidden] { display: none !important; }
+
+/* Cerrada: una fila fina y legible, en vez de una tarjeta alta */
+#tab-cuentas .cuentas-lista { gap: 7px !important; }
+#tab-cuentas .cuenta-card { border-radius: 12px !important; }
+#tab-cuentas .cuenta-card__summary {
+    padding: 10px 13px !important;
+    grid-template-columns: minmax(0, 1fr) 75px !important;
+    gap: 10px !important;
+}
+#tab-cuentas .cuenta-card__top {
+    grid-template-columns: minmax(0, 1fr) minmax(130px, auto) !important;
+    gap: 10px !important;
+}
+#tab-cuentas .cuenta-card__persona { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 9px; }
+#tab-cuentas .cuenta-card__estado { margin: 0 !important; font-size: .61rem !important; }
+#tab-cuentas .cuenta-card h3 { margin: 0 !important; font-size: .94rem !important; }
+#tab-cuentas .cuenta-card p {
+    width: 100%; margin: 0 !important; font-size: .72rem !important;
+    opacity: .8; line-height: 1.2 !important;
+}
+#tab-cuentas .cuenta-card__saldo { min-width: 0 !important; }
+#tab-cuentas .cuenta-card__saldo small { display: none !important; }
+#tab-cuentas .cuenta-card__saldo strong { font-size: .96rem !important; white-space: nowrap; }
+#tab-cuentas .cuenta-card__toggle {
+    min-width: 0 !important; width: 75px !important; padding: 6px !important;
+    font-size: .74rem !important;
+}
+#tab-cuentas .cuenta-card__body { padding: 10px 13px !important; }
+#tab-cuentas .cuenta-card__summary:focus-visible,
+#tab-cuentas .cuentas-alta-toggle:focus-visible { outline: 2px solid var(--naranja-sterak, #ff6a00); outline-offset: -3px; }
+
+@media (max-width: 720px) {
+    #tab-cuentas .cuenta-card__top { grid-template-columns: minmax(0, 1fr) !important; }
+    #tab-cuentas .cuenta-card__saldo { text-align: left !important; }
+    #tab-cuentas .cuentas-filtros__buscador { flex-basis: 100% !important; }
+    #tab-cuentas .cuentas-filtros__contador { margin-left: 0; }
+}
+
+/* STERAK V103 - POS + Mesas unificados */
+.salon-pos__personal {margin:0 0 16px;border:1px solid var(--borde, #34383f);border-radius:12px;background:var(--card-bg, #181a20)}
+.salon-pos__personal summary {cursor:pointer;list-style:none;padding:12px 16px;font-weight:800;color:var(--text-color, #fff)}
+.salon-pos__personal summary::-webkit-details-marker{display:none}
+.salon-pos__personal summary span{float:right;font-weight:500;color:var(--texto-mutado, #abb0ba);font-size:.84rem}
+.salon-pos__personal-contenido{padding:0 16px 14px}
+#salon-form-agregar-mozo{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+#salon-form-agregar-mozo input{min-width:180px;flex:1;height:38px;padding:8px 12px;border-radius:9px;border:1px solid var(--borde);background:var(--bg-color,#0b0d11);color:var(--text-color,#fff)}
+#salon-form-agregar-mozo button {border:0;background:var(--naranja-sterak,#ff6a00);color:#101010;border-radius:9px;padding:8px 14px;font-weight:800;cursor:pointer}
+.salon-pos__personal-lista{display:flex;gap:6px;flex-wrap:wrap}
+.salon-pos__personal-chip{border:1px solid var(--borde);border-radius:999px;padding:5px 10px;font-size:.8rem}
+.salon-pos__personal-chip button{margin-left:8px;border:0;background:transparent;color:#ff656b;cursor:pointer;font-weight:800;font-size:1rem}
+.salon-pos--clasico .salon-pos__tabla-wrap #lista-comanda,
+.salon-pos--clasico .salon-pos__tabla-wrap.has-products #lista-comanda{display:block !important;width:100% !important}
+.salon-pos--clasico .salon-pos__lista-head{display:grid!important;grid-template-columns:132px 96px minmax(260px,1fr) 128px 128px!important;gap:14px!important;padding:8px 12px!important;border-bottom:1px solid var(--borde);font-size:.73rem;font-weight:900;color:var(--texto-mutado)}
+.salon-pos--clasico .salon-pos__lista-head .col-unitario,
+.salon-pos--clasico .salon-pos__lista-head .col-total{text-align:right}
+.salon-pos--clasico .salon-pos__fila-pos{display:grid!important;grid-template-columns:132px 96px minmax(260px,1fr) 128px 128px!important;gap:14px!important;align-items:center!important;padding:10px 12px!important;box-sizing:border-box!important}
+.salon-pos__origen-web{display:block;font-size:.65rem;margin-top:4px;color:var(--naranja-sterak,#ff6a00)}
+@media(max-width:900px){.salon-pos--clasico .salon-pos__lista-head{display:none!important}.salon-pos--clasico .salon-pos__fila-pos{grid-template-columns:1fr!important;gap:7px!important}}
