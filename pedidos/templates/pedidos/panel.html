@@ -889,7 +889,7 @@
                 <div>
                     <span class="categoria-kicker">CUENTAS CORRIENTES</span>
                     <h2>💳 Cuentas</h2>
-                    <p>Cargá consumos, pagos y dinero a favor de clientes frecuentes.</p>
+                    <p>Clientes con deuda o saldo a favor, todo en una vista simple.</p>
                 </div>
                 <div class="cuentas-resumen">
                     <article>
@@ -903,50 +903,54 @@
                 </div>
             </div>
 
-            <div class="cuentas-layout">
-                <form class="cuentas-form-card" action="{% url 'pedidos:crear_cuenta_corriente' %}" method="post">
+            <div class="cuentas-quickbar">
+                <form class="cuentas-form-card cuentas-form-card--simple" action="{% url 'pedidos:crear_cuenta_corriente' %}" method="post">
                     {% csrf_token %}
                     <div class="cuentas-form-card__title">
                         <strong>+ Nueva cuenta</strong>
-                        <small>Creá una cuenta para una persona.</small>
+                        <small>Alta rápida: nombre, saldo y estado.</small>
                     </div>
-                    <div class="cuentas-form-grid">
+
+                    <div class="cuentas-form-grid cuentas-form-grid--simple">
                         <label>
                             <span>Nombre</span>
                             <input type="text" name="nombre" placeholder="Ej: Juan Pérez" required>
                         </label>
+
                         <label>
                             <span>Teléfono</span>
                             <input type="text" name="telefono" placeholder="Opcional">
                         </label>
+
                         <label>
-                            <span>Saldo inicial</span>
+                            <span>Monto inicial</span>
                             <input type="text" name="saldo_inicial" placeholder="Ej: 10000">
                         </label>
+
                         <label>
-                            <span>Tipo inicial</span>
+                            <span>Estado</span>
                             <select name="estado_inicial">
                                 <option value="debe">Debe</option>
-                                <option value="favor">Dinero a favor</option>
+                                <option value="favor">A favor</option>
                             </select>
                         </label>
-                        <label class="is-full">
+
+                        <label class="is-wide">
                             <span>Nota</span>
                             <input type="text" name="nota" placeholder="Opcional: equipo, área, referencia...">
                         </label>
-                    </div>
-                    <button type="submit" class="cuentas-btn cuentas-btn--crear">Crear cuenta</button>
-                </form>
 
-                <div class="cuentas-ayuda-card">
-                    <strong>Cómo funciona</strong>
-                    <p><b>Consumo</b> aumenta la deuda. <b>Pago</b> o <b>dinero a favor</b> baja la deuda o deja saldo positivo.</p>
-                    <ul>
-                        <li>Saldo positivo: cliente tiene plata a favor.</li>
-                        <li>Saldo negativo: cliente debe.</li>
-                        <li>Saldo cero: cuenta al día.</li>
-                    </ul>
-                </div>
+                        <button type="submit" class="cuentas-btn cuentas-btn--crear">
+                            Crear
+                        </button>
+                    </div>
+
+                    <div class="cuentas-mini-ayuda" aria-label="Ayuda rápida">
+                        <span><b>Consumo</b> suma deuda</span>
+                        <span><b>Pago</b> descuenta</span>
+                        <span><b>A favor</b> queda crédito</span>
+                    </div>
+                </form>
             </div>
 
             <div class="cuentas-lista">
