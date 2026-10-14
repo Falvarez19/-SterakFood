@@ -1,4 +1,5 @@
 import json
+import secrets
 import unicodedata
 import re
 import requests
@@ -22,7 +23,11 @@ from django.core.cache import cache
 from django.db import connection, transaction
 from django.db.models import Q, Sum
 from .forms import ProductoForm
-from .models import Producto, Pedido, DetallePedido, PuntoVenta, Categoria, Configuracion, OpinionCliente, Mozo, CuentaCorriente, MovimientoCuentaCorriente
+from .models import (
+    Producto, Pedido, DetallePedido, PuntoVenta, Categoria, Configuracion,
+    OpinionCliente, Mozo, CuentaCorriente, MovimientoCuentaCorriente,
+    ComprobanteCuentaCorriente, ImpresionComprobanteCuenta,
+)
 from django.core.exceptions import PermissionDenied
 
 
@@ -419,7 +424,7 @@ def _decimal_desde_form(valor):
 def _preparar_cuentas_corrientes():
     cuentas = list(
         CuentaCorriente.objects
-        .prefetch_related('movimientos')
+        .prefetch_related('movimientos__comprobante_pos')
         .all()
     )
     # Orden A-Z independientemente de tildes y mayúsculas.
@@ -1086,7 +1091,7 @@ def api_resumen_ventas(request):
             nombre_producto = detalle.producto.nombre if detalle.producto else 'Producto eliminado'
             productos_vendidos[nombre_producto] = productos_vendidos.get(nombre_producto, 0) + detalle.cantidad
         productos_ordenados = sorted(productos_vendidos.items(), key=lambda item: item[1], reverse=True)
-        datos_mostradores.append({'nombre': nombre, 'total_ventas': float(total_ventas), 'cantidad_pedidos': pedidos_queryset.count(), 'efectivo': float(sum((pedido.total for pedido in pedidos_queryset if pedido.tipo_pago == 'efectivo'), Decimal('0.00'))), 'mercadopago': float(sum((pedido.total for pedido in pedidos_queryset if pedido.tipo_pago == 'mercadopago'), Decimal('0.00'))), 'debito': float(sum((pedido.total for pedido in pedidos_queryset if pedido.tipo_pago == 'debito'), Decimal('0.00'))), 'productos': [{'nombre': nombre_producto, 'cantidad': cantidad} for nombre_producto, cantidad in productos_ordenados]})
+        datos_mostradores.append({'nombre': nombre, 'total_ventas': float(total_ventas), 'cantidad_pedidos': pedidos_queryset.count(), 'efectivo': float(sum((pedido.total for pedido in pedidos_queryset if pedido.tipo_pago == 'efectivo'), Decimal('0.00'))), 'mercadopago': float(sum((pedido.total for pedido in pedidos_queryset if pedido.tipo_pago == 'mercadopago'), Decimal('0.00'))), 'debito': float(sum((pedido.total for pedido in pedidos_queryset if pedido.tipo_pago == 'debito'), Decimal('0.00'))), 'cuenta_corriente': float(sum((pedido.total for pedido in pedidos_queryset if pedido.tipo_pago == 'cuenta_corriente'), Decimal('0.00'))), 'productos': [{'nombre': nombre_producto, 'cantidad': cantidad} for nombre_producto, cantidad in productos_ordenados]})
     for puesto in PuntoVenta.objects.all():
         agregar_bloque(puesto.nombre, pedidos_validos.filter(punto_venta=puesto))
     pedidos_salon = pedidos_validos.filter(punto_venta__isnull=True, tipo_entrega='mesa')
@@ -1215,9 +1220,21 @@ def salon(request):
     productos_bd = Producto.objects.filter(disponible=True).select_related('categoria').order_by('categoria__nombre', 'orden', 'nombre')
     productos_js = [{'id': producto.id, 'codigo': producto.codigo_rapido if producto.codigo_rapido else str(producto.id), 'nombre': producto.nombre, 'precio': float(producto.precio)} for producto in productos_bd]
     mozos_js = [{'id': mozo.id, 'nombre': mozo.nombre} for mozo in Mozo.objects.all().order_by('nombre')]
+    cuentas_credito_js = [
+        {
+            'id': cuenta.id,
+            'nombre': cuenta.nombre,
+            'telefono': cuenta.telefono,
+            'saldo': float(cuenta.saldo_pos or Decimal('0.00')),
+        }
+        for cuenta in CuentaCorriente.objects.filter(activa=True)
+            .annotate(saldo_pos=Sum('movimientos__monto'))
+            .order_by('nombre', 'id')
+    ]
     return render(request, 'pedidos/salon.html', {
         'mesas': range(1,101), 'productos': productos_js,
         'mozos': mozos_js, 'pedidos_web_salon': _salon_items_pedidos_web(),
+        'cuentas_corrientes_pos': cuentas_credito_js,
     })
 
 
@@ -1243,16 +1260,55 @@ def cobrar_mesa_salon(request):
         if not mesa.isdigit() or not (1 <= int(mesa) <= 100):
             raise ValueError('Mesa inválida.')
         mesa = str(int(mesa))
-        if medio not in ('efectivo','mercadopago','debito'):
+        if medio not in ('efectivo', 'mercadopago', 'debito', 'cuenta_corriente'):
             raise ValueError('Elegí un medio de pago válido.')
-        if not isinstance(items,list) or not items:
+        if not isinstance(items, list) or not items:
             raise ValueError('No hay productos para cobrar.')
+        es_cuenta_corriente = medio == 'cuenta_corriente'
+        cuenta_credito_id = None
+        operacion_id = ''
+        if es_cuenta_corriente:
+            if fiscal:
+                raise ValueError('El cierre fiscal no puede registrarse como cuenta corriente.')
+            try:
+                cuenta_credito_id = int(data.get('cuenta_corriente_id') or 0)
+            except (TypeError, ValueError):
+                raise ValueError('Elegí una persona para cargar la cuenta corriente.')
+            operacion_id = str(data.get('operacion_id') or '').strip()
+            if cuenta_credito_id <= 0 or not re.fullmatch(r'[a-zA-Z0-9_-]{12,64}', operacion_id):
+                raise ValueError('Falta cliente o identificador de cobro válido.')
     except (ValueError, UnicodeDecodeError, TypeError) as exc:
         return JsonResponse({'status':'error','mensaje':str(exc)}, status=400)
 
     try:
         with transaction.atomic():
+            cuenta_credito = None
+            saldo_credito = None
+            if es_cuenta_corriente:
+                # En un reintento de red no volvemos a cobrar una deuda ya registrada.
+                movimiento_previo = MovimientoCuentaCorriente.objects.filter(
+                    operacion_id=operacion_id,
+                ).select_related('cuenta').first()
+                if movimiento_previo:
+                    if movimiento_previo.cuenta_id != cuenta_credito_id:
+                        raise ValueError('El identificador de cobro corresponde a otra cuenta.')
+                    return JsonResponse({
+                        'status': 'ok', 'reintento': True,
+                        'tipo_pago': 'cuenta_corriente',
+                        'cuenta_corriente_id': movimiento_previo.cuenta_id,
+                        'cuenta_corriente_nombre': movimiento_previo.cuenta.nombre,
+                        'cuenta_saldo': float(movimiento_previo.cuenta.saldo_actual),
+                        'total': float(-movimiento_previo.monto),
+                        'mensaje': 'El consumo ya estaba cargado en la cuenta corriente.',
+                        'comprobante_id': (movimiento_previo.comprobante_pos.pk if hasattr(movimiento_previo, 'comprobante_pos') else None),
+                    })
+                cuenta_credito = CuentaCorriente.objects.select_for_update().filter(
+                    pk=cuenta_credito_id, activa=True,
+                ).first()
+                if not cuenta_credito:
+                    raise ValueError('La cuenta corriente no existe o está desactivada.')
             filas_pos = []
+            snapshot_items = []
             web_solicitados = {}
             for fila in items:
                 if not isinstance(fila,dict):
@@ -1308,7 +1364,7 @@ def cobrar_mesa_salon(request):
                     estado='listo', total=Decimal('0.00'),
                     nombre_cliente='POS SALON FISCAL' if fiscal else 'POS SALON',
                     tipo_entrega='mesa', numero_mesa=mesa, mozo=mozo,
-                    tipo_pago=medio, punto_venta=None, impreso_caja=False,
+                    tipo_pago=medio, punto_venta=None, impreso_caja=es_cuenta_corriente,
                 )
                 subtotal=Decimal('0.00')
                 for item in filas_pos:
@@ -1328,11 +1384,16 @@ def cobrar_mesa_salon(request):
                         raise ValueError('Un producto del POS ya no es válido.')
                     DetallePedido.objects.create(pedido=pedido_pos, producto=producto,
                         cantidad=cantidad, precio_unitario=precio)
+                    snapshot_items.append({
+                        'cantidad': cantidad, 'nombre': producto.nombre,
+                        'unitario': str(precio), 'subtotal': str(precio*cantidad),
+                    })
                     subtotal += precio*cantidad
                 pedido_pos.total=subtotal
                 pedido_pos.save(update_fields=['total'])
                 total_cobrado += subtotal
-                cache.set(f'solo_cuenta_{pedido_pos.pk}',True,timeout=300)
+                if not es_cuenta_corriente:
+                    cache.set(f'solo_cuenta_{pedido_pos.pk}',True,timeout=300)
                 if fiscal:
                     cache.set(f'fiscal_{pedido_pos.pk}',True,timeout=300)
 
@@ -1342,11 +1403,26 @@ def cobrar_mesa_salon(request):
                 cantidades = {d.pk: cant for d,cant in tomados}
                 es_total = all(d.pk in cantidades and cantidades[d.pk]==d.cantidad for d in all_details)
                 subtotal_web = sum((d.precio_unitario*cant for d,cant in tomados),Decimal('0.00'))
+                for d, cant in tomados:
+                    nombre_detalle = d.producto.nombre if d.producto else 'Producto eliminado'
+                    opciones = [str(getattr(d, campo, '') or '') for campo in (
+                        'variante_elegida', 'guarnicion_elegida', 'punto_coccion_elegido',
+                        'relleno_elegido', 'salsa_elegida', 'adicional_elegido', 'hielo_elegido',
+                    )]
+                    detalle_extra = ', '.join(opcion for opcion in opciones if opcion)
+                    snapshot_items.append({
+                        'cantidad': cant,
+                        'nombre': nombre_detalle + (f' ({detalle_extra})' if detalle_extra else ''),
+                        'unitario': str(d.precio_unitario),
+                        'subtotal': str(d.precio_unitario * cant),
+                    })
                 if es_total:
                     pedido_web.estado='entregado'
                     pedido_web.tipo_pago=medio
                     pedido_web.mozo=mozo
-                    pedido_web.save(update_fields=['estado','tipo_pago','mozo'])
+                    if es_cuenta_corriente:
+                        pedido_web.impreso_caja = True
+                    pedido_web.save(update_fields=['estado','tipo_pago','mozo','impreso_caja'] if es_cuenta_corriente else ['estado','tipo_pago','mozo'])
                     cerrados.append(pid)
                     if fiscal:
                         cache.set(f'fiscal_{pid}',True,timeout=300)
@@ -1356,7 +1432,7 @@ def cobrar_mesa_salon(request):
                         estado='entregado', total=subtotal_web, nombre_cliente='POS SALON PARCIAL',
                         tipo_entrega='mesa', numero_mesa=mesa, mozo=mozo,
                         tipo_pago=medio, punto_venta=pedido_web.punto_venta,
-                        impreso_caja=False,
+                        impreso_caja=es_cuenta_corriente,
                     )
                     for detalle,cant in tomados:
                         DetallePedido.objects.create(
@@ -1385,13 +1461,144 @@ def cobrar_mesa_salon(request):
             if not filas_pos and not web_por_pedido:
                 raise ValueError('No hay productos para cobrar.')
 
+            if es_cuenta_corriente:
+                if total_cobrado <= 0:
+                    raise ValueError('El consumo debe tener un importe mayor a cero.')
+                saldo_anterior = CuentaCorriente.objects.filter(pk=cuenta_credito.pk).aggregate(
+                    saldo=Sum('movimientos__monto'),
+                )['saldo'] or Decimal('0.00')
+                movimiento_credito = MovimientoCuentaCorriente.objects.create(
+                    cuenta=cuenta_credito,
+                    tipo='consumo',
+                    descripcion=f'Consumo Salón POS · Mesa {mesa}',
+                    monto=-total_cobrado,
+                    operacion_id=operacion_id,
+                )
+                saldo_credito = saldo_anterior - total_cobrado
+                comprobante_credito = ComprobanteCuentaCorriente.objects.create(
+                    cuenta=cuenta_credito, movimiento=movimiento_credito,
+                    tipo='consumo', cliente_nombre=cuenta_credito.nombre,
+                    mesa=mesa, mozo=mozo, items=snapshot_items,
+                    total=total_cobrado, saldo_anterior=saldo_anterior,
+                    saldo_posterior=saldo_credito,
+                )
+
     except ValueError as exc:
         return JsonResponse({'status':'error','mensaje':str(exc)},status=400)
     except Exception as exc:
         return JsonResponse({'status':'error','mensaje':'No se pudo cerrar la mesa. Revisá los pedidos y probá otra vez.'},status=500)
-    return JsonResponse({'status':'ok','pedido_id':pedido_pos.pk if pedido_pos else (cerrados[0] if cerrados else None),
-        'pedidos_web_cerrados':cerrados,'total':float(total_cobrado),
-        'tipo_pago':medio,'modo_fiscal':fiscal,
-        'mensaje':'Cobro registrado y mesa actualizada.'})
+    respuesta = {
+        'status': 'ok',
+        'pedido_id': pedido_pos.pk if pedido_pos else (cerrados[0] if cerrados else None),
+        'pedidos_web_cerrados': cerrados,
+        'total': float(total_cobrado),
+        'tipo_pago': medio,
+        'modo_fiscal': fiscal,
+        'mensaje': 'Consumo cargado en cuenta corriente.' if es_cuenta_corriente else 'Cobro registrado y mesa actualizada.',
+    }
+    if es_cuenta_corriente:
+        respuesta.update({
+            'cuenta_corriente_id': cuenta_credito.pk,
+            'cuenta_corriente_nombre': cuenta_credito.nombre,
+            'cuenta_saldo': float(saldo_credito),
+            'comprobante_id': comprobante_credito.pk,
+        })
+    return JsonResponse(respuesta)
 
+
+
+
+# ===========================================================================
+# STERAKFOOD V105 - COMPROBANTES DE DEUDA NO FISCALES
+# ===========================================================================
+
+def _token_ticketera_valido(request):
+    # Si se configura en Render y en la PC, protege datos personales del ticket.
+    token = os.environ.get('TICKETERA_PRINT_TOKEN', '').strip()
+    if not token:
+        return True  # compatibilidad local; configurar token para servidor público
+    recibido = request.headers.get('X-Ticketera-Token', '')
+    return secrets.compare_digest(token, recibido)
+
+
+def _resumen_ticket_comprobante(comprobante, id_cola):
+    return {
+        'id': id_cola,
+        'comprobante_id': comprobante.pk,
+        'tipo': comprobante.tipo,
+        'cliente': comprobante.cliente_nombre,
+        'mesa': comprobante.mesa,
+        'mozo': comprobante.mozo,
+        'fecha': localtime(comprobante.fecha).strftime('%d/%m/%Y %H:%M'),
+        'items': comprobante.items,
+        'total': str(comprobante.total),
+        'saldo_anterior': str(comprobante.saldo_anterior),
+        'saldo_posterior': str(comprobante.saldo_posterior),
+    }
+
+
+def imprimir_comprobante_cuenta(request, comprobante_id):
+    if not request.session.get('dashboard_auth'):
+        return JsonResponse({'status': 'error', 'mensaje': 'Sesión vencida.'}, status=403)
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'mensaje': 'Método no permitido.'}, status=405)
+    comprobante = get_object_or_404(ComprobanteCuentaCorriente, pk=comprobante_id)
+    trabajo = ImpresionComprobanteCuenta.objects.create(comprobante=comprobante)
+    return JsonResponse({
+        'status': 'ok', 'cola_id': trabajo.pk,
+        'mensaje': 'Comprobante enviado a la cola de la ticketera de caja.',
+    })
+
+
+def imprimir_estado_cuenta(request, cuenta_id):
+    if not request.session.get('dashboard_auth'):
+        return JsonResponse({'status': 'error', 'mensaje': 'Sesión vencida.'}, status=403)
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'mensaje': 'Método no permitido.'}, status=405)
+    cuenta = get_object_or_404(CuentaCorriente, pk=cuenta_id)
+    with transaction.atomic():
+        saldo = CuentaCorriente.objects.filter(pk=cuenta_id).aggregate(
+            saldo=Sum('movimientos__monto')
+        )['saldo'] or Decimal('0.00')
+        ultimos = list(cuenta.movimientos.order_by('-fecha', '-pk')[:8])
+        items = [{
+            'cantidad': 1,
+            'nombre': m.descripcion or m.get_tipo_display(),
+            'unitario': str(m.monto), 'subtotal': str(m.monto),
+        } for m in reversed(ultimos)]
+        comprobante = ComprobanteCuentaCorriente.objects.create(
+            cuenta=cuenta, tipo='estado', cliente_nombre=cuenta.nombre,
+            items=items, total=Decimal('0.00'),
+            saldo_anterior=saldo, saldo_posterior=saldo,
+        )
+        trabajo = ImpresionComprobanteCuenta.objects.create(comprobante=comprobante)
+    return JsonResponse({
+        'status': 'ok', 'cola_id': trabajo.pk,
+        'mensaje': 'Estado de cuenta enviado a la ticketera.',
+    })
+
+
+def api_tickets_cuenta_pendientes(request):
+    if not _token_ticketera_valido(request):
+        return JsonResponse({'status': 'error', 'mensaje': 'Token de ticketera inválido'}, status=403)
+    pendientes = (ImpresionComprobanteCuenta.objects
+        .filter(impreso=False)
+        .select_related('comprobante')
+        .order_by('pk')[:30])
+    return JsonResponse({'status': 'ok', 'tickets': [
+        _resumen_ticket_comprobante(job.comprobante, job.pk)
+        for job in pendientes
+    ]})
+
+
+@csrf_exempt
+def api_ticket_cuenta_impreso(request, trabajo_id):
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'mensaje': 'Método no permitido'}, status=405)
+    if not _token_ticketera_valido(request):
+        return JsonResponse({'status': 'error', 'mensaje': 'Token de ticketera inválido'}, status=403)
+    actualizado = (ImpresionComprobanteCuenta.objects
+        .filter(pk=trabajo_id, impreso=False)
+        .update(impreso=True, fecha_impreso=timezone.now()))
+    return JsonResponse({'status': 'ok' if actualizado else 'error'})
 

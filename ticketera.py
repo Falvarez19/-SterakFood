@@ -12,6 +12,9 @@ import pystray
 BASE_URL = os.environ.get("TICKETERA_BASE_URL", "http://127.0.0.1:8000").rstrip("/")
 URL_PENDIENTES = f"{BASE_URL}/api/pedidos-pendientes/"
 URL_MARCAR = f"{BASE_URL}/api/marcar-impreso/"
+URL_TICKETS_CUENTA = f"{BASE_URL}/api/tickets-cuenta-pendientes/"
+URL_MARCAR_CUENTA = f"{BASE_URL}/api/marcar-ticket-cuenta-impreso/"
+TICKETERA_PRINT_TOKEN = os.environ.get('TICKETERA_PRINT_TOKEN', '').strip()
 
 NOMBRE_RESTAURANTE = os.environ.get("RESTAURANT_NAME", "SterakFood").strip() or "SterakFood"
 IMPRESORA_CAJA = os.environ.get("IMPRESORA_CAJA", "FACTURA_PYTHON")
@@ -166,6 +169,90 @@ def imprimir_ticket_cobro(impresora, pedido):
     impresora.text("\n\n\n\n")
     impresora.cut()
 
+
+
+# Comprobante no fiscal. Este camino no toca ventas, caja ni saldo contable.
+def imprimir_ticket_deuda(impresora, comprobante):
+    def moneda(numero):
+        try: return '$ ' + f'{float(numero):.2f}'
+        except (TypeError, ValueError): return '$ 0.00'
+
+    def linea_etiqueta(etiqueta, numero):
+        valor = moneda(numero)
+        espacio = max(1, ANCHO_TICKET - len(etiqueta) - len(valor))
+        impresora.text(etiqueta + ' ' * espacio + valor + '\n')
+
+    impresora.text('\x1b\x40')
+    impresora.set(align='center', font='a', bold=True, double_height=False, double_width=False)
+    impresora.text(NOMBRE_RESTAURANTE.upper() + '\n')
+    estado = comprobante.get('tipo') == 'estado'
+    impresora.text(('ESTADO DE CUENTA' if estado else 'COMPROBANTE CUENTA CORRIENTE') + '\n')
+    impresora.set(bold=False)
+    impresora.text(str(comprobante.get('fecha', '')) + '\n')
+    impresora.text('COMPROBANTE NO FISCAL\n')
+    impresora.text('-' * ANCHO_TICKET + '\n')
+    for linea in textwrap.wrap('CLIENTE: ' + str(comprobante.get('cliente', '')), width=ANCHO_TICKET):
+        impresora.text(linea + '\n')
+    if comprobante.get('mesa'):
+        impresora.text('MESA: ' + str(comprobante['mesa'])[:12] + '\n')
+    if comprobante.get('mozo'):
+        for linea in textwrap.wrap('MOZO: ' + str(comprobante['mozo']), width=ANCHO_TICKET):
+            impresora.text(linea + '\n')
+    impresora.text('-' * ANCHO_TICKET + '\n')
+    if estado: impresora.text('ULTIMOS MOVIMIENTOS\n')
+    else: impresora.text('DETALLE DEL CONSUMO\n')
+    for item in comprobante.get('items', []):
+        cant = str(item.get('cantidad', 1))
+        nombre = str(item.get('nombre', ''))
+        importe = moneda(item.get('subtotal', 0))
+        for linea in textwrap.wrap(cant + 'x ' + nombre, width=ANCHO_TICKET) or ['']:
+            impresora.text(linea + '\n')
+        impresora.set(align='right',bold=False)
+        impresora.text(importe + '\n')
+        impresora.set(align='left', bold=False)
+    impresora.text('-' * ANCHO_TICKET + '\n')
+    if not estado:
+        impresora.set(bold=True)
+        linea_etiqueta('CONSUMO A CUENTA:', comprobante.get('total', 0))
+        impresora.set(bold=False)
+        anterior = float(comprobante.get('saldo_anterior') or 0)
+        if anterior >= 0:
+            linea_etiqueta('A FAVOR ANTES:', anterior)
+        else:
+            linea_etiqueta('DEUDA ANTERIOR:', -anterior)
+    saldo = float(comprobante.get('saldo_posterior') or 0)
+    impresora.set(bold=True)
+    if saldo > 0: linea_etiqueta('SALDO A FAVOR:', saldo)
+    elif saldo < 0: linea_etiqueta('DEUDA TOTAL:', -saldo)
+    else: impresora.text('SALDO AL DIA: $ 0.00\n')
+    impresora.set(align='center', bold=False)
+    impresora.text('-' * ANCHO_TICKET + '\n')
+    impresora.text('NO VALIDO COMO FACTURA\n')
+    impresora.text('Documento informativo\n\n\n')
+    impresora.cut()
+
+
+def imprimir_pendientes_cuenta():
+    cabeceras = {'X-Ticketera-Token': TICKETERA_PRINT_TOKEN} if TICKETERA_PRINT_TOKEN else {}
+    respuesta = requests.get(URL_TICKETS_CUENTA, headers=cabeceras, timeout=10)
+    respuesta.raise_for_status()
+    datos = respuesta.json()
+    for comprobante in datos.get('tickets', []):
+        try:
+            imp_caja = Win32Raw(IMPRESORA_CAJA)
+            try:
+                imprimir_ticket_deuda(imp_caja, comprobante)
+            finally:
+                imp_caja.close()
+            confirmado = requests.post(
+                f"{URL_MARCAR_CUENTA}{comprobante['id']}/",
+                headers=cabeceras, timeout=10,
+            )
+            confirmado.raise_for_status()
+        except Exception as error:
+            # Si falla la impresora, NO marcar impreso: queda en cola.
+            print(f'Error imprimiendo ticket de deuda: {error}')
+
 # ====================================================================
 # 🔥 BUCLE QUE CORRE EN SEGUNDO PLANO 🔥
 # ====================================================================
@@ -210,6 +297,10 @@ def bucle_impresion():
                         requests.post(f"{URL_MARCAR}{pedido['id']}/", timeout=10)
         except Exception: 
             pass
+        try:
+            imprimir_pendientes_cuenta()
+        except Exception as error:
+            print(f'No se pudo consultar cola de comprobantes: {error}')
         time.sleep(5)
 
 # ====================================================================

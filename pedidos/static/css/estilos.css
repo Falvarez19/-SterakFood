@@ -7860,3 +7860,24 @@ body[data-theme="light"] .hero-solo-fondo,
 .salon-pos--clasico .salon-pos__fila-pos{display:grid!important;grid-template-columns:132px 96px minmax(260px,1fr) 128px 128px!important;gap:14px!important;align-items:center!important;padding:10px 12px!important;box-sizing:border-box!important}
 .salon-pos__origen-web{display:block;font-size:.65rem;margin-top:4px;color:var(--naranja-sterak,#ff6a00)}
 @media(max-width:900px){.salon-pos--clasico .salon-pos__lista-head{display:none!important}.salon-pos--clasico .salon-pos__fila-pos{grid-template-columns:1fr!important;gap:7px!important}}
+
+
+/* SterakFood v104: selector de clientes de cuenta corriente en Salón POS */
+.salon-credito__aviso {font-size:.87rem;line-height:1.4;color:var(--texto-mutado,#9aa1ac);margin:0 0 15px;text-align:left}
+.salon-credito__label {display:block;margin:12px 0 5px;text-align:left;font-size:.77rem;font-weight:800;color:var(--text-color,#eee)}
+.salon-credito__buscador,.salon-credito__clientes {display:block;width:100%;min-width:0;box-sizing:border-box;border:1px solid var(--borde,#30343b);border-radius:9px;background:var(--bg-color,#151820);color:var(--text-color,#fff);font-size:.93rem}
+.salon-credito__buscador {padding:11px 12px;min-height:43px}
+.salon-credito__clientes {min-height:145px;padding:5px}
+.salon-credito__clientes option {padding:9px 7px;border-radius:5px}
+.salon-credito__saldo {font-size:.85rem;color:var(--texto-mutado,#a1a1aa);margin:9px 0;text-align:left}
+.salon-credito__importe {display:block;font-size:1.05rem;color:var(--naranja-sterak,#ff7900);margin:14px 0 2px;text-align:left}
+
+
+/* SterakFood v105 - Botones de ticket de deuda */
+#tab-cuentas .cuenta-ticket-acciones {display:flex;flex-wrap:wrap;gap:8px;margin-bottom:2px}
+#tab-cuentas .cuenta-ticket-btn {background:rgba(255,133,0,.09);border:1px solid var(--borde,#333);color:var(--text-color,#fff);border-radius:9px;padding:8px 12px;font-weight:750;cursor:pointer;font-size:.81rem}
+#tab-cuentas .cuenta-ticket-btn:hover {border-color:var(--naranja-sterak,#ff7900)}
+#tab-cuentas .cuenta-ticket-reimprimir {background:transparent;color:var(--text-color,#eee);border:1px solid var(--borde,#333);border-radius:8px;cursor:pointer;min-width:32px;height:32px}
+#tab-cuentas .cuenta-ticket-reimprimir:hover {border-color:var(--naranja-sterak,#ff7900)}
+#tab-cuentas .cuenta-movimiento:has(.cuenta-ticket-reimprimir) {grid-template-columns:minmax(0,1fr) 100px 32px 32px !important}
+@media (max-width:600px) {#tab-cuentas .cuenta-movimiento:has(.cuenta-ticket-reimprimir) {grid-template-columns:minmax(0,1fr) auto 32px 32px !important}}

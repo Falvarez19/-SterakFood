@@ -912,6 +912,12 @@
                         </summary>
 
                         <div class="cuenta-card__body">
+                            <div class="cuenta-ticket-acciones">
+                                <button type="button" class="cuenta-ticket-btn"
+                                    data-cuenta-imprimir-url="{% url 'pedidos:imprimir_estado_cuenta' cuenta.id %}">
+                                    🖨 Imprimir estado de cuenta
+                                </button>
+                            </div>
                             <form class="cuenta-mov-form" action="{% url 'pedidos:agregar_movimiento_cuenta' cuenta.id %}" method="post">
                             {% csrf_token %}
                             <select name="tipo">
@@ -941,6 +947,12 @@
                                             +${{ movimiento.monto|floatformat:0 }}
                                         {% endif %}
                                     </div>
+                                    {% if movimiento.comprobante_pos %}
+                                        <button type="button" class="cuenta-ticket-reimprimir"
+                                            title="Reimprimir comprobante de este consumo"
+                                            aria-label="Reimprimir comprobante de este consumo"
+                                            data-cuenta-imprimir-url="{% url 'pedidos:imprimir_comprobante_cuenta' movimiento.comprobante_pos.id %}">🖨</button>
+                                    {% endif %}
                                     <form action="{% url 'pedidos:eliminar_movimiento_cuenta' movimiento.id %}" method="post" onsubmit="return confirm('¿Eliminar este movimiento?');">
                                         {% csrf_token %}
                                         <button type="submit" title="Eliminar movimiento">×</button>

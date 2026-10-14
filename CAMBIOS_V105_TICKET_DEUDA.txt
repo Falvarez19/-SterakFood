@@ -1,0 +1,18 @@
+STERAKFOOD v105 - Ticket de cuenta corriente (no fiscal)
+
+1. En Salón POS: cobrar, elegir Cuenta corriente, seleccionar cliente.
+2. Al confirmar aparece "Imprimir ticket". El consumo ya quedó guardado aunque se omita imprimir.
+3. En Panel > Cuentas > abrir cliente: "Imprimir estado de cuenta".
+4. Junto al movimiento POS en historial: botón impresora para reimprimir exactamente ese consumo.
+5. La impresión se agrega a la cola y sale por la impresora de CAJA configurada en ticketera.py.
+   Debe ejecutarse la versión actualizada de ticketera.py en la PC con la impresora.
+6. Nueva migración obligatoria: python manage.py migrate (0017).
+7. IMPORTANTE: Configurar el mismo valor de TICKETERA_PRINT_TOKEN en servidor y PC
+   en producción para proteger el nuevo endpoint que contiene datos de clientes.
+   Sin token configurado, se mantiene la compatibilidad con la ticketera local anterior,
+   pero la ruta de tickets no debe quedar expuesta públicamente sin controles de acceso.
+8. Los comprobantes de cuenta corriente son NO FISCALES y no generan otra venta.
+9. Si falla la impresora, el ticket permanece pendiente de impresión.
+   El servidor confirma que entró a la cola, NO que el papel ya haya salido.
+
+NOTA: probar cierre, cobro parcial, saldos y ticket físico antes de pasar a San Martín.

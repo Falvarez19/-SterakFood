@@ -1499,6 +1499,7 @@ function abrirCierreCaja() {
                                         <div style="display: flex; justify-content: space-between; color: var(--text-color);"><span>💵 Efectivo:</span> <strong>$${m.efectivo.toLocaleString("es-AR")}</strong></div>
                                         <div style="display: flex; justify-content: space-between; color: var(--text-color);"><span>📱 MP:</span> <strong>$${m.mercadopago.toLocaleString("es-AR")}</strong></div>
                                         <div style="display: flex; justify-content: space-between; color: var(--text-color);"><span>💳 Débito:</span> <strong>$${m.debito.toLocaleString("es-AR")}</strong></div>
+                                        <div style="display: flex; justify-content: space-between; color: var(--text-color);"><span>📒 Cuenta corriente (no cobrado):</span> <strong>$${(m.cuenta_corriente || 0).toLocaleString("es-AR")}</strong></div>
                                     </div>
                                 </div>
                                 <h4 style="margin-top: 0; margin-bottom: 10px; font-size: 0.95rem; color: var(--text-color); border-bottom: 1px solid var(--borde); padding-bottom: 5px;">🍔 Desglose de Productos</h4>
@@ -1836,6 +1837,14 @@ function eliminarOpinion(opinionId, url) {
     }).filter(function (mozo) {
         return (mozo.id && mozo.nombre);
     });
+    // Clientes activos para el cobro a cuenta corriente.
+    var cuentasCorrientesPOS = [];
+    try {
+        var cuentasData = document.getElementById('salon-cuentas-corrientes-data');
+        cuentasCorrientesPOS = JSON.parse(cuentasData ? cuentasData.textContent : '[]');
+    } catch (error) {
+        console.warn('No se pudieron cargar los clientes de cuenta corriente', error);
+    }
     var pedidosWebData = document.getElementById('salon-pedidos-web-data');
     var pedidosWebIniciales = [];
     try { pedidosWebIniciales = JSON.parse(pedidosWebData ? pedidosWebData.textContent : '[]'); }
@@ -2605,31 +2614,108 @@ function eliminarOpinion(opinionId, url) {
             }
         });
     }
-    function elegirMedioPago(total, titulo) {
+    function buscarClienteCuentaCorriente(total) {
+        if (!cuentasCorrientesPOS.length) {
+            return Swal.fire({
+                icon: 'info', title: 'No hay clientes cargados',
+                text: 'Creá primero una persona desde Panel → Cuentas.',
+                confirmButtonColor: 'var(--naranja-sterak)',
+                background: 'var(--card-bg)', color: 'var(--text-color)'
+            }).then(function () { return {isConfirmed: false}; });
+        }
+
         return Swal.fire({
-            title: titulo || "Registrar cobro",
-            html: "<div style=\"margin-bottom:10px;color:var(--texto-mutado);\">Total a cobrar</div>" + "<div style=\"font-size:1.55rem;font-weight:900;margin-bottom:14px;\">" + dinero(total) + "</div>",
-            input: "radio",
-            inputOptions: {
-                efectivo: "\uD83D\uDCB5 Efectivo",
-                mercadopago: "\uD83D\uDCF1 Mercado Pago",
-                debito: "\uD83D\uDCB3 D\u00E9bito"
-            },
-            inputValidator: function (valor) {
-                if (!valor)
-                    return "Eleg\u00ED c\u00F3mo se pag\u00F3 la mesa.";
-                return null;
-            },
+            title: 'Cargar a cuenta corriente',
+            html: '<p class="salon-credito__aviso">No se recibe dinero ahora. El consumo se sumará a la deuda o descontará el saldo a favor.</p>' +
+                  '<label class="salon-credito__label" for="salon-credito-buscar">Buscar cliente</label>' +
+                  '<input id="salon-credito-buscar" class="salon-credito__buscador" placeholder="Nombre o teléfono" autocomplete="off">' +
+                  '<label class="salon-credito__label" for="salon-credito-cliente">Seleccioná una persona</label>' +
+                  '<select id="salon-credito-cliente" class="salon-credito__clientes" size="6"></select>' +
+                  '<div class="salon-credito__saldo" id="salon-credito-saldo"></div>' +
+                  '<strong class="salon-credito__importe">Consumo: ' + dinero(total) + '</strong>',
             showCancelButton: true,
-            confirmButtonText: "Cobrar",
-            cancelButtonText: "Cancelar",
-            confirmButtonColor: "var(--verde-sanmartin)",
-            cancelButtonColor: "var(--texto-mutado)",
-            background: "var(--card-bg)",
-            color: "var(--text-color)"
+            confirmButtonText: 'Agregar consumo',
+            cancelButtonText: 'Volver',
+            confirmButtonColor: 'var(--naranja-sterak)',
+            background: 'var(--card-bg)', color: 'var(--text-color)',
+            didOpen: function () {
+                var buscador = document.getElementById('salon-credito-buscar');
+                var selector = document.getElementById('salon-credito-cliente');
+                var saldo = document.getElementById('salon-credito-saldo');
+                function normalizar(texto) {
+                    return String(texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+                }
+                function mostrarSaldo() {
+                    var cliente = cuentasCorrientesPOS.find(function (c) { return String(c.id) === selector.value; });
+                    if (!cliente) { saldo.textContent = 'Elegí un cliente de la lista.'; return; }
+                    var actual = Number(cliente.saldo || 0);
+                    var despues = actual - Number(total || 0);
+                    saldo.textContent = 'Saldo actual: ' + dinero(actual) + ' · Después: ' + dinero(despues);
+                }
+                function filtrar() {
+                    var filtro = normalizar(buscador.value.trim());
+                    var previo = selector.value;
+                    selector.textContent = '';
+                    cuentasCorrientesPOS.filter(function (c) {
+                        return normalizar(c.nombre + ' ' + (c.telefono || '')).includes(filtro);
+                    }).slice(0, 100).forEach(function (c) {
+                        var opcion = document.createElement('option');
+                        opcion.value = c.id;
+                        opcion.textContent = c.nombre + (c.telefono ? ' · ' + c.telefono : '');
+                        selector.appendChild(opcion);
+                    });
+                    if ([].some.call(selector.options, function (o) { return o.value === previo; })) {
+                        selector.value = previo;
+                    } else {
+                        selector.selectedIndex = -1;
+                    }
+                    mostrarSaldo();
+                }
+                buscador.addEventListener('input', filtrar);
+                selector.addEventListener('change', mostrarSaldo);
+                filtrar();
+                buscador.focus();
+            },
+            preConfirm: function () {
+                var selector = document.getElementById('salon-credito-cliente');
+                var id = Number(selector && selector.value || 0);
+                var cliente = cuentasCorrientesPOS.find(function (c) { return Number(c.id) === id; });
+                if (!cliente) {
+                    Swal.showValidationMessage('Elegí una persona para registrar el consumo.');
+                    return false;
+                }
+                return {id: cliente.id, nombre: cliente.nombre};
+            }
+        }).then(function (res) {
+            if (!res.isConfirmed) return {isConfirmed: false};
+            return {isConfirmed: true, value: 'cuenta_corriente', cuentaCorrienteId: res.value.id, cuentaCorrienteNombre: res.value.nombre};
         });
     }
-    function registrarCobroSalon(items, tipoPago, modoFiscal) {
+
+    function elegirMedioPago(total, titulo, modoFiscal) {
+        var opciones = {
+            efectivo: '\uD83D\uDCB5 Efectivo',
+            mercadopago: '\uD83D\uDCF1 Mercado Pago',
+            debito: '\uD83D\uDCB3 Débito'
+        };
+        if (!modoFiscal) opciones.cuenta_corriente = '\uD83D\uDCD2 Cuenta corriente (fiado)';
+        return Swal.fire({
+            title: titulo || 'Registrar cobro',
+            html: '<div style="margin-bottom:10px;color:var(--texto-mutado);">Total del consumo</div>' +
+                  '<div style="font-size:1.55rem;font-weight:900;margin-bottom:14px;">' + dinero(total) + '</div>',
+            input: 'radio', inputOptions: opciones,
+            inputValidator: function (valor) { return !valor ? 'Elegí el medio de cobro.' : null; },
+            showCancelButton: true,
+            confirmButtonText: 'Continuar', cancelButtonText: 'Cancelar',
+            confirmButtonColor: 'var(--naranja-sterak)',
+            background: 'var(--card-bg)', color: 'var(--text-color)'
+        }).then(function (res) {
+            if (!res.isConfirmed || res.value !== 'cuenta_corriente') return res;
+            return buscarClienteCuentaCorriente(total);
+        });
+    }
+
+    function registrarCobroSalon(items, tipoPago, modoFiscal, cuentaCorrienteId) {
         var cuenta = cuentaActual();
         if (!cuenta || !items.length) {
             return Promise.reject(new Error("No hay productos para cobrar."));
@@ -2637,6 +2723,28 @@ function eliminarOpinion(opinionId, url) {
         var url = root.getAttribute("data-charge-url");
         if (!url) {
             return Promise.reject(new Error("Falta configurar la URL de cobro del sal\u00F3n."));
+        }
+        var opPendiente = null;
+        if (tipoPago === 'cuenta_corriente') {
+            // Se conserva la misma operación al reintentar un envío fallido.
+            var firma = JSON.stringify({mesa: mesaActual, cliente: cuentaCorrienteId, items: items});
+            try {
+                var previa = JSON.parse(localStorage.getItem('sterak_pos_credito_pendiente') || 'null');
+                if (previa && previa.firma === firma && previa.creado > Date.now() - 24*60*60*1000) {
+                    opPendiente = previa;
+                }
+            } catch (error) { /* navegador sin storage: seguimos con el cobro */ }
+            if (!opPendiente) {
+                opPendiente = {
+                    firma: firma,
+                    creado: Date.now(),
+                    id: (window.crypto && window.crypto.randomUUID
+                        ? window.crypto.randomUUID().replace(/-/g, '')
+                        : Date.now().toString(36) + Math.random().toString(36).slice(2))
+                };
+                try { localStorage.setItem('sterak_pos_credito_pendiente', JSON.stringify(opPendiente)); }
+                catch (error) { /* continúa sin persistencia */ }
+            }
         }
         enviando = true;
         render();
@@ -2650,6 +2758,8 @@ function eliminarOpinion(opinionId, url) {
                 mesa: mesaActual,
                 mozo: cuenta.mozo_nombre || "",
                 tipo_pago: tipoPago,
+                cuenta_corriente_id: cuentaCorrienteId || null,
+                operacion_id: opPendiente ? opPendiente.id : '',
                 modo_fiscal: Boolean(modoFiscal),
                 items: items
             })
@@ -2657,6 +2767,14 @@ function eliminarOpinion(opinionId, url) {
             return response.json().catch(function () { return {}; }).then(function (data) {
                 if (!response.ok || data.status !== "ok") {
                     throw new Error(data.mensaje || "No se pudo registrar el cobro.");
+                }
+                if (tipoPago === 'cuenta_corriente') {
+                    try { localStorage.removeItem('sterak_pos_credito_pendiente'); }
+                    catch (error) { /* no afecta el cobro */ }
+                    var cliente = cuentasCorrientesPOS.find(function (c) {
+                        return Number(c.id) === Number(data.cuenta_corriente_id);
+                    });
+                    if (cliente) cliente.saldo = Number(data.cuenta_saldo || 0);
                 }
                 return data;
             });
@@ -2673,6 +2791,36 @@ function eliminarOpinion(opinionId, url) {
             text: error.message || "Ocurri\u00F3 un error.",
             background: "var(--card-bg)",
             color: "var(--text-color)"
+        });
+    }
+    function preguntarTicketCuenta(datos) {
+        if (!datos || !datos.comprobante_id) return Promise.resolve();
+        return Swal.fire({
+            icon: 'success',
+            title: 'Consumo pasado a cuenta',
+            html: '<div style="margin:6px 0 12px">Se registró la deuda a nombre de <b></b>.</div>' +
+                  '<div style="font-weight:800;margin:10px 0">Consumo: ' + dinero(datos.total || 0) + '</div>' +
+                  '<small>No ingresó dinero a caja. ¿Imprimir comprobante no fiscal?</small>',
+            showCancelButton: true,
+            confirmButtonText: '🖨 Imprimir ticket',
+            cancelButtonText: 'Listo, sin imprimir',
+            confirmButtonColor: 'var(--naranja-sterak)',
+            background: 'var(--card-bg)', color: 'var(--text-color)',
+            didOpen: function (popup) {
+                // Usar textContent para el nombre ingresado, nunca HTML.
+                var nombre = popup.querySelector('b');
+                if (nombre) nombre.textContent = datos.cuenta_corriente_nombre || 'cliente';
+            }
+        }).then(function (res) {
+            if (!res.isConfirmed) return;
+            return fetch('/dashboard/cuentas/comprobante/' + Number(datos.comprobante_id) + '/imprimir/', {
+                method: 'POST', headers: {'X-CSRFToken': obtenerCsrf()}
+            }).then(function (response) {
+                return response.json().then(function (data) {
+                    if (!response.ok || data.status !== 'ok') throw new Error(data.mensaje || 'No se pudo encolar el ticket.');
+                    return Swal.fire({icon:'success',title:'Ticket enviado a caja',text:'La ticketera lo imprimirá cuando esté conectada.',timer:1600,showConfirmButton:false,background:'var(--card-bg)',color:'var(--text-color)'});
+                });
+            }).catch(mostrarError);
         });
     }
     function imprimirMesa() {
@@ -2701,10 +2849,10 @@ function eliminarOpinion(opinionId, url) {
         var items = obtenerItemsTicket(cuenta, true);
         if (!items.length || resumen.cantidad <= 0)
             return;
-        elegirMedioPago(resumen.total, "Cobro parcial \u00B7 Mesa " + mesaActual).then(function (resultado) {
+        elegirMedioPago(resumen.total, "Cobro parcial \u00B7 Mesa " + mesaActual, false).then(function (resultado) {
             if (!resultado.isConfirmed)
                 return;
-            registrarCobroSalon(items, resultado.value, false).then(function () {
+            registrarCobroSalon(items, resultado.value, false, resultado.cuentaCorrienteId).then(function (datosCobro) {
                 cuenta.items.forEach(function (item) {
                     if (!item.seleccionado)
                         return;
@@ -2719,25 +2867,30 @@ function eliminarOpinion(opinionId, url) {
                 recalcular(cuenta);
                 guardar();
                 if (!cuenta.items.length) {
-                    Swal.fire({
+                    if (resultado.value !== 'cuenta_corriente') Swal.fire({
                         icon: "success",
-                        title: "Pago registrado",
-                        text: "La venta ya qued\u00F3 incluida en el cierre de caja.",
+                        title: resultado.value === 'cuenta_corriente' ? 'Consumo a cuenta registrado' : 'Pago registrado',
+                        text: resultado.value === 'cuenta_corriente' ? 'El importe se cargó al cliente. No entró dinero a caja.' : 'La venta ya quedó incluida en el cierre de caja.', 
                         timer: 1200,
                         showConfirmButton: false,
                         background: "var(--card-bg)",
                         color: "var(--text-color)"
                     });
                     liberarMesaActual();
+                    if (resultado.value === 'cuenta_corriente') preguntarTicketCuenta(datosCobro);
                     return;
                 }
                 filaTeclado = Math.min(filaTeclado, cuenta.items.length - 1);
                 actualizarMesas();
                 render();
+                if (resultado.value === 'cuenta_corriente') {
+                    preguntarTicketCuenta(datosCobro);
+                    return;
+                }
                 Swal.fire({
                     icon: "success",
-                    title: "Pago parcial registrado",
-                    text: "Ya suma al cierre de caja.",
+                    title: resultado.value === 'cuenta_corriente' ? 'Consumo parcial a cuenta' : 'Pago parcial registrado',
+                    text: resultado.value === 'cuenta_corriente' ? 'El importe fue agregado a la cuenta del cliente.' : 'Ya suma al cierre de caja.', 
                     timer: 1100,
                     showConfirmButton: false,
                     background: "var(--card-bg)",
@@ -2754,14 +2907,19 @@ function eliminarOpinion(opinionId, url) {
         var numeroMesa = mesaActual;
         var items = obtenerItemsTicket(cuenta, false);
         var titulo = modoFiscal ? "Cierre fiscal · Mesa " + numeroMesa : "Cobrar Mesa " + numeroMesa;
-        elegirMedioPago(cuenta.total, titulo).then(function (resultado) {
+        elegirMedioPago(cuenta.total, titulo, modoFiscal).then(function (resultado) {
             if (!resultado.isConfirmed)
                 return;
-            registrarCobroSalon(items, resultado.value, modoFiscal).then(function () {
+            registrarCobroSalon(items, resultado.value, modoFiscal, resultado.cuentaCorrienteId).then(function (datosCobro) {
+                if (resultado.value === 'cuenta_corriente') {
+                    liberarMesaActual();
+                    preguntarTicketCuenta(datosCobro);
+                    return;
+                }
                 Swal.fire({
                     icon: "success",
-                    title: modoFiscal ? "Cierre fiscal registrado" : "Mesa cobrada",
-                    text: modoFiscal ? "La venta quedó marcada para facturación fiscal real." : "La venta quedó registrada en el cierre de caja.",
+                    title: modoFiscal ? "Cierre fiscal registrado" : (resultado.value === 'cuenta_corriente' ? 'Mesa enviada a cuenta corriente' : 'Mesa cobrada'),
+                    text: modoFiscal ? "La venta quedó marcada para facturación fiscal." : (resultado.value === 'cuenta_corriente' ? 'El importe pasó a la cuenta del cliente; no ingresó dinero a caja.' : 'La venta quedó registrada en el cierre de caja.'),
                     timer: 1400,
                     showConfirmButton: false,
                     background: "var(--card-bg)",
@@ -3980,4 +4138,33 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
     else init();
+})();
+
+
+// SterakFood v105 - Reimpresión desde Cuentas sin navegar fuera del panel
+(function () {
+    function obtenerTokenCSRF() {
+        var campo = document.querySelector('.cuentas-form-card input[name="csrfmiddlewaretoken"]');
+        if (campo && campo.value) return campo.value;
+        var cookie = document.cookie.split(';').map(function (x) { return x.trim(); }).find(function (x) {return x.startsWith('csrftoken=');});
+        return cookie ? decodeURIComponent(cookie.substring(10)) : '';
+    }
+    document.addEventListener('click', function (event) {
+        var boton = event.target.closest('#tab-cuentas [data-cuenta-imprimir-url]');
+        if (!boton || boton.disabled) return;
+        event.preventDefault();
+        var url = boton.getAttribute('data-cuenta-imprimir-url');
+        boton.disabled = true;
+        fetch(url, {method:'POST', headers:{'X-CSRFToken': obtenerTokenCSRF()}})
+            .then(function (res) {
+                return res.json().then(function (data) {
+                    if (!res.ok || data.status !== 'ok') throw new Error(data.mensaje || 'No se pudo solicitar la impresión.');
+                    return data;
+                });
+            }).then(function (data) {
+                Swal.fire({toast:true,position:'top-end',icon:'success',title:data.mensaje || 'Ticket enviado a caja',timer:2500,showConfirmButton:false,background:'var(--card-bg)',color:'var(--text-color)'});
+            }).catch(function (error) {
+                Swal.fire({icon:'error',title:'No se pudo imprimir',text:error.message || 'Error de conexión.',background:'var(--card-bg)',color:'var(--text-color)'});
+            }).finally(function () {boton.disabled=false;});
+    });
 })();

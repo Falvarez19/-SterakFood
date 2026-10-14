@@ -211,6 +211,8 @@ class MovimientoCuentaCorriente(models.Model):
     tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='consumo')
     descripcion = models.CharField(max_length=180, blank=True, default='')
     monto = models.DecimalField(max_digits=12, decimal_places=2)
+    # Identificador único del cobro POS: evita duplicar deudas ante reintentos.
+    operacion_id = models.CharField(max_length=64, blank=True, null=True, unique=True)
     fecha = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -220,3 +222,40 @@ class MovimientoCuentaCorriente(models.Model):
 
     def __str__(self):
         return f'{self.cuenta.nombre} - {self.get_tipo_display()} - {self.monto}'
+
+
+# SterakFood v105 - Comprobantes no fiscales de cuenta corriente y cola de caja
+class ComprobanteCuentaCorriente(models.Model):
+    cuenta = models.ForeignKey(CuentaCorriente, on_delete=models.CASCADE, related_name='comprobantes')
+    movimiento = models.OneToOneField(
+        MovimientoCuentaCorriente, related_name='comprobante_pos',
+        on_delete=models.CASCADE, blank=True, null=True,
+    )
+    tipo = models.CharField(max_length=20, default='consumo')  # consumo / estado
+    cliente_nombre = models.CharField(max_length=120)
+    mesa = models.CharField(max_length=20, blank=True, default='')
+    mozo = models.CharField(max_length=100, blank=True, default='')
+    items = models.JSONField(default=list)  # Snapshot: no cambia si cambia el producto
+    total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    saldo_anterior = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    saldo_posterior = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-fecha']
+        verbose_name = 'Comprobante de cuenta corriente'
+        verbose_name_plural = 'Comprobantes de cuenta corriente'
+
+
+class ImpresionComprobanteCuenta(models.Model):
+    comprobante = models.ForeignKey(
+        ComprobanteCuentaCorriente, on_delete=models.CASCADE, related_name='impresiones'
+    )
+    impreso = models.BooleanField(default=False)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_impreso = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['fecha_creacion', 'id']
+        verbose_name = 'Impresión pendiente de cuenta'
+        verbose_name_plural = 'Impresiones pendientes de cuenta'

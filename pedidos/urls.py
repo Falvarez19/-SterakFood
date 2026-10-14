@@ -292,6 +292,14 @@ urlpatterns = [
 
 
     # ======================================================================
+    # 4.C COMPROBANTES DE CUENTA CORRIENTE
+    # ======================================================================
+    path('dashboard/cuentas/comprobante/<int:comprobante_id>/imprimir/',
+         views.imprimir_comprobante_cuenta, name='imprimir_comprobante_cuenta'),
+    path('dashboard/cuentas/<int:cuenta_id>/imprimir-estado/',
+         views.imprimir_estado_cuenta, name='imprimir_estado_cuenta'),
+
+    # ======================================================================
     # 5. POS DE SALÓN
     # ======================================================================
 
@@ -339,6 +347,11 @@ urlpatterns = [
         name='ticket_mesa'
     ),
 
+
+    path('api/tickets-cuenta-pendientes/',
+         views.api_tickets_cuenta_pendientes, name='api_tickets_cuenta_pendientes'),
+    path('api/marcar-ticket-cuenta-impreso/<int:trabajo_id>/',
+         views.api_ticket_cuenta_impreso, name='api_ticket_cuenta_impreso'),
 
     # ======================================================================
     # 7. PWA
