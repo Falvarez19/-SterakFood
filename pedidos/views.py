@@ -1,4 +1,7 @@
 import secrets
+import hashlib
+import logging
+import uuid
 import unicodedata
 # SISTEMA SM: vistas, carrito, dashboard, impresión y APIs
 from decimal import Decimal, InvalidOperation
@@ -28,7 +31,7 @@ from .forms import ProductoForm
 from .models import (Producto, Pedido, DetallePedido, PuntoVenta, Categoria, Configuracion, OpinionCliente, Mozo, CuentaCorriente, MovimientoCuentaCorriente, ComprobanteCuentaCorriente, ImpresionComprobanteCuenta)
 from django.core.exceptions import PermissionDenied
 from django.contrib.staticfiles import finders
-from .models import CorteHistorialVentas, BorradorFiscal, ConfiguracionFiscal
+from .models import CorteHistorialVentas, BorradorFiscal, ConfiguracionFiscal, OperacionCobroSalon
 from uuid import UUID
 from django.db import IntegrityError
 
@@ -1878,7 +1881,12 @@ def cobrar_mesa_salon(request):
             raise ValueError('No hay productos para cobrar.')
         es_cuenta_corriente = medio == 'cuenta_corriente'
         cuenta_credito_id = None
-        operacion_id = ''
+        operacion_id = str(data.get('operacion_id') or '').strip()
+        # Los nuevos clientes envían UUID para todos los medios de pago.
+        # Compatibilidad: clientes antiguos sin UUID pueden seguir cobrando,
+        # aunque no contarán con protección contra reintentos.
+        if operacion_id and not re.fullmatch(r'[a-zA-Z0-9_-]{12,64}', operacion_id):
+            raise ValueError('El identificador del cobro no es válido.')
         if es_cuenta_corriente:
             if fiscal:
                 raise ValueError('El cierre fiscal no puede registrarse como cuenta corriente.')
@@ -1886,7 +1894,6 @@ def cobrar_mesa_salon(request):
                 cuenta_credito_id = int(data.get('cuenta_corriente_id') or 0)
             except (TypeError, ValueError):
                 raise ValueError('Elegí una persona para cargar la cuenta corriente.')
-            operacion_id = str(data.get('operacion_id') or '').strip()
             if cuenta_credito_id <= 0 or not re.fullmatch(r'[a-zA-Z0-9_-]{12,64}', operacion_id):
                 raise ValueError('Falta cliente o identificador de cobro válido.')
     except (ValueError, UnicodeDecodeError, TypeError) as exc:
@@ -1919,6 +1926,25 @@ def cobrar_mesa_salon(request):
                 ).first()
                 if not cuenta_credito:
                     raise ValueError('La cuenta corriente no existe o está desactivada.')
+            operacion_cobro = None
+            if operacion_id:
+                # El hash impide reutilizar un mismo identificador con otra mesa
+                # u otros productos, incluso después de una reconexión.
+                firma_payload = hashlib.sha256(json.dumps({
+                    'mesa': mesa, 'tipo_pago': medio, 'mozo': mozo,
+                    'cuenta_corriente_id': cuenta_credito_id, 'items': items,
+                }, sort_keys=True, ensure_ascii=False).encode('utf-8')).hexdigest()
+                operacion_cobro, creada = OperacionCobroSalon.objects.get_or_create(
+                    operacion_id=operacion_id, defaults={
+                        'mesa': mesa, 'tipo_pago': medio, 'firma': firma_payload,
+                    })
+                if not creada:
+                    if operacion_cobro.firma != firma_payload:
+                        raise ValueError('Este identificador de cobro pertenece a otra operación. Recargá el salón antes de reintentar.')
+                    if operacion_cobro.respuesta:
+                        return JsonResponse({**operacion_cobro.respuesta, 'reintento': True})
+                    return JsonResponse({'status': 'error', 'mensaje':
+                        'El cobro está en proceso. Consultá Ventas antes de volver a intentarlo.'}, status=409)
             filas_pos = []
             snapshot_items = []
             web_solicitados = {}
@@ -1988,12 +2014,22 @@ def cobrar_mesa_salon(request):
                     except (TypeError, ValueError, InvalidOperation):
                         raise ValueError('Precio o cantidad inválida.')
                     producto = Producto.objects.filter(pk=producto_id).first() if producto_id else None
+                    # Productos persistidos en el navegador pueden venir de
+                    # una versión vieja del catálogo. Antes de cobrar, validamos
+                    # el código y evitamos asociarlos a un producto equivocado.
+                    if producto and producto.codigo_rapido and codigo and str(producto.codigo_rapido) != codigo:
+                        producto = None
                     if producto is None and codigo:
-                        producto = Producto.objects.filter(codigo_rapido=codigo).first()
-                    if producto is None and codigo.isdigit():
+                        candidatos = list(Producto.objects.filter(codigo_rapido=codigo)[:2])
+                        if len(candidatos) > 1:
+                            raise ValueError(f'El código {codigo} está duplicado en el catálogo. Revisalo antes de cobrar.')
+                        if candidatos:
+                            producto = candidatos[0]
+                    if producto is None and codigo.isdigit() and not producto_id:
                         producto = Producto.objects.filter(pk=int(codigo)).first()
                     if not producto or cantidad <= 0 or precio < 0:
-                        raise ValueError('Un producto del POS ya no es válido.')
+                        nombre = str(item.get('nombre') or codigo or 'sin nombre')[:70]
+                        raise ValueError(f'No se pudo identificar "{nombre}" en el catálogo actual. La mesa sigue abierta; actualizá el producto antes de cobrar.')
                     DetallePedido.objects.create(pedido=pedido_pos, producto=producto,
                         cantidad=cantidad, precio_unitario=precio)
                     snapshot_items.append({
@@ -2093,26 +2129,34 @@ def cobrar_mesa_salon(request):
                     saldo_posterior=saldo_credito,
                 )
 
+            respuesta = {
+                'status': 'ok',
+                'pedido_id': pedido_pos.pk if pedido_pos else (cerrados[0] if cerrados else None),
+                'pedidos_web_cerrados': cerrados,
+                'total': float(total_cobrado),
+                'tipo_pago': medio,
+                'modo_fiscal': fiscal,
+                'mensaje': 'Consumo cargado en cuenta corriente.' if es_cuenta_corriente else 'Cobro registrado y mesa actualizada.',
+            }
+            if es_cuenta_corriente:
+                respuesta.update({
+                    'cuenta_corriente_id': cuenta_credito.pk,
+                    'cuenta_corriente_nombre': cuenta_credito.nombre,
+                    'cuenta_saldo': float(saldo_credito),
+                    'comprobante_id': comprobante_credito.pk,
+                })
+            if operacion_cobro is not None:
+                operacion_cobro.respuesta = respuesta
+                operacion_cobro.save(update_fields=['respuesta'])
+
     except ValueError as exc:
         return JsonResponse({'status':'error','mensaje':str(exc)},status=400)
-    except Exception as exc:
-        return JsonResponse({'status':'error','mensaje':'No se pudo cerrar la mesa. Revisá los pedidos y probá otra vez.'},status=500)
-    respuesta = {
-        'status': 'ok',
-        'pedido_id': pedido_pos.pk if pedido_pos else (cerrados[0] if cerrados else None),
-        'pedidos_web_cerrados': cerrados,
-        'total': float(total_cobrado),
-        'tipo_pago': medio,
-        'modo_fiscal': fiscal,
-        'mensaje': 'Consumo cargado en cuenta corriente.' if es_cuenta_corriente else 'Cobro registrado y mesa actualizada.',
-    }
-    if es_cuenta_corriente:
-        respuesta.update({
-            'cuenta_corriente_id': cuenta_credito.pk,
-            'cuenta_corriente_nombre': cuenta_credito.nombre,
-            'cuenta_saldo': float(saldo_credito),
-            'comprobante_id': comprobante_credito.pk,
-        })
+    except Exception:
+        ref_error = uuid.uuid4().hex[:8].upper()
+        logging.getLogger(__name__).exception('Error al cerrar mesa POS ref=%s', ref_error)
+        return JsonResponse({'status':'error','mensaje':
+            'No se pudo cerrar la mesa. No borres sus productos. Revisá Render Logs con el código ' + ref_error,
+            'error_ref': ref_error}, status=500)
     return JsonResponse(respuesta)
 
 

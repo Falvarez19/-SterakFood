@@ -3714,27 +3714,27 @@ function eliminarOpinion(opinionId, url) {
         if (!url) {
             return Promise.reject(new Error("Falta configurar la URL de cobro del sal\u00F3n."));
         }
+        // Cada cobro, no solo la cuenta corriente, conserva el mismo ID en
+        // reintentos: si Render completó el cobro pero se perdió la respuesta,
+        // volver a intentar NO crea una segunda venta.
+        var storageCobro = 'sterak_pos_cobro_pendiente_v1';
+        var firma = JSON.stringify({mesa: mesaActual, tipo_pago: tipoPago,
+            mozo: cuenta.mozo_nombre || '', cliente: cuentaCorrienteId || null, items: items});
         var opPendiente = null;
-        if (tipoPago === 'cuenta_corriente') {
-            // Se conserva la misma operación al reintentar un envío fallido.
-            var firma = JSON.stringify({mesa: mesaActual, cliente: cuentaCorrienteId, items: items});
-            try {
-                var previa = JSON.parse(localStorage.getItem('sterak_pos_credito_pendiente') || 'null');
-                if (previa && previa.firma === firma && previa.creado > Date.now() - 24*60*60*1000) {
-                    opPendiente = previa;
-                }
-            } catch (error) { /* navegador sin storage: seguimos con el cobro */ }
-            if (!opPendiente) {
-                opPendiente = {
-                    firma: firma,
-                    creado: Date.now(),
-                    id: (window.crypto && window.crypto.randomUUID
-                        ? window.crypto.randomUUID().replace(/-/g, '')
-                        : Date.now().toString(36) + Math.random().toString(36).slice(2))
-                };
-                try { localStorage.setItem('sterak_pos_credito_pendiente', JSON.stringify(opPendiente)); }
-                catch (error) { /* continúa sin persistencia */ }
-            }
+        try {
+            var previa = JSON.parse(localStorage.getItem(storageCobro) || 'null');
+            if (previa && previa.firma === firma && previa.creado > Date.now() - 24*60*60*1000)
+                opPendiente = previa;
+        } catch (error) { /* navegador sin storage */ }
+        if (!opPendiente) {
+            opPendiente = {
+                firma: firma, creado: Date.now(),
+                id: (window.crypto && window.crypto.randomUUID
+                    ? window.crypto.randomUUID().replace(/-/g, '')
+                    : Date.now().toString(36) + Math.random().toString(36).slice(2))
+            };
+            try { localStorage.setItem(storageCobro, JSON.stringify(opPendiente)); }
+            catch (error) { /* no guardar jamás datos fiscales ni claves */ }
         }
         enviando = true;
         render();
@@ -3749,18 +3749,25 @@ function eliminarOpinion(opinionId, url) {
                 mozo: cuenta.mozo_nombre || "",
                 tipo_pago: tipoPago,
                 cuenta_corriente_id: cuentaCorrienteId || null,
-                operacion_id: opPendiente ? opPendiente.id : '',
+                operacion_id: opPendiente.id,
                 modo_fiscal: Boolean(modoFiscal),
                 items: items
             })
         }).then(function (response) {
             return response.json().catch(function () { return {}; }).then(function (data) {
                 if (!response.ok || data.status !== "ok") {
-                    throw new Error(data.mensaje || "No se pudo registrar el cobro.");
+                    var mensaje = data.mensaje || (response.status === 403
+                        ? 'La sesión venció o el formulario no tiene CSRF válido. Volvé a iniciar sesión.'
+                        : 'No se pudo registrar el cobro.');
+                    throw new Error(mensaje);
                 }
+                try {
+                    // Limpiar solamente el cobro que acabamos de completar.
+                    var actual = JSON.parse(localStorage.getItem(storageCobro) || 'null');
+                    if (actual && actual.id === opPendiente.id) localStorage.removeItem(storageCobro);
+                    if (tipoPago === 'cuenta_corriente') localStorage.removeItem('sterak_pos_credito_pendiente');
+                } catch (error) { /* no afecta el cobro */ }
                 if (tipoPago === 'cuenta_corriente') {
-                    try { localStorage.removeItem('sterak_pos_credito_pendiente'); }
-                    catch (error) { /* no afecta el cobro */ }
                     var cliente = cuentasCorrientesPOS.find(function (c) {
                         return Number(c.id) === Number(data.cuenta_corriente_id);
                     });
@@ -3884,6 +3891,7 @@ function eliminarOpinion(opinionId, url) {
         return enviar();
     }
     function cobrarParcial() {
+        if (enviando) return;
         var cuenta = cuentaActual();
         if (!cuenta)
             return;
@@ -3944,6 +3952,7 @@ function eliminarOpinion(opinionId, url) {
         });
     }
     function cobrarMesa(modoFiscal) {
+        if (enviando) return;
         var cuenta = cuentaActual();
         modoFiscal = Boolean(modoFiscal);
         if (!cuenta || !cuenta.items.length)

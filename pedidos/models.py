@@ -457,3 +457,21 @@ class FacturaFiscal(models.Model):
 
     def __str__(self):
         return f"{self.entorno}: B-{self.punto_venta:05d}-{(self.numero or 0):08d} {self.estado}"
+
+
+class OperacionCobroSalon(models.Model):
+    """Registro idempotente de cierres de mesa (incluye cobros no fiados).
+
+    No almacena datos privados del cliente ni reemplaza al Pedido contable.
+    Evita duplicar la venta si la respuesta de Render se pierde al cobrar.
+    """
+    operacion_id = models.CharField(max_length=64, primary_key=True)
+    mesa = models.CharField(max_length=10)
+    tipo_pago = models.CharField(max_length=30)
+    firma = models.CharField(max_length=64)
+    respuesta = models.JSONField(default=dict)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Cobro idempotente de salón'
+        verbose_name_plural = 'Cobros idempotentes de salón'
