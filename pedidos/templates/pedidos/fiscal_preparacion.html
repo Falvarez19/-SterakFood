@@ -1,0 +1,45 @@
+{% extends 'pedidos/base.html' %}
+{% block title %}Preparación fiscal | SterakFood{% endblock %}
+{% block nav_acciones %}<a class="btn-nav-ghost" href="{% url 'pedidos:salon' %}">← Volver al Salón</a>{% endblock %}
+{% block content %}
+<section class="fiscal-prep">
+  <header class="fiscal-prep__cabecera">
+    <h1>🧾 Preparación fiscal</h1>
+    <p class="fiscal-prep__alerta"><strong>Modo preparación: NO emite facturas ni imprime comprobantes fiscales. La prueba de conexión solo consulta el estado de ARCA en homologación.</strong> Los borradores se utilizan únicamente para preparar la integración.</p>
+  </header>
+  {% for message in messages %}<p role="status" class="fiscal-prep__mensaje">{{ message }}</p>{% endfor %}
+  <section class="fiscal-prep__tarjeta">
+    <h2>Prueba de conexión ARCA — homologación</h2>
+    <p>Este botón consulta el estado técnico de WSFEv1 (FEDummy). <strong>No usa CUIT, no autentica, no solicita CAE y no genera facturas.</strong></p>
+    <form id="fiscal-probar-arca-form" method="post" action="{% url 'pedidos:fiscal_probar_conexion_arca' %}">
+      {% csrf_token %}
+      <button class="fiscal-prep__guardar" type="submit">Probar conexión con ARCA (sin emitir)</button>
+    </form>
+    <div id="fiscal-probar-arca-resultado" class="fiscal-prep__estado" role="status" aria-live="polite"></div>
+    <p class="fiscal-prep__nota">Para probar autenticación y permisos, necesitaremos un certificado de prueba propio del entorno WSASS. No sirve usar automáticamente el certificado de producción de DTMaxNet.</p>
+  </section>
+  <section class="fiscal-prep__tarjeta">
+    <h2>Datos fiscales del emisor</h2>
+    <p>Completá estos datos usando una factura de DTMaxNet. El punto de venta es solo una referencia; verificaremos su habilitación en ARCA antes de facturar.</p>
+    <form method="post" class="fiscal-prep__form">{% csrf_token %}
+      <label>Razón social <input name="razon_social" maxlength="180" value="{{ config_fiscal.razon_social }}" autocomplete="organization"></label>
+      <label>CUIT (11 números) <input name="cuit" maxlength="13" inputmode="numeric" value="{{ config_fiscal.cuit }}"></label>
+      <label>Condición frente al IVA <select name="condicion_iva">
+        {% for valor, etiqueta in condiciones_iva %}<option value="{{ valor }}" {% if valor == config_fiscal.condicion_iva %}selected{% endif %}>{{ etiqueta }}</option>{% endfor %}
+      </select></label>
+      <label>Punto de venta utilizado en DTMaxNet (referencia) <input name="punto_venta_referencia" type="number" min="1" max="99999" value="{{ config_fiscal.punto_venta_referencia|default_if_none:'' }}"></label>
+      <label>Domicilio fiscal <input name="domicilio_fiscal" maxlength="220" value="{{ config_fiscal.domicilio_fiscal }}"></label>
+      <button type="submit" class="fiscal-prep__guardar">Guardar datos (NO factura)</button>
+    </form>
+  </section>
+  <section class="fiscal-prep__tarjeta">
+    <h2>Borradores fiscales — sin CAE</h2>
+    <p>Al utilizar * o ** en el Salón, se guarda una copia preliminar y la mesa continúa abierta.</p>
+    <div class="fiscal-prep__tabla-wrap"><table class="fiscal-prep__tabla"><thead><tr><th>Fecha</th><th>Mesa</th><th>Mozo</th><th>Total estimado</th><th>Estado</th></tr></thead><tbody>
+      {% for b in borradores_fiscales %}<tr><td>{{ b.fecha_creacion|date:'d/m/Y H:i' }}</td><td>{{ b.mesa }}</td><td>{{ b.mozo }}</td><td>${{ b.total_estimado }}</td><td>NO EMITIDO</td></tr>
+      {% empty %}<tr><td colspan="5">Todavía no hay borradores.</td></tr>{% endfor %}
+    </tbody></table></div>
+    <p class="fiscal-prep__nota">Nunca cargues certificados .p12, contraseñas ni claves privadas en este formulario o en GitHub.</p>
+  </section>
+</section>
+{% endblock %}

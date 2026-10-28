@@ -1,0 +1,1 @@
+Importá solamente el catálogo del negocio propietario. No utilizar los productos ni precios de otros clientes.

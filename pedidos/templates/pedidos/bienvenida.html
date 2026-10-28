@@ -1,0 +1,37 @@
+{% extends 'pedidos/base.html' %}
+{% load static %}
+{% block title %}Bienvenido | {{ restaurant_name }}{% endblock %}
+{% block nav_acciones %}{% endblock %}
+{% block content %}
+<div class="bienvenida-container">
+    <h1 class="bienvenida-titulo">¡Hola! ¿Donde vas a pedir hoy?</h1>
+    <p class="bienvenida-subtitulo">Seleccioná el mostrador desde donde vas a retirar tu pedido.</p>
+    <div class="puestos-grid">
+        {% for puesto in puestos %}
+            {% with slug_lower=puesto.slug|lower %}
+            <a href="{% if 'foodtruck' in slug_lower %}#{% else %}{% url 'pedidos:inicio' %}?puesto={{ puesto.slug }}{% endif %}"
+               class="tarjeta-puesto
+                      {% if 'menu' in slug_lower or 'buffet' in slug_lower or 'barra' in slug_lower %}tarjeta-con-fondo{% endif %}
+                      {% if 'foodtruck' in slug_lower %}proximamente-card{% endif %}"
+               style="
+                      {% if 'menu' in slug_lower or 'buffet' in slug_lower or 'barra' in slug_lower %}background-image: url('{% static 'img/fondo-buffet.png' %}');{% endif %}
+                      {% if 'foodtruck' in slug_lower %}pointer-events: none; opacity: 0.6; filter: grayscale(80%); cursor: not-allowed;{% endif %}
+               "
+            >
+                {% if 'foodtruck' in slug_lower %}
+                    <div class="etiqueta-proximamente">Próximamente</div>
+                {% endif %}
+                <div class="puesto-icono">
+                    {% if 'Buffet' in puesto.nombre or 'Menú' in puesto.nombre %}
+                    {% elif 'Foodtruck' in puesto.nombre %}🚐
+                    {% else %}🏪{% endif %}
+                </div>
+                <div class="puesto-nombre">{{ puesto.nombre }}</div>
+            </a>
+            {% endwith %}
+        {% empty %}
+            <p style="color: var(--texto-mutado); grid-column: 1 / -1;">No hay puestos configurados todavía.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

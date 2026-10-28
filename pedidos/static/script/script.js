@@ -1,71 +1,153 @@
 // ==========================================================================
-// MÓDULO 0: PANTALLA DE CARGA Y PORCENTAJE
+// # MÓDULO 0: PANTALLA DE CARGA MODERNA SAN MARTÍN
 // ==========================================================================
 
-document.addEventListener("DOMContentLoaded", function () {
-    const porcentajeEl = document.getElementById("carga-porcentaje");
-    if (porcentajeEl) {
-        let progreso = 0;
-        const intervalo = setInterval(() => {
-            if (progreso < 90) {
-                progreso += Math.floor(Math.random() * 15) + 5;
-                if (progreso > 90)
-                    progreso = 90;
-                porcentajeEl.textContent = progreso + "%";
-            }
-        }, 80);
-        window.addEventListener("load", function () {
-            clearInterval(intervalo);
-            porcentajeEl.textContent = "100%";
+document.addEventListener('DOMContentLoaded', function() {
+    const porcentajeEl = document.getElementById('carga-porcentaje');
+    const preloader = document.getElementById('pantalla-carga');
+    if (!preloader) {
+        document.body.classList.remove('bloquear-scroll');
+        return;
+    }
+    let progreso = 0;
+    let finalizado = false;
+    const intervalo = setInterval(() => {
+        if (!porcentajeEl || finalizado) return;
+        if (progreso < 90) {
+            progreso += Math.floor(Math.random() * 12) + 4;
+            if (progreso > 90) progreso = 90;
+            porcentajeEl.textContent = progreso + '%';
+        }
+    }, 90);
+    window.addEventListener('load', function() {
+        if (finalizado) return;
+        finalizado = true;
+        clearInterval(intervalo);
+        if (porcentajeEl) {
+            porcentajeEl.textContent = '100%';
+        }
+        setTimeout(() => {
+            preloader.style.opacity = '0';
+            preloader.style.visibility = 'hidden';
+            document.body.classList.remove('bloquear-scroll');
             setTimeout(() => {
-                const preloader = document.getElementById("pantalla-carga");
-                if (preloader) {
-                    preloader.style.opacity = "0";
-                    preloader.style.visibility = "hidden";
-                    document.body.classList.remove("bloquear-scroll");
-                    setTimeout(() => preloader.remove(), 600);
+                if (preloader.parentNode) {
+                    preloader.remove();
                 }
-            }, 300);
-        });
+            }, 600);
+        }, 250);
+    });
+});
+// ==========================================================================
+// # MÓDULO 1: GESTIÓN DEL CARRITO DE COMPRAS Y SESIÓN
+// ==========================================================================
+
+document.addEventListener("DOMContentLoaded", function() {
+    const badge = document.getElementById('badge-contador');
+    if (badge) {
+        fetch('/carrito/ver/')
+            .then(res => res.json())
+            .then(datos => {
+                let total = 0;
+                if (datos.items && datos.items.length > 0) {
+                    datos.items.forEach(item => {
+                        total += item.cantidad;
+                    });
+                }
+                badge.innerText = total;
+            })
+            .catch(err => console.log('Error sincronizando carrito'));
     }
 });
-
-// ==========================================================================
-// MÓDULO 1: GESTIÓN DEL CARRITO DE COMPRAS Y SESIÓN
-// ==========================================================================
-
 function agregarAlCarrito(productoId) {
     const parametros = new URLSearchParams(window.location.search);
-    const puesto = parametros.get("puesto") || "";
-    fetch(`/carrito/agregar/${productoId}/?puesto=${puesto}`).then(respuesta => respuesta.json()).then(datos => {
-        if (datos.status === "ok") {
-            document.getElementById("badge-contador").innerText = datos.total_items;
-            if (document.getElementById("carrito-sidebar").classList.contains("abierto")) {
-                cargarDetalleCarrito();
+    const puesto = parametros.get('puesto') || '';
+    const ahora = new Date();
+    const hora = ahora.getHours();
+    const diaSemana = ahora.getDay();
+    if (puesto === 'foodtruck') {
+        if (hora < 10 || hora >= 18) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Foodtruck Cerrado 🌙',
+                text: 'El Foodtruck solo toma pedidos de 10:00 a 18:00 hs.',
+                confirmButtonColor: '#dfb23e',
+                background: 'var(--card-bg)',
+                color: 'var(--text-color)'
+            });
+            return;
+        }
+    } else {
+        if (diaSemana === 1 || diaSemana === 2) {
+            if (hora < 8 || hora >= 21) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Buffet Cerrado 🌙',
+                    text: 'Hoy tomamos pedidos de 08:00 a 21:00 hs. ¡Pero podés ir mirando el menú para tentarte!',
+                    confirmButtonColor: '#dfb23e',
+                    background: 'var(--card-bg)',
+                    color: 'var(--text-color)'
+                });
+                return;
+            }
+        } else if (diaSemana === 3 || diaSemana === 4 || diaSemana === 5) {
+            if (hora < 8 || hora >= 23) {
+                 Swal.fire({
+                     icon: 'warning',
+                     title: 'Buffet Cerrado 🌙',
+                     text: 'Hoy tomamos pedidos de 08:00 a 23:00 hs. ¡Pero podés ir mirando el menú para tentarte!',
+                     confirmButtonColor: '#dfb23e',
+                     background: 'var(--card-bg)',
+                     color: 'var(--text-color)'
+                 });
+                 return;
+            }
+        } else {
+            if (hora < 8 || hora >= 19) {
+                 Swal.fire({
+                     icon: 'warning',
+                     title: 'Buffet Cerrado 🌙',
+                     text: 'Hoy tomamos pedidos de 08:00 a 19:00 hs. ¡Pero podés ir mirando el menú para tentarte!',
+                     confirmButtonColor: '#dfb23e',
+                     background: 'var(--card-bg)',
+                     color: 'var(--text-color)'
+                 });
+                 return;
             }
         }
-    });
+    }
+    fetch(`/carrito/agregar/${productoId}/?puesto=${puesto}`)
+        .then(respuesta => respuesta.json())
+        .then(datos => {
+            if(datos.status === 'ok') {
+                document.getElementById('badge-contador').innerText = datos.total_items;
+                if (document.getElementById('carrito-sidebar').classList.contains('abierto')) {
+                    cargarDetalleCarrito();
+                }
+            }
+        });
 }
 function abrirCarrito() {
-    document.getElementById("carrito-sidebar").classList.add("abierto");
-    document.getElementById("carrito-overlay").classList.add("activo");
+    document.getElementById('carrito-sidebar').classList.add('abierto');
+    document.getElementById('carrito-overlay').classList.add('activo');
     cargarDetalleCarrito();
 }
 function cerrarCarrito() {
-    document.getElementById("carrito-sidebar").classList.remove("abierto");
-    document.getElementById("carrito-overlay").classList.remove("activo");
+    document.getElementById('carrito-sidebar').classList.remove('abierto');
+    document.getElementById('carrito-overlay').classList.remove('activo');
 }
 function cargarDetalleCarrito() {
-    fetch("/carrito/ver/").then(res => res.json()).then(datos => {
-        const contenedor = document.getElementById("carrito-items");
-        contenedor.innerHTML = "";
-        if (datos.items.length === 0) {
-            contenedor.innerHTML = "<p style=\"text-align:center; color:var(--texto-mutado); margin-top:20px;\">Tu carrito est\u00E1 vac\u00EDo.</p>";
-            document.getElementById("carrito-precio-total").innerText = "0.00";
-        }
-        else {
-            datos.items.forEach(item => {
-                contenedor.innerHTML += `
+    fetch('/carrito/ver/')
+        .then(res => res.json())
+        .then(datos => {
+            const contenedor = document.getElementById('carrito-items');
+            contenedor.innerHTML = '';
+            if (datos.items.length === 0) {
+                contenedor.innerHTML = '<p style="text-align:center; color:var(--texto-mutado); margin-top:20px;">Tu carrito está vacío.</p>';
+                document.getElementById('carrito-precio-total').innerText = '0.00';
+            } else {
+                datos.items.forEach(item => {
+                    contenedor.innerHTML += `
                         <div class="item-carrito">
                             <div class="item-info">
                                 <h4>${item.nombre}</h4>
@@ -81,987 +163,1404 @@ function cargarDetalleCarrito() {
                             </div>
                         </div>
                     `;
-            });
-            document.getElementById("carrito-precio-total").innerText = parseFloat(datos.total_general).toFixed(2);
-        }
-    });
+                });
+                document.getElementById('carrito-precio-total').innerText = parseFloat(datos.total_general).toFixed(2);
+            }
+        });
 }
 function sumarItem(llave) {
     fetch(`/carrito/sumar/${llave}/`).then(res => res.json()).then(datos => {
-        if (datos.status === "ok") {
-            document.getElementById("badge-contador").innerText = datos.total_items;
+        if(datos.status === 'ok') {
+            document.getElementById('badge-contador').innerText = datos.total_items;
             cargarDetalleCarrito();
         }
     });
 }
 function restarItem(llave) {
     fetch(`/carrito/restar/${llave}/`).then(res => res.json()).then(datos => {
-        if (datos.status === "ok") {
-            document.getElementById("badge-contador").innerText = datos.total_items;
+        if(datos.status === 'ok') {
+            document.getElementById('badge-contador').innerText = datos.total_items;
             cargarDetalleCarrito();
         }
     });
 }
 function eliminarItem(llave) {
     fetch(`/carrito/eliminar/${llave}/`).then(res => res.json()).then(datos => {
-        if (datos.status === "ok") {
-            document.getElementById("badge-contador").innerText = datos.total_items;
+        if(datos.status === 'ok') {
+            document.getElementById('badge-contador').innerText = datos.total_items;
             cargarDetalleCarrito();
         }
     });
 }
 function vaciarCarritoTotal() {
     Swal.fire({
-        title: "\u00BFVaciar todo el pedido?",
+        title: '¿Vaciar todo el pedido?',
         text: "Vas a eliminar todos los productos del carrito.",
-        icon: "warning",
+        icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: "#dc3545",
-        cancelButtonColor: "#6c757d",
-        confirmButtonText: "S\u00ED, vaciar",
-        cancelButtonText: "Cancelar"
-    }).then(result => {
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, vaciar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
         if (result.isConfirmed) {
-            fetch("/carrito/limpiar/").then(res => res.json()).then(datos => {
-                if (datos.status === "ok") {
-                    document.getElementById("badge-contador").innerText = "0";
+            fetch('/carrito/limpiar/').then(res => res.json()).then(datos => {
+                if(datos.status === 'ok') {
+                    document.getElementById('badge-contador').innerText = '0';
                     cargarDetalleCarrito();
                 }
             });
         }
     });
 }
-
 // ==========================================================================
-// MÓDULO 2: CHECKOUT Y PREPARACIÓN DEL MODAL DE ENTREGA
+// # MÓDULO 2: CHECKOUT Y PREPARACIÓN DEL MODAL DE ENTREGA
 // ==========================================================================
 
 function abrirModalEntrega() {
-    const total = document.getElementById("carrito-precio-total").innerText;
-    if (total === "0.00" || total === "0") {
-        Swal.fire({ icon: "info", title: "Carrito Vac\u00EDo", text: "Agreg\u00E1 algo rico antes de confirmar tu pedido.", confirmButtonColor: "#1e7b45" });
+    const total = document.getElementById('carrito-precio-total').innerText;
+    if (total === '0.00' || total === '0') {
+        Swal.fire({
+            icon: 'info',
+            title: 'Carrito Vacío',
+            text: 'Agregá algo rico antes de confirmar tu pedido.',
+            confirmButtonColor: '#1e7b45'
+        });
         return;
     }
-    cerrarCarrito();
-    document.getElementById("modal-entrega").classList.add("activo");
-    document.body.style.overflow = "hidden";
     const parametros = new URLSearchParams(window.location.search);
-    const puestoActual = parametros.get("puesto") || "";
-    const labelMesa = document.getElementById("label-mesa");
-    const radioMostrador = document.querySelector("input[name=\"tipo_entrega\"][value=\"mostrador\"]");
-    const puestosSinMesa = ["kiosco", "barra", "parrilla", "foodtruck"];
-    if (!labelMesa || puestosSinMesa.includes(puestoActual)) {
-        if (labelMesa) labelMesa.style.display = "none";
-        if (radioMostrador) radioMostrador.checked = true;
-        toggleFormularioMesa();
+    const puestoActual = parametros.get('puesto') || '';
+    const ahora = new Date();
+    const hora = ahora.getHours();
+    const diaSemana = ahora.getDay();
+    if (puestoActual === 'foodtruck') {
+        if (hora < 10 || hora >= 18) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Foodtruck Cerrado 🌙',
+                text: 'Solo tomamos pedidos de 10:00 a 18:00 hs.',
+                confirmButtonColor: '#dfb23e',
+                background: 'var(--card-bg)',
+                color: 'var(--text-color)'
+            });
+            return;
+        }
+    } else {
+        if (diaSemana === 1 || diaSemana === 2) {
+            if (hora < 8 || hora >= 21) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Buffet Cerrado 🌙',
+                    text: 'Hoy tomamos pedidos hasta las 21:00 hs.',
+                    confirmButtonColor: '#dfb23e',
+                    background: 'var(--card-bg)',
+                    color: 'var(--text-color)'
+                });
+                return;
+            }
+        } else if (diaSemana === 3 || diaSemana === 4 || diaSemana === 5) {
+            if (hora < 8 || hora >= 23) {
+                 Swal.fire({
+                     icon: 'warning',
+                     title: 'Buffet Cerrado 🌙',
+                     text: 'Hoy tomamos pedidos hasta las 23:00 hs.',
+                     confirmButtonColor: '#dfb23e',
+                     background: 'var(--card-bg)',
+                     color: 'var(--text-color)'
+                 });
+                 return;
+            }
+        } else {
+            if (hora < 8 || hora >= 19) {
+                 Swal.fire({
+                     icon: 'warning',
+                     title: 'Buffet Cerrado 🌙',
+                     text: 'Hoy tomamos pedidos hasta las 19:00 hs.',
+                     confirmButtonColor: '#dfb23e',
+                     background: 'var(--card-bg)',
+                     color: 'var(--text-color)'
+                 });
+                 return;
+            }
+        }
     }
-    else {
-        if (labelMesa) labelMesa.style.display = "block";
-        document.querySelectorAll("input[name=\"tipo_entrega\"]").forEach(r => r.checked = false);
-        document.querySelectorAll("input[name=\"tipo_pago\"]").forEach(r => r.checked = false);
-        toggleFormularioMesa();
+    cerrarCarrito();
+    document.getElementById('modal-entrega').classList.add('activo');
+    document.body.style.overflow = 'hidden';
+    const labelMesa = document.getElementById('label-mesa');
+    const radioMostrador = document.querySelector('input[name="tipo_entrega"][value="mostrador"]');
+    const puestosSinMesa = ['kiosco', 'barra', 'parrilla', 'foodtruck'];
+    if (puestosSinMesa.includes(puestoActual)) {
+        if(labelMesa) labelMesa.style.display = 'none';
+        if(radioMostrador) radioMostrador.checked = true;
+    } else {
+        if(labelMesa) labelMesa.style.display = 'block';
     }
+    toggleFormularioMesa();
 }
 function cerrarModalEntrega() {
-    document.getElementById("modal-entrega").classList.remove("activo");
-    document.body.style.overflow = "auto";
+    document.getElementById('modal-entrega').classList.remove('activo');
+    document.body.style.overflow = 'auto';
 }
 function toggleFormularioMesa() {
-    const opcionEntrega = document.querySelector("input[name=\"tipo_entrega\"]:checked");
-    const formMesa = document.getElementById("form-mesa");
-    const seccionPago = document.getElementById("seccion-pago");
-    const opcionPago = document.querySelector("input[name=\"tipo_pago\"]:checked");
-    const formTelefono = document.getElementById("form-telefono");
-    if (seccionPago) {
-        if (opcionEntrega) {
-            seccionPago.classList.remove("oculto");
-        }
-        else {
-            seccionPago.classList.add("oculto");
+    const opcionMesa = document.querySelector('input[name="tipo_entrega"]:checked');
+    const pagoEfectivo = document.querySelector('input[name="tipo_pago"]:checked');
+    const formMesa = document.getElementById('form-mesa');
+    const formTelefono = document.getElementById('form-telefono');
+    if (formTelefono) {
+        if (pagoEfectivo && pagoEfectivo.value === 'efectivo') {
+            formTelefono.classList.remove('oculto');
+            formTelefono.style.display = 'flex';
+        } else {
+            formTelefono.classList.add('oculto');
+            formTelefono.style.display = 'none';
         }
     }
     if (formMesa) {
-        if (opcionEntrega && opcionEntrega.value === "mesa") {
-            formMesa.classList.remove("oculto");
-            formMesa.style.display = "flex";
-        }
-        else {
-            formMesa.classList.add("oculto");
-            formMesa.style.display = "none";
-        }
-    }
-    if (formTelefono) {
-        if (opcionPago && opcionPago.value === "efectivo") {
-            formTelefono.classList.remove("oculto");
-            formTelefono.style.display = "flex";
-        }
-        else {
-            formTelefono.classList.add("oculto");
-            formTelefono.style.display = "none";
+        if (opcionMesa && opcionMesa.value === 'mesa') {
+            formMesa.classList.remove('oculto');
+            formMesa.style.display = 'flex';
+        } else {
+            formMesa.classList.add('oculto');
+            formMesa.style.display = 'none';
         }
     }
-    actualizarResumenPago();
-}
+    const totalTexto = document.getElementById('carrito-precio-total').innerText;
+    const totalOriginal = parseFloat(totalTexto) || 0;
+    let totalFinal = totalOriginal;
+    const avisoDescuento = document.getElementById('modal-descuento-aviso');
+    const modalTotalFinal = document.getElementById('modal-total-final');
+    const modalTotalOriginal = document.getElementById('modal-total-original');
+    const resumenPago = document.getElementById('resumen-pago');
+    const descuentoActivo =
+        resumenPago &&
+        (
+            resumenPago.dataset.descuentoActivo === '1' ||
+            resumenPago.dataset.descuentoActivo === 'true'
+        );
 
-function actualizarResumenPago() {
-    const resumen = document.getElementById("resumen-pago");
-    const totalElemento = document.getElementById("carrito-precio-total");
-    const totalFinalElemento = document.getElementById("modal-total-final");
-    const totalOriginalElemento = document.getElementById("modal-total-original");
-    const aviso = document.getElementById("modal-descuento-aviso");
-    if (!resumen || !totalElemento || !totalFinalElemento) return;
-    const totalOriginal = parseFloat(totalElemento.innerText) || 0;
-    const pago = document.querySelector("input[name=\"tipo_pago\"]:checked");
-    const descuentoActivo = resumen.dataset.descuentoActivo === "1";
-    const porcentaje = parseFloat(resumen.dataset.descuentoPorcentaje) || 0;
-    const aplicaDescuento = descuentoActivo && pago && pago.value === "efectivo" && porcentaje > 0;
-    const totalFinal = aplicaDescuento ? totalOriginal * (1 - porcentaje / 100) : totalOriginal;
-    totalFinalElemento.innerText = "$" + totalFinal.toFixed(2);
-    if (totalOriginalElemento) {
-        totalOriginalElemento.innerText = "$" + totalOriginal.toFixed(2);
-        totalOriginalElemento.style.display = aplicaDescuento ? "inline" : "none";
-    }
-    if (aviso) aviso.style.display = aplicaDescuento ? "block" : "none";
-}
+    const descuentoPorcentaje = resumenPago
+        ? (parseFloat(resumenPago.dataset.descuentoPorcentaje || '0') || 0)
+        : 0;
 
+    if (descuentoActivo && descuentoPorcentaje > 0 && pagoEfectivo && pagoEfectivo.value === 'efectivo') {
+        totalFinal = totalOriginal * (1 - (descuentoPorcentaje / 100));
+        if(avisoDescuento) avisoDescuento.style.display = 'inline-block';
+        if(modalTotalOriginal) {
+            modalTotalOriginal.style.display = 'inline';
+            modalTotalOriginal.innerText = '$' + totalOriginal.toFixed(2);
+        }
+    } else {
+        if(avisoDescuento) avisoDescuento.style.display = 'none';
+        if(modalTotalOriginal) modalTotalOriginal.style.display = 'none';
+    }
+    if (modalTotalFinal) {
+        modalTotalFinal.innerText = '$' + totalFinal.toFixed(2);
+    }
+}
 // ==========================================================================
-// MÓDULO 3: PROCESAMIENTO AJAX HACIA DJANGO Y PAGOS
+// # MÓDULO 3: PROCESAMIENTO AJAX HACIA DJANGO Y MERCADO PAGO / NAVE / WA
 // ==========================================================================
 
 function validarYEnviar(event) {
-    if (event)
-        event.preventDefault();
-    let nombreCliente = document.getElementById("nombre_cliente").value.trim();
-    const telefonoInput = document.getElementById("telefono_cliente");
+    if (event) event.preventDefault();
+    let nombreCliente = document.getElementById('nombre_cliente').value.trim();
+    const telefonoInput = document.getElementById('telefono_cliente');
     const telefonoCliente = telefonoInput ? telefonoInput.value.trim() : "";
-    const comentarios = document.getElementById("comentarios_pedido") ? document.getElementById("comentarios_pedido").value.trim() : "";
-    const tipoEntregaElement = document.querySelector("input[name=\"tipo_entrega\"]:checked");
-    const tipoPagoElement = document.querySelector("input[name=\"tipo_pago\"]:checked");
-    const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-    if (!tipoEntregaElement || !tipoPagoElement) {
-        Swal.fire({ icon: "warning", title: "Faltan datos", text: "Por favor complet\u00E1 opciones de entrega y pago.", confirmButtonColor: "#ff6600" });
+    const comentarios = document.getElementById('comentarios_pedido') ? document.getElementById('comentarios_pedido').value.trim() : "";
+    const tipoEntregaElement = document.querySelector('input[name="tipo_entrega"]:checked');
+    const tipoPagoElement = document.querySelector('input[name="tipo_pago"]:checked');
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    if(!tipoEntregaElement || !tipoPagoElement) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Faltan datos',
+            text: 'Por favor completá opciones de entrega y pago.',
+            confirmButtonColor: '#1e7b45'
+        });
         return;
     }
     const tipoEntrega = tipoEntregaElement.value;
     const tipoPago = tipoPagoElement.value;
     let numeroMesa = "";
     if (nombreCliente === "") {
-        Swal.fire({ icon: "warning", title: "Falta tu nombre", text: "Escrib\u00ED tu nombre y apellido para identificarte.", confirmButtonColor: "#ff6600" });
+        Swal.fire({
+            icon: 'warning',
+            title: 'Falta tu nombre',
+            text: 'Escribí tu nombre y apellido para identificarte.',
+            confirmButtonColor: '#1e7b45'
+        });
         return;
     }
-    if (tipoPago === "efectivo" && telefonoCliente === "") {
-        Swal.fire({ icon: "warning", title: "Tel\u00E9fono requerido", text: "Por favor dejanos tu WhatsApp para coordinar el pago.", confirmButtonColor: "#ff6600" });
+    if (tipoPago === 'efectivo' && telefonoCliente === "") {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Teléfono requerido',
+            text: 'Por favor dejanos tu WhatsApp para coordinar el pago.',
+            confirmButtonColor: '#1e7b45'
+        });
         return;
     }
-    if (tipoEntrega === "mesa") {
-        numeroMesa = document.getElementById("numero_mesa").value.trim();
+    if (tipoEntrega === 'mesa') {
+        numeroMesa = document.getElementById('numero_mesa').value.trim();
         if (numeroMesa === "") {
-            Swal.fire({ icon: "warning", title: "N\u00FAmero de Mesa", text: "Ingres\u00E1 el n\u00FAmero de mesa donde est\u00E1s.", confirmButtonColor: "#ff6600" });
+            Swal.fire({
+                icon: 'warning',
+                title: 'Número de Mesa',
+                text: 'Ingresá el número de mesa donde estás.',
+                confirmButtonColor: '#1e7b45'
+            });
             return;
         }
     }
     let comentariosFinales = comentarios;
-    if (tipoEntrega === "mesa") {
-        const checkArmar = document.getElementById("armar_mesa");
+    if (tipoEntrega === 'mesa') {
+        const checkArmar = document.getElementById('armar_mesa');
         if (checkArmar && checkArmar.checked) {
             comentariosFinales = comentariosFinales ? comentariosFinales + " | FALTA ARMAR MESA" : "FALTA ARMAR MESA";
         }
     }
-    if (comentariosFinales !== "")
+    if (comentariosFinales !== "") {
         nombreCliente = `${nombreCliente} (Nota: ${comentariosFinales})`.substring(0, 99);
+    }
+    // 🔥 FIX DEL CARTEL TRANSPARENTE: Se actualizó background a var(--card-bg) 🔥
     Swal.fire({
-        title: "Procesando...",
-        text: "\u00A1Llevando el pedido a toda velocidad!",
+        title: 'Procesando...',
+        text: '¡Llevando el pedido a toda velocidad!',
+        imageUrl: '/static/img/corriendo.gif',
+        imageWidth: 120,
         showConfirmButton: false,
         allowOutsideClick: false,
         allowEscapeKey: false,
-        background: "var(--card-bg)",
-        color: "var(--text-color)",
-        didOpen: () => {
-            Swal.showLoading();
-        },
-        customClass: {
-            popup: "alerta-con-marco"
-        }
+        background: 'var(--card-bg)',
+        color: 'var(--text-color)'
     });
     const formData = new FormData();
-    formData.append("nombre_cliente", nombreCliente);
-    formData.append("telefono_cliente", telefonoCliente);
-    formData.append("tipo_entrega", tipoEntrega);
-    formData.append("numero_mesa", numeroMesa);
-    formData.append("tipo_pago", tipoPago);
-    fetch("/procesar/", { method: "POST", body: formData, headers: { "X-Requested-With": "XMLHttpRequest", "X-CSRFToken": csrfToken } }).then(res => res.json()).then(datos => {
-        if (datos.status === "ok") {
+    formData.append('nombre_cliente', nombreCliente);
+    formData.append('telefono_cliente', telefonoCliente);
+    formData.append('tipo_entrega', tipoEntrega);
+    formData.append('numero_mesa', numeroMesa);
+    formData.append('tipo_pago', tipoPago);
+    fetch('/procesar/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrfToken
+        }
+    })
+    .then(res => res.json())
+    .then(datos => {
+        if (datos.status === 'ok') {
             cerrarModalEntrega();
-            if (tipoPago === "mercadopago") {
-                if (datos.mp_id)
+            if (tipoPago === 'mercadopago') {
+                if (datos.mp_id) {
                     window.location.href = `https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=${datos.mp_id}`;
-                else
-                    Swal.fire({ icon: "error", title: "Error de cobro", text: "El servidor no gener\u00F3 el link de Mercado Pago." });
-            }
-            else if (tipoPago === "nave") {
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error de cobro', text: 'El servidor no generó el link de Mercado Pago.', background: 'var(--card-bg)', color: 'var(--text-color)' });
+                }
+            } else if (tipoPago === 'nave') {
                 if (datos.nave_url) {
                     window.location.href = datos.nave_url;
+                } else {
+                    Swal.fire({ title: '¡MODO / Nave!', text: 'Estamos terminando de configurar la conexión con Nave.', icon: 'info', confirmButtonColor: '#103b70', background: 'var(--card-bg)', color: 'var(--text-color)' });
                 }
-                else {
-                    Swal.fire({
-                        title: "\u00A1MODO / Nave!",
-                        text: "Estamos terminando de configurar la conexi\u00F3n con Nave. \u00A1Estar\u00E1 lista muy pronto!",
-                        icon: "info",
-                        confirmButtonColor: "#ff6600"
-                    });
-                }
-            }
-            else if (tipoPago === "efectivo") {
-                let fraseUbicacion = tipoEntrega === "mesa" ? `ando en la mesa ${numeroMesa}` : `pedí para retirar en el mostrador`;
-                let mensajeWa = `Hola soy ${document.getElementById("nombre_cliente").value.trim()}, ${fraseUbicacion}, mi número de pedido es #${datos.pedido_id} y lo quiero confirmar para acercarme a pagarlo o avísame si me cobras cuando el pedido llegue a la mesa.`;
-                let numeroBuffet = "5491178246455";
-                let linkWa = `https://wa.me/${numeroBuffet}?text=${encodeURIComponent(mensajeWa)}`;
+            } else if (tipoPago === 'efectivo') {
+                let fraseUbicacion = tipoEntrega === 'mesa' ? `ando en la mesa ${numeroMesa}` : `pedí para retirar en el mostrador`;
+                let mensajeWa = `Hola soy ${document.getElementById('nombre_cliente').value.trim()}, ${fraseUbicacion}, mi número de pedido es #${datos.pedido_id} y lo quiero confirmar para acercarme a pagarlo o avísame si me cobras cuando el pedido llegue a la mesa.`;
+                let numeroBuffet = (window.STERAK_CONTACT_WHATSAPP || "").replace(/\D/g, "");
+                let linkWa = numeroBuffet ? `https://wa.me/${numeroBuffet}?text=${encodeURIComponent(mensajeWa)}` : null;
                 Swal.fire({
-                    title: "\u00A1Pedido Registrado!",
-                    text: "Toca el bot\u00F3n para enviarnos un WhatsApp y confirmarnos tu pago.",
-                    icon: "success",
-                    confirmButtonText: "Enviar WhatsApp \uD83D\uDCAC",
-                    confirmButtonColor: "#25D366",
-                    allowOutsideClick: false
+                    title: '¡Pedido Registrado!',
+                    text: linkWa ? 'Tocá el botón para enviarnos un WhatsApp y confirmar el pedido.' : 'Tu pedido se registró correctamente.',
+                    icon: 'success',
+                    confirmButtonText: linkWa ? 'Enviar WhatsApp 💬' : 'Ver mi pedido',
+                    confirmButtonColor: '#25D366',
+                    allowOutsideClick: false,
+                    background: 'var(--card-bg)',
+                    color: 'var(--text-color)'
                 }).then(() => {
-                    window.open(linkWa, "_blank");
+                    if (linkWa) window.open(linkWa, '_blank');
                     setTimeout(() => {
                         window.location.href = `/seguimiento/${datos.pedido_id}/`;
                     }, 500);
                 });
-            }
-            else {
+            } else {
                 window.location.href = `/seguimiento/${datos.pedido_id}/`;
             }
-        }
-        else {
-            Swal.fire({ icon: "error", title: "Oops...", text: "Error: " + datos.mensaje });
+        } else {
+            Swal.fire({ icon: 'error', title: 'Oops...', text: "Error: " + datos.mensaje, background: 'var(--card-bg)', color: 'var(--text-color)' });
         }
     }).catch(error => {
-        Swal.fire({ icon: "error", title: "Error de red", text: "No se pudo conectar con el servidor." });
+        Swal.fire({ icon: 'error', title: 'Error de red', text: 'No se pudo conectar con el servidor.', background: 'var(--card-bg)', color: 'var(--text-color)' });
     });
 }
-
 // ==========================================================================
-// MÓDULO 4: OPCIONES Y PERSONALIZACIÓN DE PRODUCTOS
+
+// # MÓDULO 4: CREADOR DINÁMICO DE DISEÑO VISUAL
+//           OPCIONES SIN CONFLICTO ENTRE PRODUCTOS REPETIDOS
 // ==========================================================================
 
 function actualizarPrecioVisual(contenedor) {
     if (!contenedor) {
         return;
     }
-    const tarjeta = contenedor.closest(".tarjeta-producto");
+    const tarjeta =
+        contenedor.closest(
+            '.tarjeta-producto'
+        );
     if (!tarjeta) {
         return;
     }
-    const precioElement = tarjeta.querySelector(".precio");
+    const precioElement =
+        tarjeta.querySelector(
+            '.precio'
+        );
     if (!precioElement) {
         return;
     }
-    if (!precioElement.dataset.precioOriginal) {
-        const precioBaseTexto = precioElement.innerText.replace("$", "").replace(",", ".");
-        precioElement.dataset.precioOriginal = parseFloat(precioBaseTexto);
+    if (
+        !precioElement.dataset.precioOriginal
+    ) {
+        const precioBaseTexto =
+            precioElement.innerText
+                .replace('$', '')
+                .replace(',', '.');
+        precioElement.dataset.precioOriginal =
+            parseFloat(
+                precioBaseTexto
+            );
     }
-    let precioActual = parseFloat(precioElement.dataset.precioOriginal);
-    contenedor.querySelectorAll("input:checked").forEach(input => {
-        const texto = input.value;
-        if (texto.includes("(+")) {
-            const extra = parseFloat(texto.split("(+")[1].split(")")[0]);
-            if (!isNaN(extra)) {
-                precioActual += extra;
+    let precioActual =
+        parseFloat(
+            precioElement.dataset.precioOriginal
+        );
+    contenedor
+        .querySelectorAll(
+            'input:checked'
+        )
+        .forEach(
+            input => {
+                const texto =
+                    input.value;
+                if (
+                    texto.includes(
+                        '(+'
+                    )
+                ) {
+                    const extra =
+                        parseFloat(
+                            texto
+                                .split('(+')[1]
+                                .split(')')[0]
+                        );
+                    if (
+                        !isNaN(extra)
+                    ) {
+                        precioActual +=
+                            extra;
+                    }
+                }
+                if (
+                    texto.includes(
+                        '(-'
+                    )
+                ) {
+                    const descuento =
+                        parseFloat(
+                            texto
+                                .split('(-')[1]
+                                .split(')')[0]
+                        );
+                    if (
+                        !isNaN(
+                            descuento
+                        )
+                    ) {
+                        precioActual -=
+                            descuento;
+                    }
+                }
             }
-        }
-        if (texto.includes("(-")) {
-            const descuento = parseFloat(texto.split("(-")[1].split(")")[0]);
-            if (!isNaN(descuento)) {
-                precioActual -= descuento;
-            }
-        }
-    });
-    precioElement.innerText = "$" + precioActual.toFixed(2);
-    precioElement.style.transition = "all 0.3s ease";
-    precioElement.style.transform = "scale(1.15)";
-    precioElement.style.color = "var(--naranja-sterak)";
-    setTimeout(() => {
-        precioElement.style.transform = "scale(1)";
-        precioElement.style.color = "";
-    }, 300);
+        );
+    precioElement.innerText =
+        '$'
+        +
+        precioActual.toFixed(
+            2
+        );
+    precioElement.style.transition =
+        'all 0.3s ease';
+    precioElement.style.transform =
+        'scale(1.15)';
+    precioElement.style.color =
+        'var(--naranja-sterak)';
+    setTimeout(
+        () => {
+            precioElement.style.transform =
+                'scale(1)';
+            precioElement.style.color =
+                '';
+        },
+        300
+    );
 }
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".opciones-contenedor").forEach((contenedor, indiceContenedor) => {
-        const atributos = [
-            {
-                nombre: "Variante",
-                valor: contenedor.dataset.variante,
-                clave: "variante",
-                tipo: "radio"
-            },
-            {
-                nombre: "Guarnici\u00F3n",
-                valor: contenedor.dataset.guarnicion,
-                clave: "guarnicion",
-                tipo: "radio"
-            },
-            {
-                nombre: "Punto de cocci\u00F3n",
-                valor: contenedor.dataset.punto,
-                clave: "punto",
-                tipo: "radio"
-            },
-            {
-                nombre: "Relleno",
-                valor: contenedor.dataset.relleno,
-                clave: "relleno",
-                tipo: "radio"
-            },
-            {
-                nombre: "Salsa",
-                valor: contenedor.dataset.salsa,
-                clave: "salsa",
-                tipo: "radio"
-            },
-            {
-                nombre: "Hielo",
-                valor: contenedor.dataset.hielo,
-                clave: "hielo",
-                tipo: "radio"
-            },
-            {
-                nombre: "Adicional",
-                valor: contenedor.dataset.adicional,
-                clave: "adicional",
-                tipo: "checkbox"
-            }
-        ];
-        let tieneOpciones = false;
-        const wrapper = document.createElement("div");
-        wrapper.className = "opciones-wrapper";
-        wrapper.style.display = "none";
-        wrapper.style.flexDirection = "column";
-        wrapper.style.gap = "8px";
-        const tarjetaProducto = contenedor.closest(".tarjeta-producto");
-        const nombreDelPlato = tarjetaProducto ? tarjetaProducto.querySelector("h3").innerText.toLowerCase() : "";
-        const esPlatoDeHuevo = nombreDelPlato.includes("omel") || nombreDelPlato.includes("tortilla");
-        atributos.forEach(attr => {
-            if (attr.valor && attr.valor.trim() !== "") {
-                tieneOpciones = true;
-                const grupo = document.createElement("div");
-                grupo.className = "opciones-grupo grupo-" + attr.clave + "-" + contenedor.dataset.id;
-                grupo.dataset.clave = attr.clave;
-                grupo.dataset.requerido = (attr.tipo === "radio") ? "true" : "false";
-                const txtOpcional = (attr.tipo === "checkbox") ? " (Opcional)" : "";
-                grupo.innerHTML = "<div class=\"opciones-titulo\">" + "Eleg\u00ED " + attr.nombre + txtOpcional + ":" + "</div>";
-                attr.valor.split(",").forEach(opcion => {
-                    const label = document.createElement("label");
-                    label.className = "opcion-item";
-                    const input = document.createElement("input");
-                    input.type = attr.tipo;
-                    input.value = opcion.trim();
-                    if (attr.tipo === "radio") {
-                        input.name = "radio-" + attr.clave + "-" + contenedor.dataset.id + "-" + indiceContenedor;
-                    }
-                    else {
-                        input.className = "chk-adicional-" + contenedor.dataset.id;
-                    }
-                    input.addEventListener("change", () => {
-                        grupo.classList.remove("error");
-                        actualizarPrecioVisual(contenedor);
-                    });
-                    const marcador = document.createElement("div");
-                    marcador.className = "opcion-marcador";
-                    label.appendChild(input);
-                    label.appendChild(marcador);
-                    label.appendChild(document.createTextNode(opcion.trim()));
-                    grupo.appendChild(label);
-                });
-                if (attr.clave === "punto" && !esPlatoDeHuevo) {
-                    const avisoParrilla = document.createElement("div");
-                    avisoParrilla.style.fontSize = "0.8rem";
-                    avisoParrilla.style.color = "var(--naranja-brillo)";
-                    avisoParrilla.style.fontWeight = "bold";
-                    avisoParrilla.style.marginTop = "4px";
-                    avisoParrilla.innerHTML = "\u23F1\uFE0F La carne tiene una espera de 20 a 40 min seg\u00FAn cocci\u00F3n.";
-                    grupo.appendChild(avisoParrilla);
-                }
-                wrapper.appendChild(grupo);
-            }
-        });
-        if (tieneOpciones) {
-            const btnToggle = document.createElement("button");
-            btnToggle.type = "button";
-            btnToggle.className = "btn-toggle-opciones";
-            btnToggle.innerHTML = "Personalizar " + "<span class=\"icono-toggle\">\u25BC</span>";
-            btnToggle.addEventListener("click", () => {
-                if (wrapper.style.display === "none") {
-                    wrapper.style.display = "flex";
-                    btnToggle.innerHTML = "Ocultar " + "<span class=\"icono-toggle\">\u25B2</span>";
-                    btnToggle.classList.add("abierto");
-                }
-                else {
-                    wrapper.style.display = "none";
-                    btnToggle.innerHTML = "Personalizar " + "<span class=\"icono-toggle\">\u25BC</span>";
-                    btnToggle.classList.remove("abierto");
-                }
-            });
-            contenedor.appendChild(btnToggle);
-            contenedor.appendChild(wrapper);
-        }
-    });
-});
-
 // ==========================================================================
-// AGREGAR PRODUCTO CON SUS OPCIONES
+// # Generar Opciones
 // ==========================================================================
-
-function agregarConOpciones(productoId, boton) {
-    const tarjeta = boton.closest(".tarjeta-producto");
+document.addEventListener(
+    'DOMContentLoaded',
+    function () {
+        document
+            .querySelectorAll(
+                '.opciones-contenedor'
+            )
+            .forEach(
+                (
+                    contenedor,
+                    indiceContenedor
+                ) => {
+                    const atributos = [
+                        {
+                            nombre:
+                                'Variante',
+                            valor:
+                                contenedor.dataset.variante,
+                            clave:
+                                'variante',
+                            tipo:
+                                'radio'
+                        },
+                        {
+                            nombre:
+                                'Guarnición',
+                            valor:
+                                contenedor.dataset.guarnicion,
+                            clave:
+                                'guarnicion',
+                            tipo:
+                                'radio'
+                        },
+                        {
+                            nombre:
+                                'Punto de cocción',
+                            valor:
+                                contenedor.dataset.punto,
+                            clave:
+                                'punto',
+                            tipo:
+                                'radio'
+                        },
+                        {
+                            nombre:
+                                'Relleno',
+                            valor:
+                                contenedor.dataset.relleno,
+                            clave:
+                                'relleno',
+                            tipo:
+                                'radio'
+                        },
+                        {
+                            nombre:
+                                'Salsa',
+                            valor:
+                                contenedor.dataset.salsa,
+                            clave:
+                                'salsa',
+                            tipo:
+                                'radio'
+                        },
+                        {
+                            nombre:
+                                'Hielo',
+                            valor:
+                                contenedor.dataset.hielo,
+                            clave:
+                                'hielo',
+                            tipo:
+                                'radio'
+                        },
+                        {
+                            nombre:
+                                'Adicional',
+                            valor:
+                                contenedor.dataset.adicional,
+                            clave:
+                                'adicional',
+                            tipo:
+                                'checkbox'
+                        }
+                    ];
+                    let tieneOpciones =
+                        false;
+                    const wrapper =
+                        document.createElement(
+                            'div'
+                        );
+                    wrapper.className =
+                        'opciones-wrapper';
+                    wrapper.style.display =
+                        'none';
+                    wrapper.style.flexDirection =
+                        'column';
+                    wrapper.style.gap =
+                        '8px';
+                    const tarjetaProducto =
+                        contenedor.closest(
+                            '.tarjeta-producto'
+                        );
+                    const nombreDelPlato =
+                        tarjetaProducto
+                            ?
+                            tarjetaProducto
+                                .querySelector('h3')
+                                .innerText
+                                .toLowerCase()
+                            :
+                            '';
+                    const esPlatoDeHuevo =
+                        nombreDelPlato.includes(
+                            'omel'
+                        )
+                        ||
+                        nombreDelPlato.includes(
+                            'tortilla'
+                        );
+                    atributos.forEach(
+                        attr => {
+                            if (
+                                attr.valor
+                                &&
+                                attr.valor.trim()
+                                !==
+                                ''
+                            ) {
+                                tieneOpciones =
+                                    true;
+                                const grupo =
+                                    document.createElement(
+                                        'div'
+                                    );
+                                grupo.className =
+                                    'opciones-grupo grupo-'
+                                    +
+                                    attr.clave
+                                    +
+                                    '-'
+                                    +
+                                    contenedor.dataset.id;
+                                grupo.dataset.clave =
+                                    attr.clave;
+                                grupo.dataset.requerido =
+                                    (
+                                        attr.tipo
+                                        ===
+                                        'radio'
+                                    )
+                                        ?
+                                        'true'
+                                        :
+                                        'false';
+                                const txtOpcional =
+                                    (
+                                        attr.tipo
+                                        ===
+                                        'checkbox'
+                                    )
+                                        ?
+                                        ' (Opcional)'
+                                        :
+                                        '';
+                                grupo.innerHTML =
+                                    '<div class="opciones-titulo">'
+                                    +
+                                    'Elegí '
+                                    +
+                                    attr.nombre
+                                    +
+                                    txtOpcional
+                                    +
+                                    ':'
+                                    +
+                                    '</div>';
+                                attr.valor
+                                    .split(',')
+                                    .forEach(
+                                        opcion => {
+                                            const label =
+                                                document.createElement(
+                                                    'label'
+                                                );
+                                            label.className =
+                                                'opcion-item';
+                                            const input =
+                                                document.createElement(
+                                                    'input'
+                                                );
+                                            input.type =
+                                                attr.tipo;
+                                            input.value =
+                                                opcion.trim();
+                                            // Cada copia del producto
+                                            // tiene su propio grupo de radios.
+                                            if (
+                                                attr.tipo
+                                                ===
+                                                'radio'
+                                            ) {
+                                                input.name =
+                                                    'radio-'
+                                                    +
+                                                    attr.clave
+                                                    +
+                                                    '-'
+                                                    +
+                                                    contenedor.dataset.id
+                                                    +
+                                                    '-'
+                                                    +
+                                                    indiceContenedor;
+                                            } else {
+                                                input.className =
+                                                    'chk-adicional-'
+                                                    +
+                                                    contenedor.dataset.id;
+                                            }
+                                            input.addEventListener(
+                                                'change',
+                                                () => {
+                                                    grupo
+                                                        .classList
+                                                        .remove(
+                                                            'error'
+                                                        );
+                                                    actualizarPrecioVisual(
+                                                        contenedor
+                                                    );
+                                                }
+                                            );
+                                            const marcador =
+                                                document.createElement(
+                                                    'div'
+                                                );
+                                            marcador.className =
+                                                'opcion-marcador';
+                                            label.appendChild(
+                                                input
+                                            );
+                                            label.appendChild(
+                                                marcador
+                                            );
+                                            label.appendChild(
+                                                document.createTextNode(
+                                                    opcion.trim()
+                                                )
+                                            );
+                                            grupo.appendChild(
+                                                label
+                                            );
+                                        }
+                                    );
+                                if (
+                                    attr.clave
+                                    ===
+                                    'punto'
+                                    &&
+                                    !esPlatoDeHuevo
+                                ) {
+                                    const avisoParrilla =
+                                        document.createElement(
+                                            'div'
+                                        );
+                                    avisoParrilla.style.fontSize =
+                                        '0.8rem';
+                                    avisoParrilla.style.color =
+                                        'var(--naranja-brillo)';
+                                    avisoParrilla.style.fontWeight =
+                                        'bold';
+                                    avisoParrilla.style.marginTop =
+                                        '4px';
+                                    avisoParrilla.innerHTML =
+                                        '⏱️ La carne tiene una espera de 20 a 40 min según cocción.';
+                                    grupo.appendChild(
+                                        avisoParrilla
+                                    );
+                                }
+                                wrapper.appendChild(
+                                    grupo
+                                );
+                            }
+                        }
+                    );
+                    if (
+                        tieneOpciones
+                    ) {
+                        const btnToggle =
+                            document.createElement(
+                                'button'
+                            );
+                        btnToggle.type =
+                            'button';
+                        btnToggle.className =
+                            'btn-toggle-opciones';
+                        btnToggle.innerHTML =
+                            'Personalizar '
+                            +
+                            '<span class="icono-toggle">▼</span>';
+                        btnToggle.addEventListener(
+                            'click',
+                            () => {
+                                if (
+                                    wrapper.style.display
+                                    ===
+                                    'none'
+                                ) {
+                                    wrapper.style.display =
+                                        'flex';
+                                    btnToggle.innerHTML =
+                                        'Ocultar '
+                                        +
+                                        '<span class="icono-toggle">▲</span>';
+                                    btnToggle
+                                        .classList
+                                        .add(
+                                            'abierto'
+                                        );
+                                } else {
+                                    wrapper.style.display =
+                                        'none';
+                                    btnToggle.innerHTML =
+                                        'Personalizar '
+                                        +
+                                        '<span class="icono-toggle">▼</span>';
+                                    btnToggle
+                                        .classList
+                                        .remove(
+                                            'abierto'
+                                        );
+                                }
+                            }
+                        );
+                        contenedor.appendChild(
+                            btnToggle
+                        );
+                        contenedor.appendChild(
+                            wrapper
+                        );
+                    }
+                }
+            );
+    }
+);
+// ==========================================================================
+// # Agregar Producto Con Sus Opciones
+// ==========================================================================
+function agregarConOpciones(
+    productoId,
+    boton
+) {
+    // IMPORTANTE:
+    // Ya no buscamos el producto en toda la página.
+    // Buscamos dentro de la tarjeta exacta cuyo botón se tocó.
+    const tarjeta =
+        boton.closest(
+            '.tarjeta-producto'
+        );
     if (!tarjeta) {
         return;
     }
-    const contenedor = tarjeta.querySelector(".opciones-contenedor[data-id=\"" + productoId + "\"]");
+    const contenedor =
+        tarjeta.querySelector(
+            '.opciones-contenedor[data-id="'
+            +
+            productoId
+            +
+            '"]'
+        );
     if (!contenedor) {
         return;
     }
-    const parametrosActuales = new URLSearchParams(window.location.search);
-    const puesto = parametrosActuales.get("puesto") || "";
-    let fetchParams = new URLSearchParams();
+    const parametrosActuales =
+        new URLSearchParams(
+            window.location.search
+        );
+    const puesto =
+        parametrosActuales.get(
+            'puesto'
+        )
+        ||
+        '';
+    let fetchParams =
+        new URLSearchParams();
     if (puesto) {
-        fetchParams.append("puesto", puesto);
+        fetchParams.append(
+            'puesto',
+            puesto
+        );
     }
-    let faltanOpciones = false;
-    let teniaPuntoDeCoccion = false;
-    const tarjetaProducto = contenedor.closest(".tarjeta-producto");
-    const nombreDelPlato = tarjetaProducto ? tarjetaProducto.querySelector("h3").innerText.toLowerCase() : "";
-    const esPlatoDeHuevo = nombreDelPlato.includes("omel") || nombreDelPlato.includes("tortilla");
-    contenedor.querySelectorAll(".opciones-grupo").forEach(grupo => {
-        const clave = grupo.dataset.clave;
-        const esRequerido = grupo.dataset.requerido === "true";
-        if (esRequerido) {
-            const inputSeleccionado = grupo.querySelector("input[type=\"radio\"]:checked");
-            if (!inputSeleccionado) {
-                grupo.classList.add("error");
-                faltanOpciones = true;
-            }
-            else {
-                grupo.classList.remove("error");
-                fetchParams.append(clave, inputSeleccionado.value);
-                if (clave === "punto" && !esPlatoDeHuevo) {
-                    teniaPuntoDeCoccion = true;
+    let faltanOpciones =
+        false;
+    let teniaPuntoDeCoccion =
+        false;
+    const tarjetaProducto =
+        contenedor.closest(
+            '.tarjeta-producto'
+        );
+    const nombreDelPlato =
+        tarjetaProducto
+            ?
+            tarjetaProducto
+                .querySelector('h3')
+                .innerText
+                .toLowerCase()
+            :
+            '';
+    const esPlatoDeHuevo =
+        nombreDelPlato.includes(
+            'omel'
+        )
+        ||
+        nombreDelPlato.includes(
+            'tortilla'
+        );
+    contenedor
+        .querySelectorAll(
+            '.opciones-grupo'
+        )
+        .forEach(
+            grupo => {
+                const clave =
+                    grupo.dataset.clave;
+                const esRequerido =
+                    grupo.dataset.requerido
+                    ===
+                    'true';
+                if (
+                    esRequerido
+                ) {
+                    const inputSeleccionado =
+                        grupo.querySelector(
+                            'input[type="radio"]:checked'
+                        );
+                    if (
+                        !inputSeleccionado
+                    ) {
+                        grupo
+                            .classList
+                            .add(
+                                'error'
+                            );
+                        faltanOpciones =
+                            true;
+                    } else {
+                        grupo
+                            .classList
+                            .remove(
+                                'error'
+                            );
+                        fetchParams.append(
+                            clave,
+                            inputSeleccionado.value
+                        );
+                        if (
+                            clave
+                            ===
+                            'punto'
+                            &&
+                            !esPlatoDeHuevo
+                        ) {
+                            teniaPuntoDeCoccion =
+                                true;
+                        }
+                    }
+                } else if (
+                    clave
+                    ===
+                    'adicional'
+                ) {
+                    let adicionalesElegidos =
+                        [];
+                    grupo
+                        .querySelectorAll(
+                            'input[type="checkbox"]:checked'
+                        )
+                        .forEach(
+                            chk => {
+                                adicionalesElegidos
+                                    .push(
+                                        chk.value
+                                    );
+                            }
+                        );
+                    if (
+                        adicionalesElegidos.length
+                        >
+                        0
+                    ) {
+                        fetchParams.append(
+                            'adicional',
+                            adicionalesElegidos.join(
+                                ' + '
+                            )
+                        );
+                    }
                 }
             }
-        }
-        else if (clave === "adicional") {
-            let adicionalesElegidos = [];
-            grupo.querySelectorAll("input[type=\"checkbox\"]:checked").forEach(chk => {
-                adicionalesElegidos.push(chk.value);
-            });
-            if (adicionalesElegidos.length > 0) {
-                fetchParams.append("adicional", adicionalesElegidos.join(" + "));
+        );
+    // ======================================================================
+    // # FALTAN OPCIONES
+    // ======================================================================
+    if (
+        faltanOpciones
+    ) {
+        const wrapper =
+            contenedor.querySelector(
+                '.opciones-wrapper'
+            );
+        const btnToggle =
+            contenedor.querySelector(
+                '.btn-toggle-opciones'
+            );
+        if (
+            wrapper
+            &&
+            wrapper.style.display
+            ===
+            'none'
+        ) {
+            wrapper.style.display =
+                'flex';
+            if (
+                btnToggle
+            ) {
+                btnToggle.innerHTML =
+                    'Ocultar '
+                    +
+                    '<span class="icono-toggle">▲</span>';
+                btnToggle
+                    .classList
+                    .add(
+                        'abierto'
+                    );
             }
         }
-    });
-    if (faltanOpciones) {
-        const wrapper = contenedor.querySelector(".opciones-wrapper");
-        const btnToggle = contenedor.querySelector(".btn-toggle-opciones");
-        if (wrapper && wrapper.style.display === "none") {
-            wrapper.style.display = "flex";
-            if (btnToggle) {
-                btnToggle.innerHTML = "Ocultar " + "<span class=\"icono-toggle\">\u25B2</span>";
-                btnToggle.classList.add("abierto");
+        Swal.fire(
+            {
+                icon:
+                    'error',
+                title:
+                    'Falta seleccionar opciones',
+                text:
+                    'Por favor, seleccioná las opciones marcadas en rojo.',
+                confirmButtonColor:
+                    '#ff6600'
             }
-        }
-        Swal.fire({
-            icon: "error",
-            title: "Falta seleccionar opciones",
-            text: "Por favor, seleccion\u00E1 las opciones marcadas en rojo.",
-            confirmButtonColor: "#ff6600"
-        });
+        );
         return;
     }
-    const urlFinal = "/carrito/agregar/" + productoId + "/?" + fetchParams.toString();
-    const textoOriginal = boton.innerText;
-    boton.innerText = "Cargando...";
-    boton.disabled = true;
-    fetch(urlFinal).then(response => response.json()).then(data => {
-        boton.disabled = false;
-        if (data.status === "ok") {
-            if (teniaPuntoDeCoccion) {
-                Swal.fire({
-                    icon: "info",
-                    title: "\u00A1Marchando a la Parrilla! \uD83E\uDD69",
-                    text: "Record\u00E1 que la carne tiene un tiempo de espera de 20 a 40 minutos seg\u00FAn el punto de cocci\u00F3n elegido.",
-                    confirmButtonColor: "#ff6600",
-                    timer: 5000
-                });
+    // ======================================================================
+    // # AGREGAR AL CARRITO
+    // ======================================================================
+    const urlFinal =
+        '/carrito/agregar/'
+        +
+        productoId
+        +
+        '/?'
+        +
+        fetchParams.toString();
+    const textoOriginal =
+        boton.innerText;
+    boton.innerText =
+        'Cargando...';
+    boton.disabled =
+        true;
+    fetch(
+        urlFinal
+    )
+        .then(
+            response =>
+                response.json()
+        )
+        .then(
+            data => {
+                boton.disabled =
+                    false;
+                if (
+                    data.status
+                    ===
+                    'ok'
+                ) {
+                    if (
+                        teniaPuntoDeCoccion
+                    ) {
+                        Swal.fire(
+                            {
+                                icon:
+                                    'info',
+                                title:
+                                    '¡Marchando a la Parrilla! 🥩',
+                                text:
+                                    'Recordá que la carne tiene un tiempo de espera de 20 a 40 minutos según el punto de cocción elegido.',
+                                confirmButtonColor:
+                                    '#ff6600',
+                                timer:
+                                    5000
+                            }
+                        );
+                    }
+                    boton.innerText =
+                        '¡Agregado! ✔';
+                    boton.style.backgroundColor =
+                        'var(--naranja-sterak)';
+                    boton.style.color =
+                        '#000';
+                    // Limpiamos únicamente esta tarjeta.
+                    contenedor
+                        .querySelectorAll(
+                            'input'
+                        )
+                        .forEach(
+                            input => {
+                                input.checked =
+                                    false;
+                            }
+                        );
+                    actualizarPrecioVisual(
+                        contenedor
+                    );
+                    const wrapper =
+                        contenedor.querySelector(
+                            '.opciones-wrapper'
+                        );
+                    const btnToggle =
+                        contenedor.querySelector(
+                            '.btn-toggle-opciones'
+                        );
+                    if (
+                        wrapper
+                    ) {
+                        wrapper.style.display =
+                            'none';
+                    }
+                    if (
+                        btnToggle
+                    ) {
+                        btnToggle.innerHTML =
+                            'Personalizar '
+                            +
+                            '<span class="icono-toggle">▼</span>';
+                        btnToggle
+                            .classList
+                            .remove(
+                                'abierto'
+                            );
+                    }
+                    setTimeout(
+                        () => {
+                            boton.innerText =
+                                textoOriginal;
+                            boton.style.backgroundColor =
+                                '';
+                            boton.style.color =
+                                '';
+                        },
+                        1500
+                    );
+                    const badge =
+                        document.getElementById(
+                            'badge-contador'
+                        );
+                    if (
+                        badge
+                    ) {
+                        badge.innerText =
+                            data.total_items;
+                    }
+                    const carritoSidebar =
+                        document.getElementById(
+                            'carrito-sidebar'
+                        );
+                    if (
+                        carritoSidebar
+                        &&
+                        carritoSidebar
+                            .classList
+                            .contains(
+                                'abierto'
+                            )
+                    ) {
+                        cargarDetalleCarrito();
+                    }
+                } else {
+                    boton.innerText =
+                        textoOriginal;
+                    Swal.fire(
+                        {
+                            icon:
+                                'error',
+                            title:
+                                'No se pudo agregar',
+                            text:
+                                data.mensaje
+                                ||
+                                'Intentá nuevamente.'
+                        }
+                    );
+                }
             }
-            boton.innerText = "\u00A1Agregado! \u2714";
-            boton.style.backgroundColor = "var(--naranja-sterak)";
-            boton.style.color = "#000";
-            contenedor.querySelectorAll("input").forEach(input => {
-                input.checked = false;
-            });
-            actualizarPrecioVisual(contenedor);
-            const wrapper = contenedor.querySelector(".opciones-wrapper");
-            const btnToggle = contenedor.querySelector(".btn-toggle-opciones");
-            if (wrapper) {
-                wrapper.style.display = "none";
+        )
+        .catch(
+            error => {
+                console.error(
+                    'Error agregando producto:',
+                    error
+                );
+                boton.disabled =
+                    false;
+                boton.innerText =
+                    textoOriginal;
+                Swal.fire(
+                    {
+                        icon:
+                            'error',
+                        title:
+                            'Error de conexión',
+                        text:
+                            'No se pudo agregar el producto al carrito.'
+                    }
+                );
             }
-            if (btnToggle) {
-                btnToggle.innerHTML = "Personalizar " + "<span class=\"icono-toggle\">\u25BC</span>";
-                btnToggle.classList.remove("abierto");
-            }
-            setTimeout(() => {
-                boton.innerText = textoOriginal;
-                boton.style.backgroundColor = "";
-                boton.style.color = "";
-            }, 1500);
-            const badge = document.getElementById("badge-contador");
-            if (badge) {
-                badge.innerText = data.total_items;
-            }
-            const carritoSidebar = document.getElementById("carrito-sidebar");
-            if (carritoSidebar && carritoSidebar.classList.contains("abierto")) {
-                cargarDetalleCarrito();
-            }
-        }
-        else {
-            boton.innerText = textoOriginal;
-            Swal.fire({
-                icon: "error",
-                title: "No se pudo agregar",
-                text: data.mensaje || "Intent\u00E1 nuevamente."
-            });
-        }
-    }).catch(error => {
-        console.error("Error agregando producto:", error);
-        boton.disabled = false;
-        boton.innerText = textoOriginal;
-        Swal.fire({
-            icon: "error",
-            title: "Error de conexi\u00F3n",
-            text: "No se pudo agregar el producto al carrito."
-        });
-    });
+        );
 }
-
 // ==========================================================================
-// MÓDULO 5: DASHBOARD Y ADMINISTRACIÓN AJAX
+// # MÓDULO 5: DASHBOARD, PANEL DE CONTROL Y ADMINISTRACIÓN AJAX
 // ==========================================================================
 
 function abrirTab(tabId, btnElement) {
-    document.querySelectorAll(".tab-content").forEach(el => el.style.display = "none");
-    document.querySelectorAll(".tab-btn, .panel-tab-btn").forEach(el => el.classList.remove("active"));
-    const tabSeleccionada = document.getElementById("tab-" + tabId);
-    if (tabSeleccionada)
-        tabSeleccionada.style.display = "block";
-    if (btnElement) {
-        btnElement.classList.add("active");
+    document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.tab-btn, .panel-tab-btn').forEach(el => el.classList.remove('active', 'is-active'));
+    const tabSeleccionada = document.getElementById('tab-' + tabId);
+    if(tabSeleccionada) tabSeleccionada.style.display = 'block';
+    if(btnElement) {
+        btnElement.classList.add('active');
+    } else {
+        const btnActivo = document.getElementById('btn-tab-' + tabId);
+        if(btnActivo) btnActivo.classList.add('active');
     }
-    else {
-        const btnActivo = document.getElementById("btn-tab-" + tabId);
-        if (btnActivo)
-            btnActivo.classList.add("active");
-    }
-    localStorage.setItem("tabDashboardActiva", tabId);
+    localStorage.setItem('tabDashboardActiva', tabId);
 }
-document.addEventListener("DOMContentLoaded", function () {
-    if (document.querySelector(".dash-tabs") || document.querySelector(".panel-tabs")) {
-        let tabGuardada = "inicio";
-        let botonGuardado = document.getElementById("btn-tab-" + tabGuardada);
-        if (botonGuardado && botonGuardado.hidden) {
-            tabGuardada = "inicio";
-            botonGuardado = document.getElementById("btn-tab-inicio");
-        }
-        abrirTab(tabGuardada, botonGuardado);
+document.addEventListener("DOMContentLoaded", function() {
+    if(document.querySelector('.dash-tabs') || document.querySelector('.panel-tabs')) {
+        let tabURL = new URLSearchParams(window.location.search).get('tab');
+        let tabGuardada = tabURL && document.getElementById('tab-' + tabURL) ? tabURL : (localStorage.getItem('tabDashboardActiva') || 'inicio');
+        abrirTab(tabGuardada, document.getElementById('btn-tab-' + tabGuardada));
     }
 });
-// =========================================================
-// CONFIGURACIÓN RÁPIDA DEL SISTEMA
-// Guarda switches/campos del panel desde script.js
-// =========================================================
-function obtenerCSRFConfiguracion() {
-    const input = document.querySelector('#config-csrf-form input[name="csrfmiddlewaretoken"]');
-    if (input && input.value) return input.value;
-
-    const nombre = 'csrftoken=';
-    const cookies = document.cookie ? document.cookie.split(';') : [];
-    for (let cookie of cookies) {
-        cookie = cookie.trim();
-        if (cookie.startsWith(nombre)) {
-            return decodeURIComponent(cookie.substring(nombre.length));
-        }
-    }
-    return '';
-}
-
-function mostrarEstadoConfiguracion(mensaje, tipo = 'ok') {
-    const estado = document.getElementById('config-estado-guardado');
-    if (!estado) return;
-
-    estado.textContent = mensaje;
-    estado.classList.toggle('is-error', tipo === 'error');
-    estado.style.color = tipo === 'error' ? '#ff4d4d' : 'var(--verde-sanmartin)';
-
-    clearTimeout(window.__timerConfigGuardado);
-    window.__timerConfigGuardado = setTimeout(() => {
-        estado.textContent = '';
-        estado.classList.remove('is-error');
-    }, tipo === 'error' ? 5000 : 2500);
-}
-
-async function respuestaJSONSegura(response) {
-    const texto = await response.text();
-    try {
-        return JSON.parse(texto);
-    } catch (error) {
-        if (response.status === 403) {
-            return {
-                status: 'error',
-                mensaje: 'No autorizado o CSRF vencido. Cerrá sesión del panel, volvé a entrar con el PIN y probá de nuevo.'
-            };
-        }
-        return {
-            status: 'error',
-            mensaje: texto ? texto.slice(0, 180) : 'Respuesta vacía del servidor.'
-        };
-    }
-}
-
-window.guardarConfiguracion = async function guardarConfiguracion(elemento) {
-    const panel = document.querySelector('.config-sistema');
-    if (!panel || !elemento) return;
-
-    const campo = elemento.dataset.configCampo;
-    if (!campo) return;
-
-    const url = panel.dataset.configUrl || '/dashboard/configuracion/actualizar/';
-    let valor = elemento.type === 'checkbox' ? (elemento.checked ? 'true' : 'false') : elemento.value;
-
-    if (campo === 'descuento_efectivo_porcentaje') {
-        let numero = parseInt(valor || '0', 10);
-        if (Number.isNaN(numero)) numero = 0;
-        numero = Math.max(0, Math.min(numero, 100));
-        elemento.value = numero;
-        valor = String(numero);
-    }
-
-    if (campo === 'hora_cierre' && !valor) {
-        mostrarEstadoConfiguracion('Ingresá una hora válida.', 'error');
-        return;
-    }
-
-    const valorAnterior = elemento.type === 'checkbox' ? !elemento.checked : elemento.defaultValue;
-    const datos = new FormData();
-    datos.append('campo', campo);
-    datos.append('valor', valor);
-
-    elemento.disabled = true;
-    mostrarEstadoConfiguracion('Guardando...');
-
-    try {
-        const response = await fetch(url, {
-            method: 'POST',
-            credentials: 'same-origin',
-            body: datos,
-            headers: {
-                'X-CSRFToken': obtenerCSRFConfiguracion(),
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        });
-
-        const data = await respuestaJSONSegura(response);
-
-        if (!response.ok || data.status !== 'ok') {
-            throw new Error(data.mensaje || 'No se pudo guardar la configuración.');
-        }
-
-        if (elemento.type !== 'checkbox') {
-            elemento.defaultValue = elemento.value;
-        }
-
-        if (campo === 'buffet_habilitado') {
-            actualizarBotonPedidos(elemento.checked);
-        }
-
-        if (campo === 'salon_habilitado') {
-            actualizarModuloSalon(elemento.checked);
-        }
-
-        mostrarEstadoConfiguracion('Guardado ✓');
-    } catch (error) {
-        console.error('Error guardando configuración:', error);
-        mostrarEstadoConfiguracion(error.message, 'error');
-
-        if (elemento.type === 'checkbox') {
-            elemento.checked = valorAnterior;
-        } else {
-            elemento.value = valorAnterior;
-        }
-    } finally {
-        elemento.disabled = false;
-    }
-};
-
-document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.config-sistema [data-config-campo]').forEach(input => {
-        if (input.dataset.configListener === '1') return;
-        input.dataset.configListener = '1';
-
-        input.addEventListener('change', function () {
-            window.guardarConfiguracion(this);
-        });
-
-        if (input.type === 'number' || input.type === 'time') {
-            input.addEventListener('keydown', function (event) {
-                if (event.key === 'Enter') {
-                    event.preventDefault();
-                    this.blur();
-                    window.guardarConfiguracion(this);
-                }
-            });
-        }
-    });
-
-    /*
-     * Fix importante:
-     * En las filas que tienen porcentaje/hora + switch, el click sobre el switch
-     * podía enfocar el input de número/hora en vez de activar el checkbox.
-     * Por eso forzamos el toggle desde el switch visual.
-     */
-    document.querySelectorAll('.config-sistema .config-switch').forEach(switchVisual => {
-        if (switchVisual.dataset.switchListener === '1') return;
-        switchVisual.dataset.switchListener = '1';
-
-        switchVisual.addEventListener('click', function (event) {
-            const checkbox = this.previousElementSibling;
-
-            if (!checkbox || checkbox.type !== 'checkbox' || checkbox.disabled) {
-                return;
-            }
-
-            event.preventDefault();
-            event.stopPropagation();
-
-            checkbox.checked = !checkbox.checked;
-            checkbox.dispatchEvent(new Event('change', { bubbles: true }));
-        });
-    });
-});
-
-function actualizarBotonPedidos(habilitado) {
-    const boton = document.getElementById("btn-estado-global");
-    if (!boton) return;
-    boton.classList.toggle("btn-master-off", habilitado);
-    boton.classList.toggle("btn-master-on", !habilitado);
-    boton.textContent = habilitado ? "🔴 DESACTIVAR PEDIDOS" : "🟢 ACTIVAR PEDIDOS";
-}
-
-function actualizarModuloSalon(habilitado) {
-    document.querySelectorAll("[data-requiere-salon]").forEach(elemento => {
-        elemento.hidden = !habilitado;
-    });
-}
-
-function cambiarEstadoAjax(event, elemento, nuevoEstado, requiereConfirmacion = false) {
+function cambiarEstadoAjax(event, elemento, nuevoEstado, requiereConfirmacion=false) {
     event.preventDefault();
-    if (requiereConfirmacion) {
+    if(requiereConfirmacion) {
         Swal.fire({
-            title: "\u00BFSeguro que quer\u00E9s cancelar?",
-            text: "Esta acci\u00F3n no se puede deshacer.",
-            icon: "warning",
+            title: '¿Seguro que querés cancelar?',
+            text: "Esta acción no se puede deshacer.",
+            icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: "#dc3545",
-            cancelButtonColor: "#6c757d",
-            confirmButtonText: "S\u00ED, cancelar pedido",
-            background: "var(--card-bg)",
-            color: "var(--text-color)"
-        }).then(result => {
-            if (result.isConfirmed) {
-                procesarCambioEstado(elemento, nuevoEstado);
-            }
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, cancelar pedido',
+            background: 'var(--card-bg)',
+            color: 'var(--text-color)'
+        }).then((result) => {
+            if (result.isConfirmed) { procesarCambioEstado(elemento, nuevoEstado); }
         });
-    }
-    else {
+    } else {
         procesarCambioEstado(elemento, nuevoEstado);
     }
 }
 function procesarCambioEstado(elemento, nuevoEstado) {
-    const url = elemento.getAttribute("href");
+    const url = elemento.getAttribute('href');
     const textoOriginal = elemento.innerHTML;
-    elemento.innerHTML = "\u23F3...";
-    elemento.style.pointerEvents = "none";
-    fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } }).then(res => res.json()).then(data => {
-        if (data.status === "ok") {
-            const tr = elemento.closest("tr");
+    elemento.innerHTML = '⏳...';
+    elemento.style.pointerEvents = 'none';
+    fetch(url, { headers: {'X-Requested-With': 'XMLHttpRequest'} })
+    .then(res => res.json())
+    .then(data => {
+        if(data.status === 'ok') {
+            const tr = elemento.closest('tr');
             tr.style.transition = "0.3s";
-            const etiqueta = tr.querySelector(".badge-estado");
-            const contenedorBotones = tr.querySelector("td:last-child div");
-            if (nuevoEstado === "cancelado") {
-                tr.style.opacity = "0.5";
-                if (etiqueta) {
-                    etiqueta.innerText = "Cancelado";
-                    etiqueta.style.background = "var(--error, #dc3545)";
-                    etiqueta.style.color = "white";
+            const etiqueta = tr.querySelector('.badge-estado');
+            const contenedorBotones = tr.querySelector('td:last-child div');
+            if(nuevoEstado === 'cancelado') {
+                tr.style.opacity = '0.5';
+                if(etiqueta) {
+                    etiqueta.innerText = 'Cancelado';
+                    etiqueta.style.background = 'var(--error, #dc3545)';
+                    etiqueta.style.color = 'white';
                     etiqueta.className = "badge-estado badge-cancelado";
                 }
-                if (contenedorBotones)
-                    contenedorBotones.style.display = "none";
-            }
-            else if (nuevoEstado === "listo") {
-                tr.style.borderLeft = "5px solid var(--verde-sanmartin, #28a745)";
-                if (etiqueta) {
-                    etiqueta.innerText = "\u00A1Listo!";
-                    etiqueta.style.background = "var(--verde-sanmartin, #28a745)";
-                    etiqueta.style.color = "white";
+                if(contenedorBotones) contenedorBotones.style.display = 'none';
+            } else if (nuevoEstado === 'listo') {
+                tr.style.borderLeft = '5px solid var(--verde-sanmartin, #28a745)';
+                if(etiqueta) {
+                    etiqueta.innerText = '¡Listo!';
+                    etiqueta.style.background = 'var(--verde-sanmartin, #28a745)';
+                    etiqueta.style.color = 'white';
                     etiqueta.className = "badge-estado badge-listo";
                 }
-            }
-            else if (nuevoEstado === "entregado") {
-                tr.style.opacity = "0.5";
-                tr.style.borderLeft = "5px solid var(--texto-mutado, #6c757d)";
-                if (etiqueta) {
-                    etiqueta.innerText = "Entregado";
-                    etiqueta.style.background = "var(--texto-mutado, #6c757d)";
-                    etiqueta.style.color = "white";
+            } else if (nuevoEstado === 'entregado') {
+                tr.style.opacity = '0.5';
+                tr.style.borderLeft = '5px solid var(--texto-mutado, #6c757d)';
+                if(etiqueta) {
+                    etiqueta.innerText = 'Entregado';
+                    etiqueta.style.background = 'var(--texto-mutado, #6c757d)';
+                    etiqueta.style.color = 'white';
                     etiqueta.className = "badge-estado badge-entregado";
                 }
-                if (contenedorBotones)
-                    contenedorBotones.style.display = "none";
-            }
-            else if (nuevoEstado === "demorado") {
-                if (etiqueta) {
-                    etiqueta.innerText = "Demorado";
-                    etiqueta.style.background = "#fd7e14";
-                    etiqueta.style.color = "white";
+                if(contenedorBotones) contenedorBotones.style.display = 'none';
+            } else if (nuevoEstado === 'demorado') {
+                if(etiqueta) {
+                    etiqueta.innerText = 'Demorado';
+                    etiqueta.style.background = '#fd7e14';
+                    etiqueta.style.color = 'white';
                 }
                 elemento.innerHTML = textoOriginal;
-                elemento.style.pointerEvents = "auto";
-            }
-            else {
-                if (etiqueta) {
-                    etiqueta.innerText = "En Preparaci\u00F3n";
-                    etiqueta.style.background = "var(--azul-sanmartin, #007bff)";
-                    etiqueta.style.color = "white";
+                elemento.style.pointerEvents = 'auto';
+            } else {
+                if(etiqueta) {
+                    etiqueta.innerText = 'En Preparación';
+                    etiqueta.style.background = 'var(--azul-sanmartin, #007bff)';
+                    etiqueta.style.color = 'white';
                     etiqueta.className = "badge-estado badge-preparacion";
                 }
                 elemento.innerHTML = textoOriginal;
-                elemento.style.pointerEvents = "auto";
+                elemento.style.pointerEvents = 'auto';
             }
         }
     }).catch(error => {
         elemento.innerHTML = textoOriginal;
-        elemento.style.pointerEvents = "auto";
-        Swal.fire({ icon: "error", title: "Oops...", text: "Hubo un error de conexi\u00F3n.", background: "var(--card-bg)", color: "var(--text-color)" });
+        elemento.style.pointerEvents = 'auto';
+        Swal.fire({ icon: 'error', title: 'Oops...', text: 'Hubo un error de conexión.', background: 'var(--card-bg)', color: 'var(--text-color)' });
     });
 }
 function editarPrecioAjax(event, form) {
     event.preventDefault();
-    const boton = form.querySelector("button");
-    const input = form.querySelector("input[name=\"precio\"]");
-    const textoOriginal = boton ? boton.innerText : "OK";
+
+    const boton = form.querySelector('button');
+    const input = form.querySelector('input[name="precio"]');
+    const textoOriginal = boton ? boton.innerText : 'OK';
+
     if (boton) {
         boton.disabled = true;
-        boton.innerText = "...";
+        boton.innerText = '...';
     }
+
     fetch(form.action, {
-        method: "POST",
+        method: 'POST',
         body: new FormData(form),
         headers: {
-            "X-Requested-With": "XMLHttpRequest"
+            'X-Requested-With': 'XMLHttpRequest'
         }
-    }).then(response => {
+    })
+    .then(response => {
         if (!response.ok) {
-            throw new Error("No se pudo actualizar el precio.");
+            throw new Error('No se pudo actualizar el precio.');
         }
-        return response.json().catch(() => ({ status: "ok" }));
-    }).then(data => {
-        if (data.status && data.status !== "ok") {
-            throw new Error(data.mensaje || "No se pudo actualizar el precio.");
+        return response.json().catch(() => ({ status: 'ok' }));
+    })
+    .then(data => {
+        if (data.status && data.status !== 'ok') {
+            throw new Error(data.mensaje || 'No se pudo actualizar el precio.');
         }
+
         if (boton) {
-            boton.innerText = "\u2713";
-            boton.style.background = "var(--verde-sanmartin)";
-            boton.style.color = "#fff";
+            boton.innerText = '✓';
+            boton.style.background = 'var(--verde-sanmartin)';
+            boton.style.color = '#fff';
         }
+
         if (input) {
             input.blur();
         }
+
         setTimeout(() => {
             if (boton) {
                 boton.innerText = textoOriginal;
-                boton.style.background = "";
-                boton.style.color = "";
+                boton.style.background = '';
+                boton.style.color = '';
                 boton.disabled = false;
             }
         }, 900);
-    }).catch(error => {
+    })
+    .catch(error => {
         if (boton) {
             boton.innerText = textoOriginal;
             boton.disabled = false;
         }
+
         Swal.fire({
-            icon: "error",
-            title: "No se pudo cambiar el precio",
+            icon: 'error',
+            title: 'No se pudo cambiar el precio',
             text: error.message,
-            background: "var(--card-bg)",
-            color: "var(--text-color)"
+            background: 'var(--card-bg)',
+            color: 'var(--text-color)'
         });
     });
 }
+
 function cambiarDisponibilidadAjax(event, el) {
     event.preventDefault();
-    fetch(el.href, { headers: { "X-Requested-With": "XMLHttpRequest" } }).then(res => res.json()).then(data => {
-        const fila = el.closest(".fila-producto-menu") || el.closest("tr");
+    fetch(el.href, { headers: {'X-Requested-With': 'XMLHttpRequest'} })
+    .then(res => res.json())
+    .then(data => {
+        const fila = el.closest('.fila-producto-menu') || el.closest('tr');
         if (fila) {
-            fila.classList.toggle("is-pausado", !data.disponible);
-            fila.style.opacity = "";
-            const estado = fila.querySelector(".menu-admin-estado");
+            fila.classList.toggle('is-pausado', !data.disponible);
+            fila.style.opacity = '';
+            const estado = fila.querySelector('.menu-admin-estado');
             if (estado) {
-                estado.classList.toggle("is-activo", data.disponible);
-                estado.classList.toggle("is-pausado", !data.disponible);
-                estado.textContent = data.disponible ? "\u25CF ACTIVO" : "\u25CF PAUSADO";
+                estado.classList.toggle('is-activo', data.disponible);
+                estado.classList.toggle('is-pausado', !data.disponible);
+                estado.textContent = data.disponible ? '● ACTIVO' : '● PAUSADO';
             }
         }
-        el.innerText = data.disponible ? "\u23F8 Pausar" : "\u25B6 Activar";
-        if (el.classList.contains("menu-admin-btn")) {
-            el.classList.toggle("is-pausar", data.disponible);
-            el.classList.toggle("is-activar", !data.disponible);
-        }
-        else {
-            el.className = data.disponible ? "btn-panel btn-gris" : "btn-panel btn-verde";
+        el.innerText = data.disponible ? '⏸ Pausar' : '▶ Activar';
+        if (el.classList.contains('menu-admin-btn')) {
+            el.classList.toggle('is-pausar', data.disponible);
+            el.classList.toggle('is-activar', !data.disponible);
+        } else {
+            el.className = data.disponible ? 'btn-panel btn-gris' : 'btn-panel btn-verde';
         }
     });
 }
 function eliminarProductoAjax(event, el) {
     event.preventDefault();
     Swal.fire({
-        title: "\u00BFBorrar producto?",
-        text: "Desaparecer\u00E1 del men\u00FA permanentemente.",
-        icon: "warning",
+        title: '¿Borrar producto?',
+        text: 'Desaparecerá del menú permanentemente.',
+        icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: "#dc3545",
-        cancelButtonColor: "#6c757d",
-        confirmButtonText: "Borrar",
-        cancelButtonText: "Cancelar",
-        background: "var(--card-bg)",
-        color: "var(--text-color)"
-    }).then(result => {
-        if (!result.isConfirmed)
-            return;
-        fetch(el.href, { headers: { "X-Requested-With": "XMLHttpRequest" } }).then(() => {
-            const fila = el.closest(".fila-producto-menu") || el.closest("tr");
-            if (!fila)
-                return;
-            fila.style.transition = "0.3s";
-            fila.style.opacity = "0";
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Borrar',
+        cancelButtonText: 'Cancelar',
+        background: 'var(--card-bg)',
+        color: 'var(--text-color)'
+    }).then((result) => {
+        if (!result.isConfirmed) return;
+        fetch(el.href, { headers: {'X-Requested-With': 'XMLHttpRequest'} })
+        .then(() => {
+            const fila = el.closest('.fila-producto-menu') || el.closest('tr');
+            if (!fila) return;
+            fila.style.transition = '0.3s';
+            fila.style.opacity = '0';
             setTimeout(() => {
-                const categoria = fila.closest(".categoria-menu");
+                const categoria = fila.closest('.categoria-menu');
                 fila.remove();
-                if (categoria && !categoria.querySelector(".fila-producto-menu")) {
+                if (categoria && !categoria.querySelector('.fila-producto-menu')) {
                     categoria.remove();
                 }
-                if (typeof aplicarFiltrosMenuAdmin === "function") {
+                if (typeof aplicarFiltrosMenuAdmin === 'function') {
                     aplicarFiltrosMenuAdmin();
                 }
             }, 300);
@@ -1070,183 +1569,223 @@ function eliminarProductoAjax(event, el) {
 }
 function ejecutarAjax(event, el) {
     event.preventDefault();
-    fetch(el.href, { headers: { "X-Requested-With": "XMLHttpRequest" } }).then(response => response.json()).then(data => {
+    fetch(el.href, { headers: {'X-Requested-With': 'XMLHttpRequest'} })
+    .then(response => response.json())
+    .then(data => {
         const estaAbierto = data.esta_abierto;
         el.innerText = estaAbierto ? "Cerrar" : "Abrir";
-        el.classList.remove("btn-verde", "btn-rojo");
-        el.classList.add(estaAbierto ? "btn-rojo" : "btn-verde");
+        el.classList.remove('btn-verde', 'btn-rojo');
+        el.classList.add(estaAbierto ? 'btn-rojo' : 'btn-verde');
         const p = el.previousElementSibling;
-        p.innerText = estaAbierto ? "\uD83D\uDFE2 ABIERTO" : "\uD83D\uDD34 CERRADO";
+        p.innerText = estaAbierto ? "🟢 ABIERTO" : "🔴 CERRADO";
         p.style.color = estaAbierto ? "var(--verde-sanmartin)" : "var(--error)";
     });
 }
 function actualizarPuestosAjax(event, form) {
     event.preventDefault();
-    fetch(form.action, { method: "POST", body: new FormData(form), headers: { "X-Requested-With": "XMLHttpRequest" } }).then(() => {
+    fetch(form.action, { method: 'POST', body: new FormData(form), headers: {'X-Requested-With': 'XMLHttpRequest'} })
+    .then(() => {
         form.style.backgroundColor = "rgba(40, 167, 69, 0.1)";
         setTimeout(() => form.style.backgroundColor = "transparent", 800);
-    }).catch(error => Swal.fire({ icon: "error", title: "Oops...", text: "Hubo un error al guardar.", background: "var(--card-bg)", color: "var(--text-color)" }));
+    })
+    .catch(error => Swal.fire({ icon: 'error', title: 'Oops...', text: 'Hubo un error al guardar.', background: 'var(--card-bg)', color: 'var(--text-color)' }));
 }
 let deferredPrompt;
-let clicsIOS = parseInt(localStorage.getItem("clicsIOS")) || 0;
-window.addEventListener("beforeinstallprompt", e => {
+let clicsIOS = parseInt(localStorage.getItem('clicsIOS')) || 0;
+window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    document.getElementById("btn-instalar-nav").style.display = "block";
+    document.getElementById('btn-instalar-nav').style.display = 'block';
 });
-document.getElementById("btn-instalar-nav").addEventListener("click", async () => {
+document.getElementById('btn-instalar-nav').addEventListener('click', async () => {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     if (deferredPrompt) {
         deferredPrompt.prompt();
         deferredPrompt = null;
-        document.getElementById("btn-instalar-nav").style.display = "none";
-    }
-    else if (isIOS) {
-        clicsIOS++;
-        localStorage.setItem("clicsIOS", clicsIOS);
-        if (clicsIOS >= 1) {
-            alert("Para tener el Buffet en tu inicio: Toc\u00E1 el bot\u00F3n 'Compartir' (el cuadrado con la flecha) y eleg\u00ED 'Agregar al inicio'.");
-        }
+        document.getElementById('btn-instalar-nav').style.display = 'inline-flex';
+    } else if (isIOS) {
+        // Safari/iOS no ofrece beforeinstallprompt.
+        alert("Para instalar la aplicación: tocá Compartir y elegí 'Agregar a pantalla de inicio'.");
+    } else {
+        // En algunos navegadores el evento de instalación no está disponible.
+        alert("Si tu navegador permite instalar esta web, abrí su menú (⋮ o ⋯) y elegí 'Instalar app' o 'Agregar a pantalla de inicio'.");
     }
 });
-window.addEventListener("appinstalled", () => { document.getElementById("btn-instalar-nav").style.display = "none"; });
-
+window.addEventListener('appinstalled', () => { document.getElementById('btn-instalar-nav').textContent = 'App instalada'; });
 // ==========================================================================
-// SELECTOR DE CATEGORÍAS BUSCABLE
-// ==========================================================================
+// # SELECTOR DE CATEGORÍAS BUSCABLE
+// ========================================================================== 
 
 function sincronizarSelectorCategoria(select) {
-    if (!select || !select._categoriaPicker)
-        return;
+    if (!select || !select._categoriaPicker) return;
+
     const opcion = select.options[select.selectedIndex];
-    const texto = opcion && opcion.value ? opcion.textContent.trim() : "Eleg\u00ED una categor\u00EDa";
+    const texto = opcion && opcion.value
+        ? opcion.textContent.trim()
+        : 'Elegí una categoría';
+
     select._categoriaPicker.label.textContent = texto;
+
     select._categoriaPicker.items.forEach(item => {
-        item.classList.toggle("is-selected", String(item.dataset.value) === String(select.value));
+        item.classList.toggle(
+            'is-selected',
+            String(item.dataset.value) === String(select.value)
+        );
     });
 }
+
 function inicializarSelectorCategoria(select) {
-    if (!select || select.dataset.categoriaPickerInicializado === "1")
-        return;
-    select.dataset.categoriaPickerInicializado = "1";
-    select.classList.add("categoria-select-native");
-    const picker = document.createElement("div");
-    picker.className = "categoria-picker";
-    const trigger = document.createElement("button");
-    trigger.type = "button";
-    trigger.className = "categoria-picker__trigger";
-    trigger.innerHTML = "<span>Eleg\u00ED una categor\u00EDa</span><b>\u2304</b>";
-    const panel = document.createElement("div");
-    panel.className = "categoria-picker__panel";
+    if (!select || select.dataset.categoriaPickerInicializado === '1') return;
+
+    select.dataset.categoriaPickerInicializado = '1';
+    select.classList.add('categoria-select-native');
+
+    const picker = document.createElement('div');
+    picker.className = 'categoria-picker';
+
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'categoria-picker__trigger';
+    trigger.innerHTML = '<span>Elegí una categoría</span><b>⌄</b>';
+
+    const panel = document.createElement('div');
+    panel.className = 'categoria-picker__panel';
     panel.hidden = true;
-    const search = document.createElement("input");
-    search.type = "search";
-    search.className = "categoria-picker__search";
-    search.placeholder = "Buscar categor\u00EDa...";
-    search.autocomplete = "off";
-    const list = document.createElement("div");
-    list.className = "categoria-picker__list";
+
+    const search = document.createElement('input');
+    search.type = 'search';
+    search.className = 'categoria-picker__search';
+    search.placeholder = 'Buscar categoría...';
+    search.autocomplete = 'off';
+
+    const list = document.createElement('div');
+    list.className = 'categoria-picker__list';
+
     const items = [];
+
     Array.from(select.options).forEach(opcion => {
-        if (!opcion.value)
-            return;
-        const item = document.createElement("button");
-        item.type = "button";
-        item.className = "categoria-picker__item";
+        if (!opcion.value) return;
+
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'categoria-picker__item';
         item.dataset.value = opcion.value;
         item.dataset.busqueda = normalizarTextoMenuAdmin(opcion.textContent);
         item.textContent = opcion.textContent.trim();
-        item.addEventListener("click", function () {
+
+        item.addEventListener('click', function() {
             select.value = item.dataset.value;
-            select.dispatchEvent(new Event("change", { bubbles: true }));
+            select.dispatchEvent(new Event('change', {bubbles: true}));
             panel.hidden = true;
-            picker.classList.remove("is-open");
+            picker.classList.remove('is-open');
         });
+
         items.push(item);
         list.appendChild(item);
     });
-    search.addEventListener("input", function () {
+
+    search.addEventListener('input', function() {
         const texto = normalizarTextoMenuAdmin(search.value);
         items.forEach(item => {
             item.hidden = Boolean(texto) && !item.dataset.busqueda.includes(texto);
         });
     });
-    trigger.addEventListener("click", function (event) {
+
+    trigger.addEventListener('click', function(event) {
         event.preventDefault();
         event.stopPropagation();
+
         const abrir = panel.hidden;
-        document.querySelectorAll(".categoria-picker.is-open").forEach(otro => {
+
+        document.querySelectorAll('.categoria-picker.is-open').forEach(otro => {
             if (otro !== picker) {
-                otro.classList.remove("is-open");
-                const otroPanel = otro.querySelector(".categoria-picker__panel");
-                if (otroPanel)
-                    otroPanel.hidden = true;
+                otro.classList.remove('is-open');
+                const otroPanel = otro.querySelector('.categoria-picker__panel');
+                if (otroPanel) otroPanel.hidden = true;
             }
         });
+
         panel.hidden = !abrir;
-        picker.classList.toggle("is-open", abrir);
+        picker.classList.toggle('is-open', abrir);
+
         if (abrir) {
-            search.value = "";
+            search.value = '';
             items.forEach(item => item.hidden = false);
             window.setTimeout(() => search.focus(), 30);
         }
     });
-    picker.addEventListener("click", event => event.stopPropagation());
+
+    picker.addEventListener('click', event => event.stopPropagation());
+
     panel.appendChild(search);
     panel.appendChild(list);
     picker.appendChild(trigger);
     picker.appendChild(panel);
-    select.insertAdjacentElement("afterend", picker);
+    select.insertAdjacentElement('afterend', picker);
+
     select._categoriaPicker = {
         picker: picker,
         panel: panel,
-        label: trigger.querySelector("span"),
+        label: trigger.querySelector('span'),
         search: search,
         items: items
     };
-    select.addEventListener("change", function () {
+
+    select.addEventListener('change', function() {
         sincronizarSelectorCategoria(select);
     });
+
     sincronizarSelectorCategoria(select);
 }
+
 function cerrarSelectoresCategoria() {
-    document.querySelectorAll(".categoria-picker.is-open").forEach(picker => {
-        picker.classList.remove("is-open");
-        const panel = picker.querySelector(".categoria-picker__panel");
-        if (panel)
-            panel.hidden = true;
+    document.querySelectorAll('.categoria-picker.is-open').forEach(picker => {
+        picker.classList.remove('is-open');
+        const panel = picker.querySelector('.categoria-picker__panel');
+        if (panel) panel.hidden = true;
     });
 }
-document.addEventListener("click", cerrarSelectoresCategoria);
+
+document.addEventListener('click', cerrarSelectoresCategoria);
 
 // ==========================================================================
-// MÓDULO 5B: GESTOR VISUAL DEL MENÚ
+// # MÓDULO 5B: GESTOR VISUAL DEL MENÚ EN EL DASHBOARD
 // ==========================================================================
+let filtroPuestoMenuAdmin = 'todos';
 
-let filtroPuestoMenuAdmin = "todos";
 function normalizarTextoMenuAdmin(valor) {
-    return String(valor || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+    return String(valor || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .trim();
 }
+
 function filtrarMenu(puestoId, btnActivo) {
-    filtroPuestoMenuAdmin = String(puestoId || "todos");
-    document.querySelectorAll(".menu-admin-filtro").forEach(btn => {
-        btn.classList.remove("is-active");
+    filtroPuestoMenuAdmin = String(puestoId || 'todos');
+    document.querySelectorAll('.menu-admin-filtro').forEach(btn => {
+        btn.classList.remove('is-active');
     });
     if (btnActivo) {
-        btnActivo.classList.add("is-active");
+        btnActivo.classList.add('is-active');
     }
     aplicarFiltrosMenuAdmin();
 }
+
 function aplicarFiltrosMenuAdmin() {
-    const buscador = document.getElementById("buscador-menu-admin");
-    const texto = normalizarTextoMenuAdmin(buscador ? buscador.value : "");
+    const buscador = document.getElementById('buscador-menu-admin');
+    const texto = normalizarTextoMenuAdmin(buscador ? buscador.value : '');
     let totalVisibles = 0;
-    document.querySelectorAll(".categoria-menu").forEach(categoria => {
+
+    document.querySelectorAll('.categoria-menu').forEach(categoria => {
         let visiblesCategoria = 0;
-        categoria.querySelectorAll(".fila-producto-menu").forEach(fila => {
-            const puestos = String(fila.dataset.puestos || "").split(",").map(valor => valor.trim()).filter(Boolean);
+        categoria.querySelectorAll('.fila-producto-menu').forEach(fila => {
+            const puestos = String(fila.dataset.puestos || '')
+                .split(',')
+                .map(valor => valor.trim())
+                .filter(Boolean);
             const busqueda = normalizarTextoMenuAdmin(fila.dataset.busqueda || fila.innerText);
-            const coincidePuesto = filtroPuestoMenuAdmin === "todos" || puestos.includes(filtroPuestoMenuAdmin);
+            const coincidePuesto = filtroPuestoMenuAdmin === 'todos' || puestos.includes(filtroPuestoMenuAdmin);
             const coincideTexto = !texto || busqueda.includes(texto);
             const visible = coincidePuesto && coincideTexto;
             fila.hidden = !visible;
@@ -1257,236 +1796,319 @@ function aplicarFiltrosMenuAdmin() {
         });
         categoria.hidden = visiblesCategoria === 0;
     });
-    const sinResultados = document.getElementById("menu-admin-sin-resultados");
+
+    const sinResultados = document.getElementById('menu-admin-sin-resultados');
     if (sinResultados) {
         sinResultados.hidden = totalVisibles !== 0;
     }
 }
+
 function actualizarAvisoCategoriaSalon() {
-    const select = document.getElementById("editor-categoria");
-    const aviso = document.getElementById("editor-aviso-salon");
-    if (!select || !aviso)
-        return;
+    const select = document.getElementById('editor-categoria');
+    const aviso = document.getElementById('editor-aviso-salon');
+    if (!select || !aviso) return;
     const opcion = select.options[select.selectedIndex];
-    const esSalon = opcion && normalizarTextoMenuAdmin(opcion.textContent) === "salon";
+    const esSalon = opcion && normalizarTextoMenuAdmin(opcion.textContent) === 'salon';
     aviso.hidden = !esSalon;
 }
+
 function actualizarPreviewEditorProducto(url) {
-    const preview = document.getElementById("editor-imagen-preview");
-    if (!preview)
-        return;
-    preview.innerHTML = "";
+    const preview = document.getElementById('editor-imagen-preview');
+    if (!preview) return;
+    preview.innerHTML = '';
     if (!url) {
-        const texto = document.createElement("span");
-        texto.textContent = "Sin imagen";
+        const texto = document.createElement('span');
+        texto.textContent = 'Sin imagen';
         preview.appendChild(texto);
         return;
     }
-    const imagen = document.createElement("img");
+    const imagen = document.createElement('img');
     imagen.src = url;
-    imagen.alt = "Imagen actual del producto";
+    imagen.alt = 'Imagen actual del producto';
     preview.appendChild(imagen);
 }
+
 function abrirEditorProducto(boton) {
-    const modal = document.getElementById("modal-editor-producto");
-    const form = document.getElementById("form-editor-producto");
-    if (!modal || !form || !boton)
-        return;
-    form.action = boton.dataset.url || "";
-    document.getElementById("editor-nombre").value = boton.dataset.nombre || "";
-    document.getElementById("editor-codigo").value = boton.dataset.codigo || "";
-    const editorCategoria = document.getElementById("editor-categoria");
-    editorCategoria.value = boton.dataset.categoria || "";
-    editorCategoria.dispatchEvent(new Event("change", { bubbles: true }));
-    document.getElementById("editor-precio").value = boton.dataset.precio || "";
-    document.getElementById("editor-orden").value = boton.dataset.orden || "0";
-    document.getElementById("editor-descripcion").value = boton.dataset.descripcion || "";
-    document.getElementById("editor-disponible").checked = boton.dataset.disponible === "1";
-    document.getElementById("editor-promo").checked = boton.dataset.promo === "1";
-    document.getElementById("editor-variantes").value = boton.dataset.variantes || "";
-    document.getElementById("editor-guarniciones").value = boton.dataset.guarniciones || "";
-    document.getElementById("editor-coccion").value = boton.dataset.coccion || "";
-    document.getElementById("editor-rellenos").value = boton.dataset.rellenos || "";
-    document.getElementById("editor-salsas").value = boton.dataset.salsas || "";
-    document.getElementById("editor-adicionales").value = boton.dataset.adicionales || "";
-    document.getElementById("editor-hielo").value = boton.dataset.hielo || "";
-    const puntosSeleccionados = String(boton.dataset.puestos || "").split(",").map(valor => valor.trim()).filter(Boolean);
-    document.querySelectorAll("#editor-puntos-venta input[name=\"puntos_venta\"]").forEach(input => {
+    const modal = document.getElementById('modal-editor-producto');
+    const form = document.getElementById('form-editor-producto');
+    if (!modal || !form || !boton) return;
+
+    form.action = boton.dataset.url || '';
+    form.dataset.modo = 'editar';
+    document.getElementById('editor-producto-titulo').textContent = 'Editar producto';
+    const botonGuardarEditor = document.getElementById('btn-guardar-editor-producto');
+    if (botonGuardarEditor) botonGuardarEditor.textContent = '💾 Guardar cambios';
+    document.getElementById('editor-nombre').value = boton.dataset.nombre || '';
+    document.getElementById('editor-codigo').value = boton.dataset.codigo || '';
+    const editorCategoria = document.getElementById('editor-categoria');
+    editorCategoria.value = boton.dataset.categoria || '';
+    editorCategoria.dispatchEvent(new Event('change', {bubbles: true}));
+    document.getElementById('editor-precio').value = boton.dataset.precio || '';
+    document.getElementById('editor-orden').value = boton.dataset.orden || '0';
+    document.getElementById('editor-descripcion').value = boton.dataset.descripcion || '';
+    document.getElementById('editor-disponible').checked = boton.dataset.disponible === '1';
+    document.getElementById('editor-promo').checked = boton.dataset.promo === '1';
+    document.getElementById('editor-variantes').value = boton.dataset.variantes || '';
+    document.getElementById('editor-guarniciones').value = boton.dataset.guarniciones || '';
+    document.getElementById('editor-coccion').value = boton.dataset.coccion || '';
+    document.getElementById('editor-rellenos').value = boton.dataset.rellenos || '';
+    document.getElementById('editor-salsas').value = boton.dataset.salsas || '';
+    document.getElementById('editor-adicionales').value = boton.dataset.adicionales || '';
+    document.getElementById('editor-hielo').value = boton.dataset.hielo || '';
+
+    const puntosSeleccionados = String(boton.dataset.puestos || '')
+        .split(',')
+        .map(valor => valor.trim())
+        .filter(Boolean);
+
+    document.querySelectorAll('#editor-puntos-venta input[name="puntos_venta"]').forEach(input => {
         input.checked = puntosSeleccionados.includes(String(input.value));
     });
-    const inputImagen = document.getElementById("editor-imagen");
-    if (inputImagen)
-        inputImagen.value = "";
-    actualizarPreviewEditorProducto(boton.dataset.imagen || "");
+
+    const inputImagen = document.getElementById('editor-imagen');
+    if (inputImagen) inputImagen.value = '';
+    actualizarPreviewEditorProducto(boton.dataset.imagen || '');
     actualizarAvisoCategoriaSalon();
-    modal.classList.add("is-open");
-    modal.setAttribute("aria-hidden", "false");
-    document.body.classList.add("menu-editor-abierto");
+
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('menu-editor-abierto');
+
     window.setTimeout(() => {
-        const nombre = document.getElementById("editor-nombre");
+        const nombre = document.getElementById('editor-nombre');
         if (nombre) {
             nombre.focus();
             nombre.select();
         }
     }, 60);
 }
+
 function cerrarEditorProducto() {
-    const modal = document.getElementById("modal-editor-producto");
-    if (!modal)
-        return;
-    modal.classList.remove("is-open");
-    modal.setAttribute("aria-hidden", "true");
-    document.body.classList.remove("menu-editor-abierto");
+    const modal = document.getElementById('modal-editor-producto');
+    if (!modal) return;
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('menu-editor-abierto');
 }
+
+// v161: actualizá solo los productos en el panel; la pestaña y la búsqueda permanecen intactas.
+async function refrescarListadoMenuSinRecargar() {
+    const listado = document.getElementById('menu-admin-categorias');
+    if (!listado) return;
+    const abiertos = new Set(Array.from(listado.querySelectorAll('details[open] .menu-admin-categoria__titulo'))
+        .map(el => el.textContent.trim()));
+    const respuesta = await fetch('/dashboard/?tab=menu', {
+        credentials: 'same-origin', cache: 'no-store', headers: {'X-Requested-With': 'XMLHttpRequest'}
+    });
+    if (!respuesta.ok) throw new Error('No se pudo actualizar la lista visual de productos.');
+    const documento = new DOMParser().parseFromString(await respuesta.text(), 'text/html');
+    const nuevo = documento.getElementById('menu-admin-categorias');
+    if (!nuevo) throw new Error('No se pudo recuperar el menú; quizás venció tu sesión.');
+    const scroll = {x: window.scrollX, y: window.scrollY};
+    listado.replaceChildren(...Array.from(nuevo.children).map(el => document.importNode(el, true)));
+    listado.querySelectorAll('details').forEach(details => {
+        const titulo = details.querySelector('.menu-admin-categoria__titulo');
+        details.open = !!(titulo && abiertos.has(titulo.textContent.trim()));
+    });
+    // Se vuelven a aplicar filtros y búsqueda, sin tocar inputs ni navegación.
+    if (typeof aplicarFiltrosMenuAdmin === 'function') aplicarFiltrosMenuAdmin();
+    if (typeof window.filtrarMenu === 'function') {
+        const activo = document.querySelector('.menu-admin-filtro.is-active');
+        if (activo) window.filtrarMenu(activo.dataset.puesto || 'todos', activo);
+    }
+    window.scrollTo(scroll.x, scroll.y);
+}
+function mensajeMenuGuardado(mensaje, icono) {
+    if (window.Swal) Swal.fire({toast:true,position:'top-end',icon: icono || 'success',title:mensaje,
+        timer:2600,showConfirmButton:false,background:'var(--card-bg)',color:'var(--text-color)'});
+}
+function abrirNuevoProducto() {
+    const form = document.getElementById('form-editor-producto');
+    const modal = document.getElementById('modal-editor-producto');
+    const boton = document.querySelector('[data-url-nuevo]');
+    if (!form || !modal || !boton) return;
+    form.reset();
+    form.action = boton.dataset.urlNuevo;
+    form.dataset.modo = 'nuevo';
+    document.getElementById('editor-producto-titulo').textContent = 'Agregar producto';
+    const guardar = document.getElementById('btn-guardar-editor-producto');
+    if (guardar) guardar.textContent = '💾 Guardar y agregar otro';
+    document.querySelectorAll('#editor-puntos-venta input[name="puntos_venta"]').forEach(el => {el.checked = false;});
+    const imagen = document.getElementById('editor-imagen');
+    if (imagen) imagen.value = '';
+    actualizarPreviewEditorProducto('');
+    actualizarAvisoCategoriaSalon();
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden','false');
+    document.body.classList.add('menu-editor-abierto');
+    window.setTimeout(() => document.getElementById('editor-nombre')?.focus(), 60);
+}
+
 function guardarEditorProducto(event) {
     event.preventDefault();
     const form = event.currentTarget;
-    const boton = document.getElementById("btn-guardar-editor-producto");
-    const puntosMarcados = form.querySelectorAll("input[name=\"puntos_venta\"]:checked");
+    const boton = document.getElementById('btn-guardar-editor-producto');
+    const puntosMarcados = form.querySelectorAll('input[name="puntos_venta"]:checked');
+
     if (!puntosMarcados.length) {
         Swal.fire({
-            icon: "warning",
-            title: "Eleg\u00ED un mostrador",
-            text: "El producto tiene que estar asignado al menos a un punto de venta.",
-            background: "var(--card-bg)",
-            color: "var(--text-color)",
-            confirmButtonColor: "var(--dorado-sanmartin)"
+            icon: 'warning',
+            title: 'Elegí un mostrador',
+            text: 'El producto tiene que estar asignado al menos a un punto de venta.',
+            background: 'var(--card-bg)',
+            color: 'var(--text-color)',
+            confirmButtonColor: 'var(--dorado-sanmartin)'
         });
         return;
     }
-    const textoOriginal = boton ? boton.innerHTML : "";
+
+    const textoOriginal = boton ? boton.innerHTML : '';
     if (boton) {
         boton.disabled = true;
-        boton.innerHTML = "\u23F3 Guardando...";
+        boton.innerHTML = '⏳ Guardando...';
     }
+
     fetch(form.action, {
-        method: "POST",
+        method: 'POST',
         body: new FormData(form),
-        headers: { "X-Requested-With": "XMLHttpRequest" }
-    }).then(async (response) => {
+        headers: {'X-Requested-With': 'XMLHttpRequest'}
+    })
+    .then(async response => {
         const data = await response.json().catch(() => ({}));
-        if (!response.ok || data.status !== "ok") {
-            throw new Error(data.mensaje || "No se pudo guardar el producto.");
+        if (!response.ok || data.status !== 'ok') {
+            throw new Error(data.mensaje || 'No se pudo guardar el producto.');
         }
         return data;
-    }).then(() => {
-        localStorage.setItem("tabDashboardActiva", "menu");
-        cerrarEditorProducto();
-        return Swal.fire({
-            icon: "success",
-            title: "Producto actualizado",
-            text: "Los cambios quedaron guardados.",
-            timer: 900,
-            showConfirmButton: false,
-            background: "var(--card-bg)",
-            color: "var(--text-color)"
-        });
-    }).then(() => {
-        window.location.reload();
-    }).catch(error => {
+    })
+    .then(async (datos) => {
+        localStorage.setItem('tabDashboardActiva', 'menu');
+        let aviso = 'Producto guardado. Seguís en el mismo lugar.';
+        try {
+            await refrescarListadoMenuSinRecargar();
+        } catch(error) {
+            // El POST ya fue exitoso: no pedir reenvío ni informar falso fallo de guardado.
+            aviso = 'Guardado. No se pudo actualizar la lista; revisala después.';
+        }
+        if (form.dataset.modo === 'nuevo') {
+            form.reset();
+            document.getElementById('editor-imagen').value = '';
+            actualizarPreviewEditorProducto('');
+            actualizarAvisoCategoriaSalon();
+            document.getElementById('editor-nombre').focus({preventScroll:true});
+        }
+        mensajeMenuGuardado(aviso, 'success');
+    })
+    .catch(error => {
         Swal.fire({
-            icon: "error",
-            title: "No se pudo guardar",
-            text: error.message || "Revis\u00E1 los datos e intent\u00E1 nuevamente.",
-            background: "var(--card-bg)",
-            color: "var(--text-color)",
-            confirmButtonColor: "var(--dorado-sanmartin)"
+            icon: 'error',
+            title: 'No se pudo guardar',
+            text: error.message || 'Revisá los datos e intentá nuevamente.',
+            background: 'var(--card-bg)',
+            color: 'var(--text-color)',
+            confirmButtonColor: 'var(--dorado-sanmartin)'
         });
-    }).finally(() => {
+    })
+    .finally(() => {
         if (boton) {
             boton.disabled = false;
             boton.innerHTML = textoOriginal;
         }
     });
 }
-document.addEventListener("DOMContentLoaded", function () {
-    const buscador = document.getElementById("buscador-menu-admin");
+
+document.addEventListener('DOMContentLoaded', function() {
+    const buscador = document.getElementById('buscador-menu-admin');
     if (buscador) {
-        buscador.addEventListener("input", aplicarFiltrosMenuAdmin);
+        buscador.addEventListener('input', aplicarFiltrosMenuAdmin);
     }
-    const categoria = document.getElementById("editor-categoria");
+
+    const categoria = document.getElementById('editor-categoria');
     if (categoria) {
-        categoria.addEventListener("change", actualizarAvisoCategoriaSalon);
+        categoria.addEventListener('change', actualizarAvisoCategoriaSalon);
     }
-    const imagen = document.getElementById("editor-imagen");
+
+    const imagen = document.getElementById('editor-imagen');
     if (imagen) {
-        imagen.addEventListener("change", function () {
+        imagen.addEventListener('change', function() {
             const archivo = imagen.files && imagen.files[0];
-            if (!archivo)
-                return;
+            if (!archivo) return;
             const lector = new FileReader();
-            lector.onload = function () {
+            lector.onload = function() {
                 actualizarPreviewEditorProducto(lector.result);
             };
             lector.readAsDataURL(archivo);
         });
     }
-    const formEditor = document.getElementById("form-editor-producto");
+
+    const formEditor = document.getElementById('form-editor-producto');
     if (formEditor) {
-        formEditor.addEventListener("submit", guardarEditorProducto);
+        formEditor.addEventListener('submit', guardarEditorProducto);
     }
-    document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape") {
-            const modal = document.getElementById("modal-editor-producto");
-            if (modal && modal.classList.contains("is-open")) {
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            const modal = document.getElementById('modal-editor-producto');
+            if (modal && modal.classList.contains('is-open')) {
                 cerrarEditorProducto();
             }
         }
     });
-    document.querySelectorAll("#id_categoria, #editor-categoria, select[data-categoria-select]").forEach(inicializarSelectorCategoria);
+
+    document.querySelectorAll('#id_categoria, #editor-categoria, select[data-categoria-select]').forEach(
+        inicializarSelectorCategoria
+    );
+
     aplicarFiltrosMenuAdmin();
 });
 
+
 // ==========================================================================
-// MÓDULO 6: MODO OSCURO / CLARO
+// # MÓDULO 6: CONTROL DE MODO OSCURO / CLARO
 // ==========================================================================
 
-document.addEventListener("DOMContentLoaded", () => {
-    const themeToggle = document.getElementById("theme-toggle");
-    const currentTheme = localStorage.getItem("theme") || "dark";
-    document.body.setAttribute("data-theme", currentTheme);
-    if (themeToggle) {
-        themeToggle.checked = (currentTheme === "dark");
-        themeToggle.addEventListener("change", () => {
-            const newTheme = themeToggle.checked ? "dark" : "light";
-            document.body.setAttribute("data-theme", newTheme);
-            localStorage.setItem("theme", newTheme);
+document.addEventListener('DOMContentLoaded', () => {
+    const themeToggle = document.getElementById('theme-toggle');
+    const currentTheme = localStorage.getItem('theme') || 'dark';
+    document.body.setAttribute('data-theme', currentTheme);
+    if(themeToggle) {
+        themeToggle.checked = (currentTheme === 'dark');
+        themeToggle.addEventListener('change', () => {
+            const newTheme = themeToggle.checked ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
         });
     }
 });
-
 // ==========================================================================
-// MÓDULO 7: CIERRE DE CAJA Y ESTADÍSTICAS
+// # MÓDULO 7: CIERRE DE CAJA Y ESTADÍSTICAS POR MOSTRADOR
 // ==========================================================================
 
 function abrirCierreCaja() {
-    fetch("/api/resumen-ventas/").then(res => res.json()).then(data => {
-        if (data.status === "ok") {
-            document.getElementById("gran-total-cierre").innerText = "$" + data.gran_total.toLocaleString("es-AR", { minimumFractionDigits: 2 });
-            let htmlMostradores = "";
-            if (data.mostradores.length === 0) {
-                htmlMostradores = "<p style=\"text-align:center; color: var(--texto-mutado);\">No hay ventas registradas en este turno.</p>";
-            }
-            else {
-                data.mostradores.forEach(m => {
-                    let htmlProductos = "";
-                    if (m.productos.length > 0) {
-                        m.productos.forEach(p => {
-                            htmlProductos += `
+    fetch('/api/resumen-ventas/')
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'ok') {
+                document.getElementById('gran-total-cierre').innerText = '$' + data.gran_total.toLocaleString('es-AR', {minimumFractionDigits: 2});
+                let htmlMostradores = '';
+                if(data.mostradores.length === 0) {
+                    htmlMostradores = '<p style="text-align:center; color: var(--texto-mutado);">No hay ventas registradas en este turno.</p>';
+                } else {
+                    data.mostradores.forEach(m => {
+                        let htmlProductos = '';
+                        if(m.productos.length > 0) {
+                            m.productos.forEach(p => {
+                                htmlProductos += `
                                 <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 5px; border-bottom: 1px dashed var(--borde); padding-bottom: 4px; color: var(--text-color);">
                                     <span>${p.nombre}</span> <strong>x${p.cantidad}</strong>
                                 </div>`;
-                        });
-                    }
-                    else {
-                        htmlProductos = "<span style=\"color: var(--texto-mutado); font-size: 0.85rem;\">Sin productos vendidos.</span>";
-                    }
-                    htmlMostradores += `
+                            });
+                        } else { htmlProductos = '<span style="color: var(--texto-mutado); font-size: 0.85rem;">Sin productos vendidos.</span>'; }
+                        htmlMostradores += `
                         <details class="panel-accordion" style="margin-bottom: 12px; border: 1px solid var(--borde); background: var(--bg-color); border-radius: 8px;">
                             <summary style="padding: 12px 15px; font-size: 1.05rem; border-left: 4px solid var(--dorado-sanmartin); background: transparent; cursor: pointer;">
                                 <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; padding-right: 10px;">
                                     <span style="font-weight: 800;">🏪 ${m.nombre}</span>
-                                    <strong style="color: var(--verde-sanmartin);">$${m.total_ventas.toLocaleString("es-AR")}</strong>
+                                    <strong style="color: var(--verde-sanmartin);">$${m.total_ventas.toLocaleString('es-AR')}</strong>
                                 </div>
                             </summary>
                             <div style="padding: 15px; border-top: 1px solid var(--borde);">
@@ -1496,10 +2118,9 @@ function abrirCierreCaja() {
                                         <strong style="color: var(--text-color); font-size: 1.3rem;">${m.cantidad_pedidos}</strong>
                                     </div>
                                     <div style="flex: 1.5; background: var(--card-bg); padding: 10px; border-radius: 8px; border: 1px solid var(--borde); font-size: 0.85rem;">
-                                        <div style="display: flex; justify-content: space-between; color: var(--text-color);"><span>💵 Efectivo:</span> <strong>$${m.efectivo.toLocaleString("es-AR")}</strong></div>
-                                        <div style="display: flex; justify-content: space-between; color: var(--text-color);"><span>📱 MP:</span> <strong>$${m.mercadopago.toLocaleString("es-AR")}</strong></div>
-                                        <div style="display: flex; justify-content: space-between; color: var(--text-color);"><span>💳 Débito:</span> <strong>$${m.debito.toLocaleString("es-AR")}</strong></div>
-                                        <div style="display: flex; justify-content: space-between; color: var(--text-color);"><span>📒 Cuenta corriente (no cobrado):</span> <strong>$${(m.cuenta_corriente || 0).toLocaleString("es-AR")}</strong></div>
+                                        <div style="display: flex; justify-content: space-between; color: var(--text-color);"><span>💵 Efectivo:</span> <strong>$${m.efectivo.toLocaleString('es-AR')}</strong></div>
+                                        <div style="display: flex; justify-content: space-between; color: var(--text-color);"><span>📱 MP:</span> <strong>$${m.mercadopago.toLocaleString('es-AR')}</strong></div>
+                                        <div style="display: flex; justify-content: space-between; color: var(--text-color);"><span>💳 Débito:</span> <strong>$${m.debito.toLocaleString('es-AR')}</strong></div>
                                     </div>
                                 </div>
                                 <h4 style="margin-top: 0; margin-bottom: 10px; font-size: 0.95rem; color: var(--text-color); border-bottom: 1px solid var(--borde); padding-bottom: 5px;">🍔 Desglose de Productos</h4>
@@ -1507,76 +2128,138 @@ function abrirCierreCaja() {
                             </div>
                         </details>
                         `;
-                });
+                    });
+                }
+                document.getElementById('contenedor-mostradores').innerHTML = htmlMostradores;
+                document.getElementById('modalCierre').classList.add('activo');
             }
-            document.getElementById("contenedor-mostradores").innerHTML = htmlMostradores;
-            document.getElementById("modalCierre").classList.add("activo");
-        }
-    }).catch(error => console.error("Error al obtener cierre:", error));
+        }).catch(error => console.error("Error al obtener cierre:", error));
 }
-function cerrarCierreCaja() { document.getElementById("modalCierre").classList.remove("activo"); }
+function cerrarCierreCaja() { document.getElementById('modalCierre').classList.remove('activo'); }
 function confirmarCierreYLimpiar() {
     Swal.fire({
-        title: "\u00BFSeguro que quer\u00E9s cerrar el turno?",
-        text: "Esto va a borrar todos los pedidos del panel para arrancar de cero ma\u00F1ana.",
-        icon: "warning",
+        title: '¿Seguro que querés cerrar el turno?',
+        text: "Esto va a borrar todos los pedidos del panel para arrancar de cero mañana.",
+        icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: "var(--error)",
-        cancelButtonColor: "var(--texto-mutado)",
-        confirmButtonText: "S\u00ED, Cerrar Turno",
-        cancelButtonText: "Cancelar",
-        background: "var(--card-bg)",
-        color: "var(--text-color)"
-    }).then(result => { if (result.isConfirmed) {
-        window.location.href = "/dashboard/eliminar-todo/";
-    } });
+        confirmButtonColor: 'var(--error)',
+        cancelButtonColor: 'var(--texto-mutado)',
+        confirmButtonText: 'Sí, Cerrar Turno',
+        cancelButtonText: 'Cancelar',
+        background: 'var(--card-bg)',
+        color: 'var(--text-color)'
+    }).then((result) => { if (result.isConfirmed) { window.location.href = "/dashboard/eliminar-todo/"; } });
 }
+// ==========================================================================
+// # MÓDULO 8: LÓGICA DE MESAS (AGRUPACIÓN MÁGICA Y SEGURA)
+// ==========================================================================
 
-// ==========================================================================
-// MÓDULO 8: LÓGICA DE MESAS
-// ==========================================================================
 
 function renderizarMesas() {
-    const grid = document.getElementById("grid-mesas");
-    if (!grid)
-        return;
+    const grid = document.getElementById('grid-mesas');
+    if (!grid) return;
+
     let mesas = {};
-    document.querySelectorAll(".fila-pedido").forEach(fila => {
-        const badge = fila.querySelector(".badge-estado");
-        if (badge) {
-            const estadoTexto = badge.innerText.toLowerCase();
-            if (estadoTexto.includes("cancelado") || estadoTexto.includes("entregado")) {
-                return;
+
+    function parseMonto(valor) {
+        let texto = String(valor || '0')
+            .replace(/\$/g, '')
+            .replace(/\s/g, '')
+            .trim();
+
+        if (texto.includes(',') && texto.includes('.')) {
+            texto = texto.replace(/\./g, '').replace(',', '.');
+        } else if (texto.includes(',')) {
+            texto = texto.replace(',', '.');
+        }
+
+        const numero = parseFloat(texto);
+        return Number.isFinite(numero) ? numero : 0;
+    }
+
+    document.querySelectorAll('.fila-pedido').forEach(function (fila) {
+        const estado = String(
+            fila.dataset.estado ||
+            (fila.querySelector('.badge-estado') ? fila.querySelector('.badge-estado').innerText : '')
+        ).toLowerCase();
+
+        if (
+            estado.includes('cancelado') ||
+            estado.includes('entregado')
+        ) {
+            return;
+        }
+
+        const pago = String(
+            fila.dataset.pago ||
+            (fila.querySelector('td:first-child') ? fila.querySelector('td:first-child').innerText : '')
+        ).toLowerCase();
+
+        if (!pago.includes('efectivo')) {
+            return;
+        }
+
+        let numMesa = String(fila.dataset.mesa || '').trim();
+
+        if (!numMesa) {
+            const detalle = fila.querySelector('.order-details-box');
+            const textoDetalle = detalle ? detalle.textContent : fila.textContent;
+            const matchMesa = textoDetalle.match(/\(Mesa\s+([^)]+)\)/i) || textoDetalle.match(/Mesa\s+([0-9A-Za-z_-]+)/i);
+            if (matchMesa) {
+                numMesa = String(matchMesa[1] || '').trim();
             }
         }
-        if (fila.style.display === "none" || fila.style.opacity === "0.5") {
+
+        if (!numMesa) {
             return;
         }
-        const esEfectivo = fila.querySelector("td:first-child").innerText.toUpperCase().includes("EFECTIVO");
-        if (!esEfectivo)
-            return;
-        const htmlDetalle = fila.querySelector(".order-details-box").innerHTML;
-        const matchMesa = htmlDetalle.match(/\(Mesa\s+([^)]+)\)/i);
-        if (matchMesa) {
-            const numMesa = matchMesa[1].trim();
-            const totalTexto = fila.querySelector("td:nth-child(3)").innerText;
-            const total = parseFloat(totalTexto.replace("$", "").trim()) || 0;
-            const idPedido = fila.id.replace("pedido-", "");
-            if (!mesas[numMesa])
-                mesas[numMesa] = { total: 0, pedidos: [] };
-            mesas[numMesa].total += total;
+
+        const total = parseMonto(
+            fila.dataset.total ||
+            (fila.querySelector('td:nth-child(3)') ? fila.querySelector('td:nth-child(3)').innerText : '0')
+        );
+
+        const idPedido = (fila.id || '').replace('pedido-', '');
+
+        if (!mesas[numMesa]) {
+            mesas[numMesa] = {
+                total: 0,
+                pedidos: []
+            };
+        }
+
+        mesas[numMesa].total += total;
+
+        if (idPedido) {
             mesas[numMesa].pedidos.push(idPedido);
         }
     });
-    grid.innerHTML = "";
-    if (Object.keys(mesas).length === 0) {
-        grid.innerHTML = "<div class=\"mesa-empty\">No hay mesas activas con pagos en efectivo por el momento.</div>";
+
+    grid.innerHTML = '';
+
+    const numerosMesa = Object.keys(mesas).sort(function (a, b) {
+        const na = parseInt(a, 10);
+        const nb = parseInt(b, 10);
+
+        if (Number.isFinite(na) && Number.isFinite(nb)) {
+            return na - nb;
+        }
+
+        return String(a).localeCompare(String(b), 'es');
+    });
+
+    if (numerosMesa.length === 0) {
+        grid.innerHTML = '<div class="mesa-empty">No hay mesas activas con pagos en efectivo por el momento.</div>';
         return;
     }
-    for (let mesa in mesas) {
+
+    numerosMesa.forEach(function (mesa) {
         const data = mesas[mesa];
         const cuentaSalon = obtenerCuentaSalonGuardada(mesa);
-        const mozoMesa = cuentaSalon && cuentaSalon.mozo_nombre ? cuentaSalon.mozo_nombre : "Sin asignar";
+        const mozoMesa = cuentaSalon && cuentaSalon.mozo_nombre
+            ? cuentaSalon.mozo_nombre
+            : 'Sin asignar';
+
         grid.innerHTML += `
             <div class="mesa-card">
                 <div class="mesa-header">
@@ -1584,80 +2267,80 @@ function renderizarMesas() {
                     <span class="mesa-badge">${data.pedidos.length} Pedido/s</span>
                 </div>
                 <div class="mesa-mozo">🧑‍🍳 ${mozoMesa}</div>
-                <div class="mesa-total">$${data.total.toLocaleString("es-AR", { minimumFractionDigits: 2 })}</div>
+                <div class="mesa-total">$${data.total.toLocaleString('es-AR', {minimumFractionDigits: 2})}</div>
                 <div class="mesa-acciones">
                     <button onclick="dividirCuenta('${mesa}', ${data.total})" class="btn-panel btn-amarillo" style="flex: 1; padding: 12px; font-size: 1rem; border-radius: 8px;">➗ Dividir</button>
-                    <button onclick="cobrarMesa('${mesa}', '${data.pedidos.join(",")}')" class="btn-panel btn-verde" style="flex: 1; padding: 12px; font-size: 1rem; border-radius: 8px;">💵 Cobrar</button>
+                    <button onclick="cobrarMesa('${mesa}', '${data.pedidos.join(',')}')" class="btn-panel btn-verde" style="flex: 1; padding: 12px; font-size: 1rem; border-radius: 8px;">💵 Cobrar</button>
                 </div>
             </div>
         `;
-    }
+    });
 }
+
 function dividirCuenta(mesa, total) {
     Swal.fire({
         title: `Mesa ${mesa} - Dividir Cuenta`,
-        text: `El total de la mesa es $${total.toLocaleString("es-AR")}`,
-        input: "number",
+        text: `El total de la mesa es $${total.toLocaleString('es-AR')}`,
+        input: 'number',
         inputAttributes: { min: 2, max: 20, step: 1 },
-        inputLabel: "\u00BFEntre cu\u00E1ntas personas dividimos?",
+        inputLabel: '¿Entre cuántas personas dividimos?',
         inputValue: 2,
         showCancelButton: true,
-        confirmButtonColor: "var(--azul-sanmartin)",
-        confirmButtonText: "Calcular",
-        cancelButtonText: "Cancelar",
-        background: "var(--card-bg)",
-        color: "var(--text-color)"
-    }).then(result => {
+        confirmButtonColor: 'var(--azul-sanmartin)',
+        confirmButtonText: 'Calcular',
+        cancelButtonText: 'Cancelar',
+        background: 'var(--card-bg)',
+        color: 'var(--text-color)'
+    }).then((result) => {
         if (result.isConfirmed && result.value) {
             const personas = parseInt(result.value);
             const porCabeza = (total / personas).toFixed(2);
-            Swal.fire({ icon: "info", title: `Tienen que poner $${parseFloat(porCabeza).toLocaleString("es-AR")} c/u`, text: `(Dividido en ${personas} personas)`, confirmButtonColor: "var(--verde-sanmartin)", background: "var(--card-bg)", color: "var(--text-color)" });
+            Swal.fire({ icon: 'info', title: `Tienen que poner $${parseFloat(porCabeza).toLocaleString('es-AR')} c/u`, text: `(Dividido en ${personas} personas)`, confirmButtonColor: 'var(--verde-sanmartin)', background: 'var(--card-bg)', color: 'var(--text-color)' });
         }
     });
 }
 function cobrarMesa(mesa, pedidosStr) {
     Swal.fire({
         title: `¿Cobrar Mesa ${mesa}?`,
-        text: "Se marcar\u00E1n como Entregados y Cobrados todos los pedidos acumulados de esta mesa.",
-        icon: "question",
+        text: "Se marcarán como Entregados y Cobrados todos los pedidos acumulados de esta mesa.",
+        icon: 'question',
         showCancelButton: true,
-        confirmButtonColor: "var(--verde-sanmartin)",
-        cancelButtonColor: "var(--texto-mutado)",
-        confirmButtonText: "S\u00ED, cobrar la mesa",
-        cancelButtonText: "Cancelar",
-        background: "var(--card-bg)",
-        color: "var(--text-color)"
-    }).then(result => {
+        confirmButtonColor: 'var(--verde-sanmartin)',
+        cancelButtonColor: 'var(--texto-mutado)',
+        confirmButtonText: 'Sí, cobrar la mesa',
+        cancelButtonText: 'Cancelar',
+        background: 'var(--card-bg)',
+        color: 'var(--text-color)'
+    }).then((result) => {
         if (result.isConfirmed) {
-            Swal.fire({ title: "Cobrando mesa...", showConfirmButton: false, background: "var(--card-bg)", color: "var(--text-color)" });
-            const pedidos = pedidosStr.split(",");
+            Swal.fire({title: 'Cobrando mesa...', showConfirmButton: false, background: 'var(--card-bg)', color: 'var(--text-color)'});
+            const pedidos = pedidosStr.split(',');
             let fetchPromises = pedidos.map(id => {
                 const fila = document.getElementById(`pedido-${id}`);
-                if (!fila)
-                    return Promise.resolve();
-                const aTag = fila.querySelector("td:last-child a");
+                if (!fila) return Promise.resolve();
+                const aTag = fila.querySelector('td:last-child a');
                 if (!aTag) {
-                    fila.style.opacity = "0.5";
-                    fila.style.display = "none";
+                    fila.style.opacity = '0.5';
+                    fila.style.display = 'none';
                     return Promise.resolve();
                 }
-                let baseHref = aTag.getAttribute("href");
-                let parts = baseHref.split("/");
-                parts[parts.length - 2] = "entregado";
-                const finalUrl = parts.join("/");
-                return fetch(finalUrl, { headers: { "X-Requested-With": "XMLHttpRequest" } }).then(res => res.json()).then(data => {
-                    if (data.status === "ok") {
-                        fila.style.opacity = "0.5";
-                        fila.style.display = "none";
-                        const badge = fila.querySelector(".badge-estado");
-                        if (badge) {
-                            badge.innerText = "Entregado";
+                let baseHref = aTag.getAttribute('href');
+                let parts = baseHref.split('/');
+                parts[parts.length - 2] = 'entregado';
+                const finalUrl = parts.join('/');
+                return fetch(finalUrl, { headers: {'X-Requested-With': 'XMLHttpRequest'} })
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.status === 'ok') {
+                            fila.style.opacity = '0.5';
+                            fila.style.display = 'none';
+                            const badge = fila.querySelector('.badge-estado');
+                            if(badge) { badge.innerText = "Entregado"; }
                         }
-                    }
-                });
+                    });
             });
             Promise.all(fetchPromises).then(() => {
-                Swal.fire({ icon: "success", title: "\u00A1Mesa Cobrada!", text: `La mesa ${mesa} ya fue liquidada.`, confirmButtonColor: "var(--verde-sanmartin)", background: "var(--card-bg)", color: "var(--text-color)" });
+                Swal.fire({ icon: 'success', title: '¡Mesa Cobrada!', text: `La mesa ${mesa} ya fue liquidada.`, confirmButtonColor: 'var(--verde-sanmartin)', background: 'var(--card-bg)', color: 'var(--text-color)' });
                 renderizarMesas();
             });
         }
@@ -1665,73 +2348,80 @@ function cobrarMesa(mesa, pedidosStr) {
 }
 
 // ==========================================================================
-// MÓDULO 8B: OPINIONES Y SUGERENCIAS
+// # MÓDULO 8B: OPINIONES Y SUGERENCIAS DE CLIENTES
 // ==========================================================================
 
 function abrirModalOpinion() {
-    const modal = document.getElementById("modal-opinion");
-    if (!modal)
-        return;
-    modal.classList.add("is-open");
-    modal.setAttribute("aria-hidden", "false");
-    document.body.style.overflow = "hidden";
+    const modal = document.getElementById('modal-opinion');
+    if (!modal) return;
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
 }
+
 function cerrarModalOpinion() {
-    const modal = document.getElementById("modal-opinion");
-    if (!modal)
-        return;
-    modal.classList.remove("is-open");
-    modal.setAttribute("aria-hidden", "true");
-    document.body.style.overflow = "";
+    const modal = document.getElementById('modal-opinion');
+    if (!modal) return;
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
 }
+
 function obtenerCsrfDashboard() {
-    const input = document.querySelector("input[name=\"csrfmiddlewaretoken\"]");
-    return input ? input.value : "";
+    const input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    return input ? input.value : '';
 }
-document.addEventListener("DOMContentLoaded", function () {
-    const form = document.getElementById("form-opinion");
-    if (!form)
-        return;
-    form.addEventListener("submit", function (event) {
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('form-opinion');
+    if (!form) return;
+
+    form.addEventListener('submit', function(event) {
         event.preventDefault();
-        const boton = document.getElementById("btn-enviar-opinion");
-        const textoOriginal = boton ? boton.innerHTML : "";
+
+        const boton = document.getElementById('btn-enviar-opinion');
+        const textoOriginal = boton ? boton.innerHTML : '';
         if (boton) {
             boton.disabled = true;
-            boton.innerHTML = "Enviando...";
+            boton.innerHTML = 'Enviando...';
         }
-        fetch(form.action || "/opinion/enviar/", {
-            method: "POST",
+
+        fetch(form.action || '/opinion/enviar/', {
+            method: 'POST',
             body: new FormData(form),
             headers: {
-                "X-Requested-With": "XMLHttpRequest"
+                'X-Requested-With': 'XMLHttpRequest'
             }
-        }).then(async function (response) {
-            const data = await response.json().catch(function () { return {}; });
-            if (!response.ok || data.status !== "ok") {
-                throw new Error(data.mensaje || "No se pudo enviar el comentario.");
+        })
+        .then(async function(response) {
+            const data = await response.json().catch(function() { return {}; });
+            if (!response.ok || data.status !== 'ok') {
+                throw new Error(data.mensaje || 'No se pudo enviar el comentario.');
             }
             return data;
-        }).then(function () {
+        })
+        .then(function() {
             form.reset();
             cerrarModalOpinion();
             Swal.fire({
-                icon: "success",
-                title: "\u00A1Gracias por contarnos!",
-                text: "Tu comentario fue enviado de forma privada.",
-                confirmButtonColor: "var(--verde-sanmartin)",
-                background: "var(--card-bg)",
-                color: "var(--text-color)"
+                icon: 'success',
+                title: '¡Gracias por contarnos!',
+                text: 'Tu comentario fue enviado de forma privada.',
+                confirmButtonColor: 'var(--verde-sanmartin)',
+                background: 'var(--card-bg)',
+                color: 'var(--text-color)'
             });
-        }).catch(function (error) {
+        })
+        .catch(function(error) {
             Swal.fire({
-                icon: "error",
-                title: "No se pudo enviar",
+                icon: 'error',
+                title: 'No se pudo enviar',
                 text: error.message,
-                background: "var(--card-bg)",
-                color: "var(--text-color)"
+                background: 'var(--card-bg)',
+                color: 'var(--text-color)'
             });
-        }).finally(function () {
+        })
+        .finally(function() {
             if (boton) {
                 boton.disabled = false;
                 boton.innerHTML = textoOriginal;
@@ -1739,55 +2429,56 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
+
 function marcarOpinionLeida(opinionId, url) {
     fetch(url, {
-        method: "POST",
+        method: 'POST',
         headers: {
-            "X-CSRFToken": obtenerCsrfDashboard(),
-            "X-Requested-With": "XMLHttpRequest"
+            'X-CSRFToken': obtenerCsrfDashboard(),
+            'X-Requested-With': 'XMLHttpRequest'
         }
-    }).then(function (response) { return response.json(); }).then(function (data) {
-        if (data.status !== "ok")
-            return;
-        const tarjeta = document.getElementById("opinion-" + opinionId);
-        if (!tarjeta)
-            return;
-        tarjeta.classList.remove("is-nueva");
-        const badge = tarjeta.querySelector(".opinion-nueva-badge");
-        if (badge)
-            badge.remove();
-        const boton = tarjeta.querySelector(".opinion-btn--leida");
-        if (boton)
-            boton.remove();
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+        if (data.status !== 'ok') return;
+        const tarjeta = document.getElementById('opinion-' + opinionId);
+        if (!tarjeta) return;
+        tarjeta.classList.remove('is-nueva');
+        const badge = tarjeta.querySelector('.opinion-nueva-badge');
+        if (badge) badge.remove();
+        const boton = tarjeta.querySelector('.opinion-btn--leida');
+        if (boton) boton.remove();
     });
 }
+
 function eliminarOpinion(opinionId, url) {
     Swal.fire({
-        title: "\u00BFEliminar comentario?",
-        text: "No se puede recuperar despu\u00E9s.",
-        icon: "warning",
+        title: '¿Eliminar comentario?',
+        text: 'No se puede recuperar después.',
+        icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: "Eliminar",
-        cancelButtonText: "Cancelar",
-        confirmButtonColor: "var(--error)",
-        background: "var(--card-bg)",
-        color: "var(--text-color)"
-    }).then(function (resultado) {
-        if (!resultado.isConfirmed)
-            return;
+        confirmButtonText: 'Eliminar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: 'var(--error)',
+        background: 'var(--card-bg)',
+        color: 'var(--text-color)'
+    }).then(function(resultado) {
+        if (!resultado.isConfirmed) return;
+
         fetch(url, {
-            method: "POST",
+            method: 'POST',
             headers: {
-                "X-CSRFToken": obtenerCsrfDashboard(),
-                "X-Requested-With": "XMLHttpRequest"
+                'X-CSRFToken': obtenerCsrfDashboard(),
+                'X-Requested-With': 'XMLHttpRequest'
             }
-        }).then(function (response) { return response.json(); }).then(function (data) {
-            if (data.status !== "ok")
-                return;
-            const tarjeta = document.getElementById("opinion-" + opinionId);
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.status !== 'ok') return;
+            const tarjeta = document.getElementById('opinion-' + opinionId);
             if (tarjeta) {
-                tarjeta.style.opacity = "0";
-                window.setTimeout(function () { tarjeta.remove(); }, 250);
+                tarjeta.style.opacity = '0';
+                window.setTimeout(function() { tarjeta.remove(); }, 250);
             }
         });
     });
@@ -1817,9 +2508,31 @@ function eliminarOpinion(opinionId, url) {
             id: Number(producto.id || 0),
             codigo: String(producto.codigo || producto.codigo_rapido || producto.id || ""),
             nombre: String(producto.nombre || "Producto"),
-            precio: Number(producto.precio || 0)
+            precio: Number(producto.precio || 0),
+            es_salon: Boolean(producto.es_salon)
         };
     });
+
+    // SM v111: cambios de precio/código del editor disponibles al instante
+    // para consumos NUEVOS. Las líneas ya agregadas mantienen el importe original.
+    window.addEventListener('salon-catalogo-actualizado', function (event) {
+        var item = event.detail || {};
+        var id = Number(item.id);
+        if (!id) return;
+        productos = productos.filter(function (p) {
+            return p.id !== id;
+        });
+        if (item.disponible) {
+            productos.push({
+                id: id,
+                codigo: String(item.codigo || id),
+                nombre: String(item.nombre || 'Producto'),
+                precio: Number(item.precio || 0),
+                es_salon: item.es_salon !== false
+            });
+        }
+    });
+
     var mozosData = document.getElementById("salon-mozos-data");
     var mozos = [];
     try {
@@ -1837,6 +2550,25 @@ function eliminarOpinion(opinionId, url) {
     }).filter(function (mozo) {
         return (mozo.id && mozo.nombre);
     });
+    var mozosNumerados = mozos.map(function (mozo, indice) {
+        return {
+            id: mozo.id,
+            nombre: mozo.nombre,
+            numero: indice + 1,
+            etiqueta: (indice + 1) + '. ' + mozo.nombre
+        };
+    });
+    window.addEventListener('sm-mozos-modificados', function(event){
+        var detalle=event.detail||{}, mozo=detalle.mozo||{};
+        if (detalle.accion==='agregar' && mozo.id) {
+            mozos.push({id:Number(mozo.id),nombre:String(mozo.nombre||'')});
+        } else if (detalle.accion==='eliminar') {
+            mozos=mozos.filter(function(m){return Number(m.id)!==Number(mozo.id);});
+        }
+        mozos.sort(function(a,b){return a.nombre.localeCompare(b.nombre,'es');});
+        mozosNumerados=mozos.map(function(m,i){return {id:m.id,nombre:m.nombre,numero:i+1,etiqueta:(i+1)+'. '+m.nombre};});
+        reconstruirSelectorMozos();
+    });
     // Clientes activos para el cobro a cuenta corriente.
     var cuentasCorrientesPOS = [];
     try {
@@ -1849,6 +2581,79 @@ function eliminarOpinion(opinionId, url) {
     var pedidosWebIniciales = [];
     try { pedidosWebIniciales = JSON.parse(pedidosWebData ? pedidosWebData.textContent : '[]'); }
     catch (error) { console.warn('No se pudo leer pedidos web de mesa',error); }
+    // El servidor local guarda otra copia de las mesas para recuperarlas incluso
+    // si se borra el almacenamiento del navegador. Una sola terminal de edición.
+    var respaldoUrl = root.getAttribute('data-backup-url') || '';
+    var respaldoPreparado = !respaldoUrl;
+    var respaldoBloqueado = false;
+    var respaldoVersion = 0;
+    var respaldoPendiente = false;
+    var respaldoGuardando = false;
+    var respaldoTimer = null;
+    var estadoGuardado = document.getElementById('sm-local-save-state');
+    if (respaldoUrl) root.style.pointerEvents = 'none';
+    function indicarRespaldo(mensaje, fallo) {
+        if (estadoGuardado) {
+            estadoGuardado.textContent = mensaje;
+            estadoGuardado.classList.toggle('is-error', !!fallo);
+        }
+    }
+    function bloquearRespaldo(texto) {
+        if (respaldoBloqueado) return;
+        respaldoBloqueado = true;
+        root.style.pointerEvents = 'none';
+        indicarRespaldo('ATENCIÓN: guardado de mesas detenido', true);
+        // No se puede seguir cobrando sin un respaldo consistente.
+        Swal.fire({icon:'error',title:'Protección de las mesas',
+            text:texto + ' No continúes operando desde esta ventana. Recargá y revisá las mesas.',
+            confirmButtonText:'Entendido',allowOutsideClick:false,
+            background:'var(--card-bg)',color:'var(--text-color)'});
+    }
+    function enviarRespaldo() {
+        if (!respaldoUrl || !respaldoPreparado || respaldoBloqueado ||
+            respaldoGuardando || !respaldoPendiente) return;
+        if (respaldoTimer) { clearTimeout(respaldoTimer); respaldoTimer=null; }
+        respaldoPendiente = false;
+        respaldoGuardando = true;
+        var copia = JSON.parse(JSON.stringify(cuentas));
+        indicarRespaldo('Guardando mesas en esta PC...');
+        fetch(respaldoUrl,{method:'POST',credentials:'same-origin',
+            headers:{'Content-Type':'application/json','X-CSRFToken':obtenerCsrf()},
+            body:JSON.stringify({version:respaldoVersion,cuentas:copia})})
+        .then(function(res){
+            return res.json().catch(function(){return {};}).then(function(d){
+                if (!res.ok || d.status !== 'ok') {
+                    throw new Error(d.mensaje || 'No se pudo guardar en esta PC.');
+                }
+                respaldoVersion = Number(d.version);
+                indicarRespaldo('Mesas respaldadas en esta PC · versión '+respaldoVersion);
+            });
+        }).catch(function(err){ bloquearRespaldo(err.message); })
+        .finally(function(){
+            respaldoGuardando = false;
+            if (respaldoPendiente && !respaldoBloqueado) enviarRespaldo();
+        });
+    }
+    function programarRespaldo() {
+        if (!respaldoUrl || !respaldoPreparado || respaldoBloqueado) return;
+        respaldoPendiente = true;
+        if (respaldoTimer) clearTimeout(respaldoTimer);
+        respaldoTimer = setTimeout(enviarRespaldo,250);
+    }
+    function esperarRespaldoAntesDeCobrar() {
+        if (!respaldoUrl) return Promise.resolve();
+        if (!respaldoPreparado || respaldoBloqueado)
+            return Promise.reject(new Error('El respaldo de mesas no está disponible.'));
+        enviarRespaldo();
+        return new Promise(function(resolve,reject){
+            function comprobar(){
+                if (respaldoBloqueado) return reject(new Error('Fallo al guardar las mesas en esta PC.'));
+                if (!respaldoGuardando && !respaldoPendiente) return resolve();
+                setTimeout(comprobar,70);
+            }
+            comprobar();
+        });
+    }
     var storageKey = "sistemasm_salon_cuentas_v2";
     var storageAnteriores = [
         "sistemasm_salon_cuentas_v1",
@@ -1891,6 +2696,7 @@ function eliminarOpinion(opinionId, url) {
     var modalOverlay = document.getElementById("salon-modal-overlay");
     var btnCerrarComanda = document.getElementById("btn-cerrar-comanda");
     var btnCerrarComandaInferior = document.getElementById("btn-cerrar-comanda-inferior");
+    reconstruirSelectorMozos();
     function cargarCuentas() {
         var claves = [
             storageKey
@@ -1934,6 +2740,8 @@ function eliminarOpinion(opinionId, url) {
         return null;
     }
     function guardar() {
+        // El respaldo al servidor se agenda INDEPENDIENTEMENTE de localStorage.
+        programarRespaldo();
         try {
             localStorage.setItem(storageKey, JSON.stringify(cuentas));
             if (mesaActual) {
@@ -1973,7 +2781,7 @@ function eliminarOpinion(opinionId, url) {
             return (item && Number(item.cantidad || 0) > 0);
         }).map(function (item) {
             var cantidad = Number(item.cantidad || 1);
-            var cantPagar = Number(item.cant_pagar || cantidad);
+            var cantPagar = Number(item.cant_pagar || 1);
             if (cantidad < 1) {
                 cantidad = 1;
             }
@@ -2024,14 +2832,14 @@ function eliminarOpinion(opinionId, url) {
             var cantidad = Math.max(1, Number(web.cantidad || 1));
             if (existente) {
                 existente.cantidad = cantidad;
-                existente.cant_pagar = Math.max(1,Math.min(Number(existente.cant_pagar || cantidad),cantidad));
+                existente.cant_pagar = Math.max(1, Math.min(Number(existente.cant_pagar || 1), cantidad));
                 existente.precio = Number(web.precio || 0);
                 existente.nombre = String(web.nombre || 'Producto');
             } else {
                 cuenta.items.push({
                     producto_id: Number(web.producto_id || 0),codigo: String(web.codigo || ''),
                     nombre: String(web.nombre || 'Producto'),precio: Number(web.precio || 0),
-                    cantidad: cantidad,seleccionado: false,cant_pagar: cantidad,
+                    cantidad: cantidad,seleccionado: false,cant_pagar: 1,
                     origen: 'web',pedido_id: Number(web.pedido_id || 0),detalle_id: detalleId
                 });
             }
@@ -2067,7 +2875,7 @@ function eliminarOpinion(opinionId, url) {
         }
         cuenta.items.forEach(function (item) {
             item.seleccionado = false;
-            item.cant_pagar = Number(item.cantidad || 1);
+            item.cant_pagar = 1;
         });
     }
     function dinero(valor) {
@@ -2082,34 +2890,187 @@ function eliminarOpinion(opinionId, url) {
     function modalEstaAbierto() {
         return Boolean(modalComanda && modalComanda.classList.contains("is-open"));
     }
+    // Nunca devolver el teclado a Mesa rápida mientras la comanda esté abierta.
     function enfocarMesaRapida() {
         window.setTimeout(function () {
-            if (inputMesaRapida) {
-                inputMesaRapida.value = "";
-                inputMesaRapida.focus();
-                inputMesaRapida.select();
-            }
+            if (!inputMesaRapida || modalEstaAbierto() ||
+                (window.Swal && typeof Swal.isVisible === "function" && Swal.isVisible())) return;
+            inputMesaRapida.value = "";
+            inputMesaRapida.focus({preventScroll: true});
+            inputMesaRapida.select();
         }, 70);
+    }
+    function obtenerMozoPorId(mozoId) {
+        var id = Number(mozoId || 0);
+        return mozosNumerados.find(function (item) {
+            return Number(item.id) === id;
+        }) || null;
+    }
+    function obtenerMozoPorNumero(numeroMozo) {
+        var numero = Number(numeroMozo || 0);
+        return mozosNumerados.find(function (item) {
+            return Number(item.numero) === numero;
+        }) || null;
+    }
+    function reconstruirSelectorMozos() {
+        if (!selectorMozoMesa) return;
+        var actual = selectorMozoMesa.value || '';
+        var html = ['<option value="">Sin asignar</option>'];
+        mozosNumerados.forEach(function (mozo) {
+            html.push('<option value="' + mozo.id + '" data-numero="' + mozo.numero + '">' + escapar(mozo.etiqueta) + '</option>');
+        });
+        selectorMozoMesa.innerHTML = html.join('');
+        if (actual && selectorMozoMesa.querySelector('option[value="' + actual + '"]')) {
+            selectorMozoMesa.value = actual;
+        }
+    }
+    function abrirSelectorMozoMesa(numeroMesa, cuenta) {
+        if (!mozosNumerados.length) {
+            finalizarAperturaMesa(cuenta);
+            return;
+        }
+        var opcionesSelect = ['<option value="">Elegí un mozo...</option>'];
+        mozosNumerados.forEach(function (mozo) {
+            opcionesSelect.push('<option value="' + mozo.id + '" data-numero="' + mozo.numero + '">' + escapar(mozo.etiqueta) + '</option>');
+        });
+        Swal.fire({
+            title: 'Mesa ' + numeroMesa,
+            html:
+                '<div class="salon-mozo-popup">' +
+                    '<p class="salon-mozo-popup__texto">¿Qué mozo atiende esta mesa?</p>' +
+                    '<div class="salon-mozo-popup__grid">' +
+                        '<div class="salon-mozo-popup__campo">' +
+                            '<label for="swal-mozo-numero">Número de mozo</label>' +
+                            '<input id="swal-mozo-numero" class="swal2-input salon-mozo-popup__input" inputmode="numeric" autocomplete="off" placeholder="Ej: 1">' +
+                        '</div>' +
+                        '<div class="salon-mozo-popup__campo">' +
+                            '<label for="swal-mozo-select">O elegir de la lista</label>' +
+                            '<select id="swal-mozo-select" class="swal2-select salon-mozo-popup__select">' + opcionesSelect.join('') + '</select>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="salon-mozo-popup__ayuda">Podés escribir el número del mozo o elegirlo de la lista.</div>' +
+                '</div>',
+            showCancelButton: true,
+            confirmButtonText: 'Abrir mesa',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: 'var(--verde-sanmartin)',
+            background: 'var(--card-bg)',
+            color: 'var(--text-color)',
+            customClass: {
+                popup: 'salon-mozo-popup__swal'
+            },
+            didOpen: function () {
+                var popup = Swal.getPopup();
+                if (!popup) return;
+                var inputNumero = popup.querySelector('#swal-mozo-numero');
+                var selectMozo = popup.querySelector('#swal-mozo-select');
+                if (inputNumero) {
+                    inputNumero.focus();
+                    inputNumero.select();
+                    inputNumero.addEventListener('input', function () {
+                        this.value = this.value.replace(/\D+/g, '');
+                        var encontrado = obtenerMozoPorNumero(this.value);
+                        selectMozo.value = encontrado ? String(encontrado.id) : '';
+                    });
+                    inputNumero.addEventListener('keydown', function (event) {
+                        if (event.key === 'Enter') {
+                            event.preventDefault();
+                            Swal.clickConfirm();
+                        }
+                    });
+                }
+                if (selectMozo) {
+                    selectMozo.addEventListener('change', function () {
+                        var elegido = obtenerMozoPorId(this.value);
+                        if (elegido && inputNumero) {
+                            inputNumero.value = String(elegido.numero);
+                        }
+                    });
+                }
+            },
+            preConfirm: function () {
+                var popup = Swal.getPopup();
+                var inputNumero = popup.querySelector('#swal-mozo-numero');
+                var selectMozo = popup.querySelector('#swal-mozo-select');
+                var numero = (inputNumero && inputNumero.value || '').trim();
+                var idElegido = (selectMozo && selectMozo.value || '').trim();
+                var mozo = numero ? obtenerMozoPorNumero(numero) : obtenerMozoPorId(idElegido);
+                if (!mozo) {
+                    Swal.showValidationMessage('Ingresá un número válido o elegí un mozo de la lista.');
+                    return false;
+                }
+                return mozo.id;
+            }
+        }).then(function (resultado) {
+            if (!resultado.isConfirmed) {
+                mesaActual = null;
+                borrarMesaActualGuardada();
+                enfocarMesaRapida();
+                return;
+            }
+            asignarMozoCuenta(cuenta, resultado.value);
+            finalizarAperturaMesa(cuenta);
+        });
     }
     function enfocarCantidad() {
         window.setTimeout(function () {
-            if (inputCant) {
-                inputCant.focus();
-                inputCant.select();
-            }
-        }, 60);
+            if (!modalEstaAbierto() || !inputCant) return;
+            inputCant.focus({preventScroll: true});
+            inputCant.select();
+        }, 30);
+    }
+    // Bloquea los controles que están detrás de la comanda (también para Tab).
+    // No se aplica al resto del documento para permitir los avisos SweetAlert.
+    var fondoInerteComanda = [];
+    function bloquearFondoComanda() {
+        fondoInerteComanda = [];
+        Array.prototype.forEach.call(root.children, function (elemento) {
+            if (elemento === modalComanda || elemento === modalOverlay) return;
+            fondoInerteComanda.push({elemento: elemento, anterior: elemento.inert});
+            elemento.inert = true;
+        });
+    }
+    function restaurarFondoComanda() {
+        fondoInerteComanda.forEach(function (registro) { registro.elemento.inert = registro.anterior; });
+        fondoInerteComanda = [];
+    }
+    function hayAlertaSobreComanda() {
+        return !!(window.Swal && typeof Swal.isVisible === "function" && Swal.isVisible());
     }
     function abrirComanda() {
-        if (modalComanda) {
-            modalComanda.classList.add("is-open");
-        }
+        if (!modalComanda) return;
+        modalComanda.classList.add("is-open");
+        modalComanda.setAttribute("aria-hidden", "false");
         if (modalOverlay) {
             modalOverlay.classList.add("is-open");
             modalOverlay.setAttribute("aria-hidden", "false");
         }
+        bloquearFondoComanda();
         document.body.style.overflow = "hidden";
+        // Foco inmediato + otro después de mostrar el modal para evitar que
+        // un botón de la grilla se lo vuelva a llevar al fondo.
+        if (inputCant) inputCant.focus({preventScroll: true});
         enfocarCantidad();
     }
+    // Si otro script devuelve accidentalmente el foco al fondo, recuperarlo.
+    document.addEventListener('focusin', function (event) {
+        if (!modalEstaAbierto() || !modalComanda || hayAlertaSobreComanda()) return;
+        if (modalComanda.contains(event.target)) return;
+        if (inputCant && !document.activeElement.closest('.swal2-container')) {
+            inputCant.focus({preventScroll: true});
+        }
+    });
+    // Tab queda en la comanda, no en los botones de mesas del fondo.
+    document.addEventListener('keydown', function (event) {
+        if (!modalEstaAbierto() || !modalComanda || hayAlertaSobreComanda() || event.key !== 'Tab') return;
+        var elementos = Array.prototype.filter.call(modalComanda.querySelectorAll(
+            'input:not([disabled]),select:not([disabled]),button:not([disabled]),a[href]'
+        ), function (el) { return el.getClientRects().length > 0; });
+        if (!elementos.length) return;
+        var primero = elementos[0], ultimo = elementos[elementos.length - 1];
+        if (event.shiftKey && document.activeElement === primero) {event.preventDefault(); ultimo.focus();}
+        else if (!event.shiftKey && document.activeElement === ultimo) {event.preventDefault(); primero.focus();}
+    }, true);
     function cerrarComanda() {
         cerrarSugerencias();
         modoParcial = false;
@@ -2119,11 +3080,13 @@ function eliminarOpinion(opinionId, url) {
         guardar();
         if (modalComanda) {
             modalComanda.classList.remove("is-open");
+            modalComanda.setAttribute("aria-hidden", "true");
         }
         if (modalOverlay) {
             modalOverlay.classList.remove("is-open");
             modalOverlay.setAttribute("aria-hidden", "true");
         }
+        restaurarFondoComanda();
         document.body.style.overflow = "";
         actualizarMesas();
         enfocarMesaRapida();
@@ -2149,10 +3112,7 @@ function eliminarOpinion(opinionId, url) {
         abrirComanda();
     }
     function asignarMozoCuenta(cuenta, mozoId) {
-        var id = Number(mozoId || 0);
-        var mozo = mozos.find(function (item) {
-            return Number(item.id) === id;
-        });
+        var mozo = obtenerMozoPorId(mozoId);
         if (!mozo) {
             cuenta.mozo_id = null;
             cuenta.mozo_nombre = "";
@@ -2183,45 +3143,20 @@ function eliminarOpinion(opinionId, url) {
         }
         mesaActual = String(numeroInt);
         var cuenta = normalizarCuenta(mesaActual);
-        if (cuenta.mozo_nombre || !mozos.length) {
+        // v121: usar la ventana de mozos numerados (1, 2, 3...) en vez del selector antiguo.
+        if (cuenta.mozo_nombre || !mozosNumerados.length) {
             finalizarAperturaMesa(cuenta);
             return;
         }
-        var opciones = {};
-        mozos.forEach(function (mozo) {
-            opciones[String(mozo.id)] = mozo.nombre;
-        });
-        Swal.fire({
-            title: "Mesa " + mesaActual,
-            text: "\u00BFQu\u00E9 mozo atiende esta mesa?",
-            input: "select",
-            inputOptions: opciones,
-            inputPlaceholder: "Seleccion\u00E1 un mozo",
-            showCancelButton: true,
-            confirmButtonText: "Abrir mesa",
-            cancelButtonText: "Cancelar",
-            confirmButtonColor: "var(--verde-sanmartin)",
-            background: "var(--card-bg)",
-            color: "var(--text-color)",
-            inputValidator: function (valor) {
-                if (!valor)
-                    return "Seleccion\u00E1 el mozo de la mesa.";
-                return null;
-            }
-        }).then(function (resultado) {
-            if (!resultado.isConfirmed) {
-                mesaActual = null;
-                borrarMesaActualGuardada();
-                enfocarMesaRapida();
-                return;
-            }
-            asignarMozoCuenta(cuenta, resultado.value);
-            finalizarAperturaMesa(cuenta);
-        });
+        abrirSelectorMozoMesa(mesaActual, cuenta);
     }
     function liberarMesaActual() {
         var numeroMesa = mesaActual;
         if (numeroMesa) {
+            // Al completar una venta se libera el UUID del borrador fiscal;
+            // una mesa nueva nunca hereda el comprobante de la anterior.
+            try { localStorage.removeItem('sanmartin_borrador_fiscal_mesa_' + numeroMesa); }
+            catch (e) { /* acceso restringido a storage */ }
             cuentas[numeroMesa] = {
                 items: [],
                 total: 0,
@@ -2237,13 +3172,59 @@ function eliminarOpinion(opinionId, url) {
         actualizarMesas();
         if (modalComanda) {
             modalComanda.classList.remove("is-open");
+            modalComanda.setAttribute("aria-hidden", "true");
         }
         if (modalOverlay) {
             modalOverlay.classList.remove("is-open");
             modalOverlay.setAttribute("aria-hidden", "true");
         }
+        restaurarFondoComanda();
         document.body.style.overflow = "";
         enfocarMesaRapida();
+    }
+    // Estado asociado a la lista exacta de productos, no a la mesa vacia.
+    function firmaTicket(cuenta) {
+        return JSON.stringify((cuenta && cuenta.items || []).filter(function (i) {
+            return Number(i.cantidad || 0) > 0;
+        }).map(function (i) {
+            return [Number(i.producto_id || 0), String(i.codigo || ''),
+                Number(i.cantidad || 0), Number(i.precio || 0),
+                String(i.origen || ''), Number(i.detalle_id || 0)];
+        }));
+    }
+    function estadoVisibleTicket(cuenta) {
+        if (!cuenta || !cuenta.items || !cuenta.items.length) return '';
+        if (cuenta.ticket_firma !== firmaTicket(cuenta)) return '';
+        return cuenta.ticket_estado === 'impreso' || cuenta.ticket_estado === 'pendiente'
+            ? cuenta.ticket_estado : '';
+    }
+    function consultarEstadoTickets() {
+        var url = root.getAttribute('data-print-status-url');
+        if (!url || document.hidden) return;
+        var ids = [];
+        Object.keys(cuentas).forEach(function (mesa) {
+            var c = cuentas[mesa];
+            if (c && c.ticket_estado === 'pendiente' && Number(c.ticket_id) > 0)
+                ids.push(Number(c.ticket_id));
+        });
+        if (!ids.length) return;
+        fetch(url + '?ids=' + ids.slice(0, 100).join(','),
+            {credentials:'same-origin',cache:'no-store'})
+        .then(function (r) { if (!r.ok) throw new Error('Estado no disponible'); return r.json(); })
+        .then(function (data) {
+            if (data.status !== 'ok' || !data.estados) return;
+            var cambiado = false;
+            Object.keys(cuentas).forEach(function (mesa) {
+                var c = cuentas[mesa];
+                // No confirmar una impresión anterior si otro ticket ya fue enviado.
+                if (c && c.ticket_estado === 'pendiente' &&
+                    data.estados[String(c.ticket_id)] === 'impreso') {
+                    c.ticket_estado = 'impreso';
+                    cambiado = true;
+                }
+            });
+            if (cambiado) { guardar(); actualizarMesas(); if (mesaActual) render(); }
+        }).catch(function (e) { console.warn('Consulta ticket:', e.message); });
     }
     function actualizarMesas() {
         botonesMesa.forEach(function (boton) {
@@ -2265,8 +3246,11 @@ function eliminarOpinion(opinionId, url) {
             boton.classList.toggle("is-ocupada", ocupada);
             boton.classList.toggle("mesa-seleccionada", seleccionada);
             boton.classList.toggle("is-actual", seleccionada);
+            var estadoTicket = ocupada ? estadoVisibleTicket(cuenta) : '';
+            boton.classList.toggle('ticket-en-cola', estadoTicket === 'pendiente');
+            boton.classList.toggle('ticket-impreso', estadoTicket === 'impreso');
             if (ocupada) {
-                boton.innerHTML = "<span class=\"salon-pos__mesa-numero\">" + escapar(numero) + "</span>" + "<span class=\"salon-pos__mesa-total\">" + dinero(total) + "</span>" + (cuenta && cuenta.mozo_nombre ? "<span class=\"salon-pos__mesa-mozo\">\uD83E\uDDD1\u200D\uD83C\uDF73 " + escapar(cuenta.mozo_nombre) + "</span>" : "") + "<span class=\"salon-pos__mesa-items\">" + items.length + (items.length === 1 ? " producto" : " productos") + "</span>";
+                boton.innerHTML = "<span class=\"salon-pos__mesa-numero\">" + escapar(numero) + "</span>" + "<span class=\"salon-pos__mesa-total\">" + dinero(total) + "</span>" + (cuenta && cuenta.mozo_nombre ? "<span class=\"salon-pos__mesa-mozo\">\uD83E\uDDD1\u200D\uD83C\uDF73 " + escapar(cuenta.mozo_nombre) + "</span>" : "") + "<span class=\"salon-pos__mesa-items\">" + items.length + (items.length === 1 ? " producto" : " productos") + "</span>" + (estadoTicket ? "<span class=\"salon-pos__mesa-ticket\">" + (estadoTicket === 'impreso' ? '✓ Control impreso' : '⌛ En cola') + "</span>" : '');
             }
             else {
                 boton.innerHTML = "<span class=\"salon-pos__mesa-numero\">" + escapar(numero) + "</span>" + "<span class=\"salon-pos__mesa-libre\">Libre</span>";
@@ -2291,7 +3275,7 @@ function eliminarOpinion(opinionId, url) {
         if (existente) {
             existente.cantidad += cantidad;
             if (existente.seleccionado) {
-                existente.cant_pagar = existente.cantidad;
+                existente.cant_pagar = 1;
             }
         }
         else {
@@ -2302,7 +3286,7 @@ function eliminarOpinion(opinionId, url) {
                 precio: producto.precio,
                 cantidad: cantidad,
                 seleccionado: false,
-                cant_pagar: cantidad
+                cant_pagar: 1
             });
         }
         recalcular(cuenta);
@@ -2316,7 +3300,7 @@ function eliminarOpinion(opinionId, url) {
     }
     function buscarProductos(texto) {
         texto = String(texto || "").trim().toLowerCase();
-        if (!texto || texto === ".." || texto === "//" || texto === "*") {
+        if (!texto) {
             return [];
         }
         var exactos = [];
@@ -2325,7 +3309,9 @@ function eliminarOpinion(opinionId, url) {
             var codigo = String(producto.codigo).toLowerCase();
             var nombre = String(producto.nombre).toLowerCase();
             if (codigo === texto) {
-                exactos.unshift(producto);
+                // Ante el mismo codigo en web y Salon, elegir el articulo del Salon.
+                if (producto.es_salon) exactos.unshift(producto);
+                else exactos.push(producto);
                 return;
             }
             if (codigo.indexOf(texto) === 0) {
@@ -2372,7 +3358,7 @@ function eliminarOpinion(opinionId, url) {
             if (!item.seleccionado) {
                 return;
             }
-            var cant = Number(item.cant_pagar || item.cantidad);
+            var cant = Number(item.cant_pagar || 1);
             if (cant < 1) {
                 cant = 1;
             }
@@ -2394,7 +3380,7 @@ function eliminarOpinion(opinionId, url) {
         }
         var item = cuenta.items[index];
         item.seleccionado = !item.seleccionado;
-        item.cant_pagar = item.cantidad;
+        item.cant_pagar = 1;
         guardar();
         render();
     }
@@ -2407,7 +3393,7 @@ function eliminarOpinion(opinionId, url) {
         if (!item.seleccionado) {
             return;
         }
-        var cantidad = Number(item.cant_pagar || item.cantidad) + diferencia;
+        var cantidad = Number(item.cant_pagar || 1) + diferencia;
         if (cantidad < 1) {
             cantidad = 1;
         }
@@ -2551,7 +3537,8 @@ function eliminarOpinion(opinionId, url) {
             btnParcial.disabled = !cuenta.items.length || enviando;
         }
         btnAccion.disabled = !cuenta.items.length || enviando || (modoParcial && resumen.cantidad === 0);
-        btnTicket.disabled = !cuenta.items.length || enviando;
+        btnTicket.disabled = !cuenta.items.length || enviando || (modoParcial && resumen.cantidad === 0);
+        btnTicket.textContent = modoParcial ? '🖨 Ticket selección' : '🖨 Ticket mesa';
         guardar();
         actualizarMesas();
     }
@@ -2565,7 +3552,7 @@ function eliminarOpinion(opinionId, url) {
             if (soloSeleccionados && !item.seleccionado) {
                 return;
             }
-            var cantidad = soloSeleccionados ? Number(item.cant_pagar || item.cantidad) : Number(item.cantidad);
+            var cantidad = soloSeleccionados ? Number(item.cant_pagar || 1) : Number(item.cantidad);
             items.push({
                 producto_id: item.producto_id,
                 codigo: item.codigo,
@@ -2586,7 +3573,7 @@ function eliminarOpinion(opinionId, url) {
         }
         enviando = true;
         render();
-        return fetch(url, {
+        return esperarRespaldoAntesDeCobrar().then(function(){return fetch(url, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -2607,7 +3594,7 @@ function eliminarOpinion(opinionId, url) {
                 }
                 return data;
             });
-        }).finally(function () {
+        });}).finally(function () {
             enviando = false;
             if (mesaActual) {
                 render();
@@ -2703,11 +3690,14 @@ function eliminarOpinion(opinionId, url) {
             title: titulo || 'Registrar cobro',
             html: '<div style="margin-bottom:10px;color:var(--texto-mutado);">Total del consumo</div>' +
                   '<div style="font-size:1.55rem;font-weight:900;margin-bottom:14px;">' + dinero(total) + '</div>',
+            // Mantener el radio de SweetAlert para conservar los cobros actuales.
+            // CSS aislado evita la franja blanca y dispone opciones en tarjetas 2 x 2.
             input: 'radio', inputOptions: opciones,
+            customClass: { popup: 'salon-cobro-alert' },
             inputValidator: function (valor) { return !valor ? 'Elegí el medio de cobro.' : null; },
             showCancelButton: true,
             confirmButtonText: 'Continuar', cancelButtonText: 'Cancelar',
-            confirmButtonColor: 'var(--naranja-sterak)',
+            confirmButtonColor: 'var(--verde-sanmartin, #188659)',
             background: 'var(--card-bg)', color: 'var(--text-color)'
         }).then(function (res) {
             if (!res.isConfirmed || res.value !== 'cuenta_corriente') return res;
@@ -2825,21 +3815,73 @@ function eliminarOpinion(opinionId, url) {
     }
     function imprimirMesa() {
         var cuenta = cuentaActual();
-        if (!cuenta || !cuenta.items.length || enviando) {
-            return Promise.resolve();
+        if (!cuenta || !cuenta.items.length || enviando) return Promise.resolve();
+        // En división, un control de caja con SOLAMENTE los renglones y cantidades elegidos.
+        // Nunca marcar el control de la mesa completa como impreso por un ticket parcial.
+        if (modoParcial) {
+            var elegidos = obtenerItemsTicket(cuenta, true);
+            if (!elegidos.length) {
+                return Swal.fire({icon:'info',title:'Elegí productos',
+                    text:'Seleccioná una línea y ajustá la cantidad a cobrar. Luego presioná Ticket.',
+                    background:'var(--card-bg)',color:'var(--text-color)'});
+            }
+            var firmaParcial = JSON.stringify(elegidos.map(function(it) {
+                return [it.detalle_id, it.producto_id, it.codigo, it.precio, it.cantidad];
+            }));
+            function mandarParcial() {
+                return enviarTicket(elegidos, 'cuenta_parcial').then(function(data) {
+                    if (!data.ticket_id) throw new Error('No se recibió el identificador del ticket. Revisá la cola antes de reenviar.');
+                    cuenta.ultimo_ticket_parcial_firma = firmaParcial;
+                    cuenta.ultimo_ticket_parcial_id = Number(data.ticket_id);
+                    guardar();
+                    return Swal.fire({icon:'success', title:'Control parcial enviado',
+                        text:'Solo se enviaron los productos seleccionados. La mesa sigue abierta y no se cobró nada.',
+                        timer:1900,showConfirmButton:false,
+                        background:'var(--card-bg)',color:'var(--text-color)'});
+                }).catch(mostrarError);
+            }
+            if (cuenta.ultimo_ticket_parcial_firma === firmaParcial) {
+                return Swal.fire({icon:'question',title:'Ya enviaste esta selección',
+                    text:'¿Querés enviar una segunda copia del mismo control parcial?',
+                    showCancelButton:true,confirmButtonText:'Reimprimir',cancelButtonText:'Cancelar',
+                    background:'var(--card-bg)',color:'var(--text-color)'})
+                    .then(function(r){ if (r.isConfirmed) return mandarParcial(); });
+            }
+            return mandarParcial();
         }
-        return enviarTicket(obtenerItemsTicket(cuenta, false), "cuenta_mesa").then(function () {
-            return Swal.fire({
-                icon: "success",
-                title: "Ticket enviado",
-                timer: 900,
-                showConfirmButton: false,
-                background: "var(--card-bg)",
-                color: "var(--text-color)"
-            });
-        }).catch(function (error) {
-            mostrarError(error);
-        });
+        var firma = firmaTicket(cuenta);
+        var estado = estadoVisibleTicket(cuenta);
+        if (estado === 'pendiente') {
+            return Swal.fire({icon:'info',title:'Ticket en cola',
+                text:'Ya se envió esta versión de la mesa. No se mandará otra copia.',
+                background:'var(--card-bg)',color:'var(--text-color)'});
+        }
+        function enviar() {
+            return enviarTicket(obtenerItemsTicket(cuenta, false), 'cuenta_mesa')
+            .then(function (data) {
+                if (!data.ticket_id) throw new Error('El servidor no devolvió el número del ticket. Consultá la cola antes de reintentar.');
+                // Si la cuenta cambió durante la petición, no marcar los productos nuevos.
+                if (firmaTicket(cuenta) === firma) {
+                    cuenta.ticket_id = Number(data.ticket_id);
+                    cuenta.ticket_firma = firma;
+                    cuenta.ticket_estado = 'pendiente';
+                    guardar(); actualizarMesas(); render();
+                    consultarEstadoTickets();
+                }
+                return Swal.fire({icon:'success',title:'Ticket en cola',
+                    text:'La mesa cambiará a verde cuando la ticketera confirme la impresión.',
+                    timer:1700,showConfirmButton:false,
+                    background:'var(--card-bg)',color:'var(--text-color)'});
+            }).catch(mostrarError);
+        }
+        if (estado === 'impreso') {
+            return Swal.fire({icon:'question',title:'Este control ya se imprimió',
+                text:'¿Querés enviar otra copia a la impresora de caja?',
+                showCancelButton:true,confirmButtonText:'Sí, reimprimir',cancelButtonText:'Cancelar',
+                background:'var(--card-bg)',color:'var(--text-color)'})
+            .then(function (r) { if (r.isConfirmed) return enviar(); });
+        }
+        return enviar();
     }
     function cobrarParcial() {
         var cuenta = cuentaActual();
@@ -2856,15 +3898,17 @@ function eliminarOpinion(opinionId, url) {
                 cuenta.items.forEach(function (item) {
                     if (!item.seleccionado)
                         return;
-                    var cantidad = Number(item.cant_pagar || item.cantidad);
+                    var cantidad = Number(item.cant_pagar || 1);
                     item.cantidad -= cantidad;
                     item.seleccionado = false;
-                    item.cant_pagar = item.cantidad > 0 ? item.cantidad : 0;
+                    item.cant_pagar = item.cantidad > 0 ? 1 : 0;
                 });
                 cuenta.items = cuenta.items.filter(function (item) {
                     return item.cantidad > 0;
                 });
                 recalcular(cuenta);
+                delete cuenta.ultimo_ticket_parcial_firma;
+                delete cuenta.ultimo_ticket_parcial_id;
                 guardar();
                 if (!cuenta.items.length) {
                     if (resultado.value !== 'cuenta_corriente') Swal.fire({
@@ -2930,30 +3974,98 @@ function eliminarOpinion(opinionId, url) {
         });
     }
 
+    // Emisión MANUAL por *, independiente del medio de cobro.
+    // Con ARCA deshabilitado conserva el borrador de diagnóstico.
     function cobrarMesaFiscal() {
         var cuenta = cuentaActual();
-        if (!cuenta || !cuenta.items.length)
-            return;
+        if (!cuenta || !cuenta.items.length || enviando) return;
+        var items = obtenerItemsTicket(cuenta, false);
+        var firma = JSON.stringify({mesa: mesaActual, items: items});
+        var habilitado = root.getAttribute('data-fiscal-emission-enabled') === '1';
         Swal.fire({
-            icon: "warning",
-            title: "Cierre fiscal",
-            text: "Se va a cerrar la mesa como factura/ticket fiscal real.",
+            icon: habilitado ? 'warning' : 'info',
+            title: habilitado ? 'Emitir Factura B con ARCA' : 'Preparación fiscal · Sin CAE',
+            html: habilitado
+                ? '<p><b>Solicitarás un CAE real si está configurado PRODUCCIÓN.</b></p>' +
+                  '<p>Confirmá que todos los productos están gravados al 21% de IVA y que los datos de la mesa son correctos.</p>' +
+                  '<p>La mesa NO se cobrará ni cerrará automáticamente. Se enviará a imprimir solo si ARCA autoriza.</p>'
+                : '<p>Se guardará un borrador de la mesa. No se factura ni se imprime.</p>',
             showCancelButton: true,
-            confirmButtonText: "Continuar",
-            cancelButtonText: "Cancelar",
-            confirmButtonColor: "var(--naranja-sterak)",
-            background: "var(--card-bg)",
-            color: "var(--text-color)"
+            confirmButtonText: habilitado ? 'Sí, facturar con *' : 'Guardar borrador',
+            cancelButtonText: 'Cancelar',
+            background: 'var(--card-bg)', color: 'var(--text-color)'
         }).then(function (resultado) {
-            if (resultado.isConfirmed) {
-                cobrarMesa(true);
+            if (!resultado.isConfirmed) return;
+            var clave = 'sanmartin_borrador_fiscal_mesa_' + mesaActual;
+            var op = null;
+            try {
+                var previo = JSON.parse(localStorage.getItem(clave) || 'null');
+                if (previo && previo.firma === firma) op = previo.id;
+            } catch (e) { /* almacenamiento deshabilitado */ }
+            if (!op) {
+                if (window.crypto && window.crypto.randomUUID) op = window.crypto.randomUUID();
+                else op = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    var n = Math.floor(Math.random() * 16);
+                    return (c === 'x' ? n : (n & 3 | 8)).toString(16);
+                });
+                try { localStorage.setItem(clave, JSON.stringify({firma: firma, id: op})); }
+                catch (e) { /* almacenamiento deshabilitado */ }
             }
+            var url = root.getAttribute('data-fiscal-draft-url');
+            if (!url) { mostrarError(new Error('Falta la URL de borradores fiscales.')); return; }
+            enviando = true;
+            render();
+            fetch(url, {
+                method: 'POST',
+                headers: {'Content-Type':'application/json','X-CSRFToken':obtenerCsrf()},
+                body: JSON.stringify({operacion_id:op, mesa:mesaActual,
+                    mozo:cuenta.mozo_nombre || '', items:items})
+            }).then(function(resp) {
+                return resp.json().then(function(data) {
+                    if (!resp.ok || data.status !== 'ok') throw new Error(data.mensaje || 'No se guardó el borrador.');
+                    return data;
+                });
+            }).then(function(data) {
+                if (!habilitado) return Swal.fire({icon:'info',title:'Borrador #' + data.borrador_id,
+                    text:'NO es factura: no tiene CAE. La mesa permanece abierta.',
+                    confirmButtonText:'Entendido', background:'var(--card-bg)',color:'var(--text-color)'});
+                var emitirUrl = root.getAttribute('data-fiscal-emit-url');
+                if (!emitirUrl) throw new Error('Falta la URL de emisión fiscal.');
+                return fetch(emitirUrl, {method:'POST',
+                    headers: {'Content-Type':'application/json','X-CSRFToken':obtenerCsrf()},
+                    body:JSON.stringify({borrador_id:data.borrador_id,
+                        confirmacion:'FACTURAR_CON_ASTERISCO',iva_21_confirmado:true})
+                }).then(function(r){return r.json().then(function(d){
+                    if(!r.ok || d.status!=='ok') throw new Error(d.mensaje || 'ARCA no autorizó la factura.');
+                    return d;
+                });}).then(function(d){
+                    return Swal.fire({icon:'success', title:'Factura B · '+d.numero,
+                        text:'CAE: '+d.cae+' · La ticketera la imprimirá desde la cola fiscal. La mesa sigue abierta.',
+                        confirmButtonText:'Entendido',background:'var(--card-bg)',color:'var(--text-color)'});
+                });
+            }).catch(mostrarError).finally(function() {enviando = false; render();});
         });
     }
     botonesMesa.forEach(function (boton) {
         boton.addEventListener("click", function () {
             seleccionarMesa(boton.getAttribute("data-mesa"));
         });
+    });
+    // v156: estando en la grilla del POS, Enter ubica el cursor en Mesa rápida.
+    // No secuestrar Enter dentro de botones, enlaces, campos o diálogos.
+    document.addEventListener("keydown", function (event) {
+        if (event.key !== "Enter" || event.repeat || event.altKey || event.ctrlKey ||
+            event.metaKey || event.shiftKey || modalEstaAbierto() || enviando ||
+            (window.Swal && typeof Swal.isVisible === "function" && Swal.isVisible())) return;
+        var objetivo = event.target;
+        if (objetivo === inputMesaRapida) return; // Enter acá abre la mesa elegida.
+        if (objetivo && objetivo.closest && objetivo.closest(
+                'input,textarea,select,button,a,summary,[contenteditable="true"],[role="dialog"]')) return;
+        // Otras ventanas internas también tienen sus propios controles.
+        if (document.querySelector('[role="dialog"][aria-modal="true"]:not([hidden])')) return;
+        event.preventDefault();
+        event.stopPropagation();
+        enfocarMesaRapida();
     });
     if (inputMesaRapida) {
         inputMesaRapida.addEventListener("keydown", function (event) {
@@ -2962,37 +4074,85 @@ function eliminarOpinion(opinionId, url) {
             }
             event.preventDefault();
             event.stopPropagation();
+            // Enter sin número solo deja Mesa rápida preparada para escribir.
+            if (!String(inputMesaRapida.value || "").trim()) {
+                inputMesaRapida.focus();
+                return;
+            }
             seleccionarMesa(inputMesaRapida.value);
         });
     }
+    // v160: navegación del teclado sólo dentro de la comanda.
+    // En Mozo, Arriba/Abajo siguen eligiendo mozos normalmente.
+    if (selectorMozoMesa) {
+        selectorMozoMesa.addEventListener('keydown', function (event) {
+            if (!modalEstaAbierto() || event.altKey || event.ctrlKey || event.metaKey) return;
+            if (event.key === 'ArrowRight' || event.key === 'Enter') {
+                event.preventDefault(); event.stopPropagation(); enfocarCantidad();
+            }
+        });
+    }
     if (inputCant) {
+        // v156: los comandos se introducen en CANTIDAD, nunca en Código.
         inputCant.addEventListener("keydown", function (event) {
-            if (event.key !== "Enter") {
+            if (!modalEstaAbierto() || event.altKey || event.ctrlKey || event.metaKey) return;
+            if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+                event.preventDefault(); event.stopPropagation();
+                if (buscador) { buscador.focus({preventScroll:true}); buscador.select(); }
                 return;
             }
+            if (event.key === 'ArrowUp' ||
+                (event.key === 'ArrowLeft' && inputCant.selectionStart === 0)) {
+                event.preventDefault(); event.stopPropagation();
+                if (selectorMozoMesa) selectorMozoMesa.focus({preventScroll:true});
+                return;
+            }
+            if (event.key !== "Enter") return;
             event.preventDefault();
             event.stopPropagation();
-            var cantidad = parseInt(inputCant.value, 10);
-            if (!cantidad || cantidad < 1) {
-                inputCant.value = 1;
+            var valor = String(inputCant.value || "").trim();
+            if (valor === ".." || valor === "/" || valor === "//" ||
+                valor === "*" || valor === "**") {
+                inputCant.value = "1";
+                cerrarSugerencias();
+                if (valor === "..") imprimirMesa();
+                else if (valor === "/" || valor === "//") cobrarMesa(false);
+                else cobrarMesaFiscal(); // Solo borrador fiscal, sin CAE.
+                return;
             }
+            // Para cantidades válidas: Enter pasa al campo Código.
+            var cantidad = Number(valor);
+            inputCant.value = /^\d+$/.test(valor) && Number.isSafeInteger(cantidad) &&
+                cantidad > 0 ? String(cantidad) : "1";
             if (buscador) {
                 buscador.focus();
                 buscador.select();
             }
         });
+        // Si se pegó un atajo y luego se abandona el campo, no debe convertirse
+        // silenciosamente en una cantidad al agregar un producto.
+        inputCant.addEventListener("blur", function () {
+            var valor = String(inputCant.value || "").trim();
+            var numero = Number(valor);
+            if (!/^\d+$/.test(valor) || !Number.isSafeInteger(numero) || numero < 1) {
+                inputCant.value = "1";
+            }
+        });
     }
     if (buscador) {
         buscador.addEventListener("input", function () {
-            if (String(buscador.value || "").trim() === "..") {
-                cerrarSugerencias();
-                return;
-            }
             sugerencias = buscarProductos(buscador.value);
             sugerenciaActiva = sugerencias.length ? 0 : -1;
             pintarSugerencias();
         });
         buscador.addEventListener("keydown", function (event) {
+            // Flecha izquierda vuelve a Cantidad solo al inicio del texto;
+            // Arriba vuelve si no hay sugerencias abiertas que recorrer.
+            if (!event.altKey && !event.ctrlKey && !event.metaKey &&
+                (event.key === 'ArrowLeft' && buscador.selectionStart === 0 && buscador.selectionEnd === 0 ||
+                 event.key === 'ArrowUp' && !(sugerencias.length && listaSugerencias && listaSugerencias.classList.contains('is-visible')))) {
+                event.preventDefault(); event.stopPropagation(); enfocarCantidad(); return;
+            }
             if (event.key === "ArrowDown" && sugerencias.length) {
                 event.preventDefault();
                 event.stopPropagation();
@@ -3016,7 +4176,14 @@ function eliminarOpinion(opinionId, url) {
             if (event.key === "Escape") {
                 event.preventDefault();
                 event.stopPropagation();
-                cerrarSugerencias();
+                // Primer Esc: cerrar la lista; segundo Esc: volver a las mesas.
+                if (listaSugerencias && listaSugerencias.classList.contains("is-visible")) {
+                    cerrarSugerencias();
+                } else if (modoParcial) {
+                    cambiarModoParcial(false);
+                } else {
+                    cerrarComanda();
+                }
                 return;
             }
             if (event.key !== "Enter") {
@@ -3025,30 +4192,18 @@ function eliminarOpinion(opinionId, url) {
             event.preventDefault();
             event.stopPropagation();
             var valor = String(buscador.value || "").trim();
-            if (valor === "..") {
-                buscador.value = "";
+            // Código del producto queda dedicado exclusivamente al catálogo.
+            // Resolver la busqueda usando el texto ACTUAL, no una lista vieja
+            // o una segunda capa de listeners (v124).
+            var resultados = buscarProductos(valor);
+            if (resultados.length) {
+                var index = sugerenciaActiva >= 0 && sugerenciaActiva < resultados.length
+                    ? sugerenciaActiva : 0;
+                agregarProducto(resultados[index]);
+            } else if (valor) {
+                sugerencias = [];
+                sugerenciaActiva = -1;
                 cerrarSugerencias();
-                imprimirMesa();
-                enfocarCantidad();
-                return;
-            }
-            if (valor === "//") {
-                buscador.value = "";
-                cerrarSugerencias();
-                cobrarMesa(false);
-                enfocarCantidad();
-                return;
-            }
-            if (valor === "*") {
-                buscador.value = "";
-                cerrarSugerencias();
-                cobrarMesaFiscal();
-                enfocarCantidad();
-                return;
-            }
-            if (sugerencias.length) {
-                var index = sugerenciaActiva >= 0 ? sugerenciaActiva : 0;
-                agregarProducto(sugerencias[index]);
             }
         });
     }
@@ -3103,6 +4258,77 @@ function eliminarOpinion(opinionId, url) {
             asignarMozoCuenta(cuenta, selectorMozoMesa.value);
         });
     }
+    function resumenPendienteMesasLocal() {
+        var abiertas = 0, importe = 0, detalle = [];
+        Object.keys(cuentas).forEach(function(mesa) {
+            var c = normalizarCuenta(mesa);
+            var valor = c.items.reduce(function(acc, it) {
+                return acc + Number(it.cantidad || 0) * Number(it.precio || 0);
+            }, 0);
+            if (c.items.length && valor > 0) {
+                abiertas++; importe += valor;
+                detalle.push({mesa:mesa, total:valor});
+            }
+        });
+        detalle.sort(function(a,b){return Number(a.mesa)-Number(b.mesa);});
+        return {mesas:abiertas, importe:importe, detalle:detalle};
+    }
+    function verResumenVentas() {
+        var local = resumenPendienteMesasLocal();
+        var html = '<div class="salon-ventas-resumen">' +
+            '<div class="salon-ventas-cifras">' +
+            '<div><small>Total registrado hoy · Render</small><strong id="sm-venta-total">Cargando...</strong></div>' +
+            '<div><small>Ventas de salón · hoy</small><strong id="sm-venta-salon">Cargando...</strong></div>' +
+            '<div><small>Facturado fiscal (CAE)</small><strong id="sm-venta-fiscal">Consultando...</strong></div>' +
+            '<div><small>Sin conciliar</small><strong id="sm-venta-sinfactura">Por venta</strong></div>' +
+            '<div><small>Mesas abiertas · este navegador</small><strong>' + local.mesas + ' · ' + dinero(local.importe) + '</strong></div>' +
+            '</div><h4 class="salon-ventas-subtitulo">Mesas por cerrar (esta PC)</h4>' +
+            '<div class="salon-ventas-mesas">' + (local.detalle.length ? local.detalle.map(function(it){
+                return '<span>Mesa ' + escapar(it.mesa) + ' · <b>' + dinero(it.total) + '</b></span>';
+            }).join('') : '<span>No hay mesas pendientes guardadas aquí.</span>') + '</div>' +
+            '<p id="sm-venta-nota" class="salon-ventas-nota">Los datos de las ventas se consultan a Render. Las mesas abiertas se leen de este navegador; todavía no están centralizadas.</p>' +
+            '<div class="salon-ventas-acciones">' +
+            '<button type="button" id="sm-refrescar-ventas" class="salon-pos__atajo">↻ Actualizar</button>' +
+            '<button type="button" id="sm-reiniciar-ventas" class="salon-pos__atajo salon-pos__atajo--peligro" title="Apartar ventas finalizadas del historial visible; NO elimina documentos ni cuentas de deudores">🧹 Reiniciar historial</button></div>' +
+            '<small class="salon-ventas-advertencia">Se reinician los totales visibles y se ocultan ventas finalizadas anteriores. Los comprobantes y las cuentas de deudores quedan intactos. Esta opción no borra facturas fiscales.</small></div>';
+        Swal.fire({title:'📊 Ventas y mesas',html:html,width:'660px',
+            confirmButtonText:'Volver al salón',
+            background:'var(--card-bg)', color:'var(--text-color)',
+            didOpen:function(){
+                function cargar(){
+                    var url = root.getAttribute('data-sales-url');
+                    fetch(url, {credentials:'same-origin',cache:'no-store'})
+                    .then(function(r){return r.json().then(function(d){if(!r.ok||d.status!=='ok')throw new Error(d.mensaje||'No se pudieron leer las ventas');return d;});})
+                    .then(function(d){
+                        var t=document.getElementById('sm-venta-total');
+                        var s=document.getElementById('sm-venta-salon');
+                        var n=document.getElementById('sm-venta-sinfactura');
+                        if(t)t.textContent=dinero(d.total_registrado);
+                        if(s)s.textContent=dinero(d.total_salon);
+                        var f=document.getElementById('sm-venta-fiscal');
+                        if(f)f.textContent=dinero(d.total_facturado_fiscal || 0) + ' (' + (d.cantidad_facturas_fiscales || 0) + ')';
+                        if(n)n.textContent='Pendiente de vincular';
+                        var note=document.getElementById('sm-venta-nota');
+                        if(note)note.textContent='Solo pedidos finalizados hoy ('+d.fecha+'), sin tickets temporales. No equivalen necesariamente a cobros conciliados. No se almacena CAE: no es posible separar facturado/no facturado con certeza. Mesas abiertas: únicamente este navegador.';
+                    }).catch(function(err){
+                        var note=document.getElementById('sm-venta-nota');
+                        if(note)note.textContent='No se pudieron leer las ventas de Render: '+err.message+' · Mesas abiertas: solo este navegador.';
+                    });
+                }
+                var btn=document.getElementById('sm-refrescar-ventas');
+                if(btn)btn.addEventListener('click',cargar);
+                var limpiar=document.getElementById('sm-reiniciar-ventas');
+                if(limpiar)limpiar.addEventListener('click', function(){
+                    window.smReiniciarHistorialVentas(root.getAttribute('data-reset-sales-url'),function(){
+                        verResumenVentas();
+                    },limpiar);
+                });
+                cargar();
+            }
+        });
+    }
+    var btnVentas=document.getElementById('salon-ver-ventas');
+    if(btnVentas)btnVentas.addEventListener('click',verResumenVentas);
     if (btnParcial) {
         btnParcial.addEventListener("click", toggleModoParcial);
     }
@@ -3147,6 +4373,12 @@ function eliminarOpinion(opinionId, url) {
             else {
                 cobrarMesa(false);
             }
+            return;
+        }
+        // Los campos de la comanda manejan sus propias flechas/Enter.
+        // No dejar que el modo parcial les robe las teclas.
+        if (modoParcial && (event.target === buscador || event.target === inputCant ||
+                            event.target === selectorMozoMesa)) {
             return;
         }
         if (modoParcial) {
@@ -3203,6 +4435,8 @@ function eliminarOpinion(opinionId, url) {
     });
     sincronizarPedidosWebSalon(pedidosWebIniciales);
     window.setInterval(refrescarPedidosWebSalon, 15000);
+    window.setInterval(consultarEstadoTickets, 4500);
+    window.setTimeout(consultarEstadoTickets, 900);
     document.addEventListener('visibilitychange',function () { if (!document.hidden) refrescarPedidosWebSalon(); });
     window.addEventListener("pagehide", guardar);
     window.addEventListener("beforeunload", guardar);
@@ -3220,58 +4454,90 @@ function eliminarOpinion(opinionId, url) {
         borrarMesaActualGuardada();
         actualizarMesas();
     }
+    // Abrimos la caja solamente después de recuperar el respaldo del servidor.
+    // El almacenamiento del navegador sirve como copia en caso de migración.
+    if (respaldoUrl) {
+        indicarRespaldo('Recuperando comandas de esta PC...');
+        fetch(respaldoUrl,{credentials:'same-origin',cache:'no-store'})
+        .then(function(res){if (!res.ok) throw new Error('No se pudo leer la base local');return res.json();})
+        .then(function(d){
+            if (d.status !== 'ok' || !d.cuentas || typeof d.cuentas !== 'object')
+                throw new Error('La copia de mesas no es válida');
+            respaldoVersion = Number(d.version || 0);
+            if (respaldoVersion > 0) {
+                cuentas = d.cuentas;
+                try { localStorage.setItem(storageKey,JSON.stringify(cuentas)); }catch(e){}
+            }
+            respaldoPreparado = true;
+            root.style.pointerEvents = '';
+            indicarRespaldo(respaldoVersion ? 'Mesas recuperadas de esta PC' : 'Caja local lista');
+            sincronizarPedidosWebSalon(pedidosWebIniciales);
+            if (mesaActual) render();
+            else actualizarMesas();
+        }).catch(function(err){ bloquearRespaldo(err.message); });
+    }
     enfocarMesaRapida();
 })();
 
 // ==========================================================================
-// MODAL DE BIENVENIDA DEL MENÚ PÚBLICO
+// # MODAL DE BIENVENIDA DEL MENÚ PÚBLICO
 // ==========================================================================
 
-document.addEventListener("DOMContentLoaded", function () {
-    const modal = document.getElementById("modal-bienvenida-menu");
-    const botonCerrar = document.getElementById("btn-cerrar-bienvenida-menu");
+document.addEventListener('DOMContentLoaded', function () {
+    const modal = document.getElementById('modal-bienvenida-menu');
+    const botonCerrar = document.getElementById('btn-cerrar-bienvenida-menu');
+
     if (!modal || !botonCerrar) {
         return;
     }
-    const fondo = modal.querySelector("[data-bienvenida-cerrar]");
-    const claveSesion = "bienvenidaBuffetMostradaV1";
+
+    const fondo = modal.querySelector('[data-bienvenida-cerrar]');
+    const claveSesion = 'bienvenidaBuffetMostradaV1';
     let yaMostrada = false;
+
     try {
-        yaMostrada = sessionStorage.getItem(claveSesion) === "1";
-    }
-    catch (error) {
+        yaMostrada = sessionStorage.getItem(claveSesion) === '1';
+    } catch (error) {
         yaMostrada = false;
     }
+
     function abrirBienvenida() {
-        modal.classList.add("is-open");
-        modal.setAttribute("aria-hidden", "false");
-        document.body.classList.add("bienvenida-menu-abierta");
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('bienvenida-menu-abierta');
+
         try {
-            sessionStorage.setItem(claveSesion, "1");
-        }
-        catch (error) {
+            sessionStorage.setItem(claveSesion, '1');
+        } catch (error) {
             // Si el navegador bloquea sessionStorage, el modal igual funciona.
         }
+
         window.setTimeout(function () {
             botonCerrar.focus();
         }, 180);
     }
+
     function cerrarBienvenida() {
-        modal.classList.remove("is-open");
-        modal.setAttribute("aria-hidden", "true");
-        document.body.classList.remove("bienvenida-menu-abierta");
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('bienvenida-menu-abierta');
     }
-    botonCerrar.addEventListener("click", cerrarBienvenida);
+
+    botonCerrar.addEventListener('click', cerrarBienvenida);
+
     if (fondo) {
-        fondo.addEventListener("click", cerrarBienvenida);
+        fondo.addEventListener('click', cerrarBienvenida);
     }
-    document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape" && modal.classList.contains("is-open")) {
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && modal.classList.contains('is-open')) {
             cerrarBienvenida();
         }
     });
+
     if (!yaMostrada) {
-        window.addEventListener("load", function () {
+        window.addEventListener('load', function () {
+            // El loader termina primero y después aparece la tarjeta.
             window.setTimeout(abrirBienvenida, 900);
         }, { once: true });
     }
@@ -3279,499 +4545,264 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 // ==========================================================================
-// AYUDA VISUAL DE ATAJOS SALÓN POS
+// SISTEMA SM - CONFIGURACIÓN RÁPIDA + FIX FILTRO/COMANDA
 // ==========================================================================
-document.addEventListener("DOMContentLoaded", function () {
-    var root = document.getElementById("salon-pos");
-    var buscador = document.getElementById("buscador");
-    if (!root || !buscador) {
-        return;
-    }
 
-    buscador.placeholder = "Código o producto · .. ticket · // cobrar · * fiscal";
-
-    var campoBuscador = buscador.closest(".salon-pos__field--buscador") || buscador.closest(".salon-pos__field") || buscador.parentElement;
-    if (campoBuscador && !document.getElementById("salon-atajos-rapidos")) {
-        campoBuscador.insertAdjacentHTML(
-            "afterend",
-            '<div id="salon-atajos-rapidos" class="salon-pos__atajos">' +
-            '<span><b>..</b> imprimir ticket</span>' +
-            '<span><b>//</b> cobrar normal</span>' +
-            '<span><b>*</b> cierre fiscal</span>' +
-            '</div>'
-        );
-    }
-});
-
-
-// ==========================================================================
-// FIX ENCABEZADO COMANDA POS
-// ==========================================================================
-document.addEventListener("DOMContentLoaded", function () {
-    var head = document.querySelector(".salon-pos__lista-head");
-    if (!head || head.dataset.headFix === "1") {
-        return;
-    }
-
-    head.dataset.headFix = "1";
-    head.innerHTML =
-        '<span class="col-cant">Cant.</span>' +
-        '<span class="col-codigo">Código</span>' +
-        '<span class="col-desc">Descripción</span>' +
-        '<span class="col-unitario">Unitario</span>' +
-        '<span class="col-total">Total</span>';
-});
-
-
-// ==========================================================================
-// FIX FUERTE ENCABEZADO COMANDA POS
-// Ejecuta ahora, en DOMContentLoaded y luego de renderizar.
-(function () {
-    function arreglarEncabezadoComandaPOS() {
-        document.querySelectorAll(".salon-pos__lista-head").forEach(function (head) {
-            head.classList.add("salon-pos__lista-head--fix");
-            head.innerHTML =
-                '<span class="col-cant">Cant.</span>' +
-                '<span class="col-codigo">Código</span>' +
-                '<span class="col-desc">Descripción</span>' +
-                '<span class="col-unitario">Unitario</span>' +
-                '<span class="col-total">Total</span>';
-        });
-    }
-
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", arreglarEncabezadoComandaPOS);
-    } else {
-        arreglarEncabezadoComandaPOS();
-    }
-
-    window.addEventListener("load", arreglarEncabezadoComandaPOS);
-    window.setTimeout(arreglarEncabezadoComandaPOS, 250);
-    window.setTimeout(arreglarEncabezadoComandaPOS, 900);
-
-    document.addEventListener("click", function (event) {
-        if (
-            event.target.closest(".salon-pos__mesa") ||
-            event.target.closest("#btn-imprimir-mesa") ||
-            event.target.closest("#btn-accion-principal")
-        ) {
-            window.setTimeout(arreglarEncabezadoComandaPOS, 80);
-        }
-    });
-})();
-
-
-// ==========================================================================
-// FIX DEFINITIVO COLUMNAS COMANDA POS
-// Cant. | Cód. | Descripción | Unitario | Total
-(function () {
-    function columnasComandaPOS() {
-        document.querySelectorAll(".salon-pos__lista-head").forEach(function (head) {
-            head.className = "salon-pos__lista-head salon-pos__lista-head--columnas-fijas";
-            head.innerHTML =
-                '<span class="pos-col pos-col-cant">Cant.</span>' +
-                '<span class="pos-col pos-col-codigo">Cód.</span>' +
-                '<span class="pos-col pos-col-desc">Descripción</span>' +
-                '<span class="pos-col pos-col-unitario">Unitario</span>' +
-                '<span class="pos-col pos-col-total">Total</span>';
-        });
-    }
-
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", columnasComandaPOS);
-    } else {
-        columnasComandaPOS();
-    }
-
-    window.addEventListener("load", columnasComandaPOS);
-    window.setTimeout(columnasComandaPOS, 150);
-    window.setTimeout(columnasComandaPOS, 600);
-    window.setTimeout(columnasComandaPOS, 1200);
-
-    document.addEventListener("click", function (event) {
-        if (
-            event.target.closest(".salon-pos__mesa") ||
-            event.target.closest("#btn-imprimir-mesa") ||
-            event.target.closest("#btn-accion-principal") ||
-            event.target.closest(".salon-pos__fila-pos")
-        ) {
-            window.setTimeout(columnasComandaPOS, 60);
-        }
-    });
-})();
-
-
-// ==========================================================================
-// FIX INLINE COLUMNAS COMANDA POS
-// Cant. | Cód. | Descripción | Unitario | Total
-(function () {
-    var GRID = "150px 110px minmax(260px, 1fr) 140px 140px";
-
-    function aplicarEstiloHeader(head) {
-        if (!head) return;
-
-        head.innerHTML =
-            '<span data-pos-head="cant">Cant.</span>' +
-            '<span data-pos-head="codigo">Cód.</span>' +
-            '<span data-pos-head="desc">Descripción</span>' +
-            '<span data-pos-head="unitario">Unitario</span>' +
-            '<span data-pos-head="total">Total</span>';
-
-        head.style.setProperty("display", "grid", "important");
-        head.style.setProperty("grid-template-columns", GRID, "important");
-        head.style.setProperty("column-gap", "16px", "important");
-        head.style.setProperty("align-items", "center", "important");
-        head.style.setProperty("width", "100%", "important");
-        head.style.setProperty("box-sizing", "border-box", "important");
-        head.style.setProperty("padding", "0 12px", "important");
-        head.style.setProperty("min-height", "38px", "important");
-        head.style.setProperty("white-space", "nowrap", "important");
-
-        var hijos = Array.prototype.slice.call(head.children);
-        hijos.forEach(function (span, index) {
-            span.style.setProperty("display", "block", "important");
-            span.style.setProperty("min-width", "0", "important");
-            span.style.setProperty("overflow", "hidden", "important");
-            span.style.setProperty("text-overflow", "ellipsis", "important");
-            span.style.setProperty("white-space", "nowrap", "important");
-            span.style.setProperty("grid-column", String(index + 1), "important");
-            span.style.setProperty("text-align", index >= 3 ? "right" : (index === 0 ? "center" : "left"), "important");
-        });
-    }
-
-    function aplicarEstiloCelda(elemento, columna, alineacion) {
-        if (!elemento) return;
-        elemento.style.setProperty("grid-column", String(columna), "important");
-        elemento.style.setProperty("min-width", "0", "important");
-        elemento.style.setProperty("text-align", alineacion || "left", "important");
-        if (columna >= 4) {
-            elemento.style.setProperty("white-space", "nowrap", "important");
-            elemento.style.setProperty("font-weight", "950", "important");
-        }
-    }
-
-    function aplicarEstiloFila(fila) {
-        if (!fila) return;
-
-        fila.style.setProperty("display", "grid", "important");
-        fila.style.setProperty("grid-template-columns", GRID, "important");
-        fila.style.setProperty("column-gap", "16px", "important");
-        fila.style.setProperty("align-items", "center", "important");
-        fila.style.setProperty("width", "100%", "important");
-        fila.style.setProperty("box-sizing", "border-box", "important");
-        fila.style.setProperty("padding", "8px 12px", "important");
-
-        aplicarEstiloCelda(fila.querySelector(".salon-pos__fila-cant"), 1, "center");
-        aplicarEstiloCelda(fila.querySelector(".salon-pos__fila-codigo"), 2, "left");
-        aplicarEstiloCelda(fila.querySelector(".salon-pos__fila-descripcion"), 3, "left");
-        aplicarEstiloCelda(fila.querySelector(".salon-pos__fila-unitario"), 4, "right");
-        aplicarEstiloCelda(fila.querySelector(".salon-pos__fila-total"), 5, "right");
-
-        var descStrong = fila.querySelector(".salon-pos__fila-descripcion > strong");
-        if (descStrong) {
-            descStrong.style.setProperty("white-space", "normal", "important");
-            descStrong.style.setProperty("overflow", "visible", "important");
-            descStrong.style.setProperty("text-overflow", "clip", "important");
-        }
-    }
-
-    function arreglarColumnasComanda() {
-        document.querySelectorAll(".salon-pos__lista-head").forEach(aplicarEstiloHeader);
-        document.querySelectorAll(".salon-pos__fila-pos").forEach(aplicarEstiloFila);
-    }
-
-    function observarComanda() {
-        var lista = document.getElementById("lista-comanda") || document.querySelector(".salon-pos__lista-pos");
-        if (!lista || lista.dataset.columnasObserver === "1") return;
-
-        lista.dataset.columnasObserver = "1";
-        var observer = new MutationObserver(function () {
-            arreglarColumnasComanda();
-        });
-
-        observer.observe(lista, {
-            childList: true,
-            subtree: true
-        });
-    }
-
-    function iniciarFix() {
-        arreglarColumnasComanda();
-        observarComanda();
-    }
-
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", iniciarFix);
-    } else {
-        iniciarFix();
-    }
-
-    window.addEventListener("load", iniciarFix);
-
-    [100, 300, 700, 1200, 2000].forEach(function (tiempo) {
-        window.setTimeout(iniciarFix, tiempo);
-    });
-
-    document.addEventListener("click", function (event) {
-        if (
-            event.target.closest(".salon-pos__mesa") ||
-            event.target.closest(".salon-pos__fila-pos") ||
-            event.target.closest("#btn-imprimir-mesa") ||
-            event.target.closest("#btn-accion-principal") ||
-            event.target.closest("[data-action]")
-        ) {
-            window.setTimeout(iniciarFix, 50);
-            window.setTimeout(iniciarFix, 180);
-        }
-    });
-
-    document.addEventListener("input", function (event) {
-        if (event.target && event.target.id === "buscador") {
-            window.setTimeout(iniciarFix, 80);
-        }
-    });
-})();
-
-
-// ==========================================================================
-// FIX HEADER NUEVO COMANDA POS
-// Oculta la cabecera vieja y crea una nueva alineada con la fila real.
-(function () {
-    var labels = [
-        { key: "cant", text: "Cant.", selector: ".salon-pos__fila-cant", align: "center" },
-        { key: "codigo", text: "Cód.", selector: ".salon-pos__fila-codigo", align: "left" },
-        { key: "desc", text: "Descripción", selector: ".salon-pos__fila-descripcion", align: "left" },
-        { key: "unitario", text: "Unitario", selector: ".salon-pos__fila-unitario", align: "right" },
-        { key: "total", text: "Total", selector: ".salon-pos__fila-total", align: "right" }
-    ];
-
-    function ocultarCabecerasViejas(modal) {
-        Array.prototype.slice.call(modal.querySelectorAll(".salon-pos__lista-head, .salon-pos__lista-head--fix, .salon-pos__lista-head--real, .salon-pos__lista-head--columnas-fijas")).forEach(function (head) {
-            if (head.id !== "comanda-header-nuevo") {
-                head.style.setProperty("display", "none", "important");
-                head.style.setProperty("height", "0", "important");
-                head.style.setProperty("min-height", "0", "important");
-                head.style.setProperty("padding", "0", "important");
-                head.style.setProperty("overflow", "hidden", "important");
-            }
-        });
-
-        // Por si la cabecera vieja no tenía clase exacta, ocultamos el bloque que solo diga esos títulos.
-        Array.prototype.slice.call(modal.querySelectorAll("div, section, header")).forEach(function (el) {
-            if (el.id === "comanda-header-nuevo") return;
-            if (el.querySelector("button,input,select,textarea,.salon-pos__fila-pos")) return;
-
-            var texto = String(el.textContent || "").toLowerCase().replace(/\s+/g, "");
-            var pareceHeader = texto.indexOf("cant") !== -1 && texto.indexOf("codigo") !== -1 && texto.indexOf("descripcion") !== -1 && texto.length < 90;
-
-            if (pareceHeader) {
-                el.style.setProperty("display", "none", "important");
-                el.style.setProperty("height", "0", "important");
-                el.style.setProperty("min-height", "0", "important");
-                el.style.setProperty("padding", "0", "important");
-                el.style.setProperty("overflow", "hidden", "important");
-            }
-        });
-    }
-
-    function crearHeader(modal) {
-        var header = document.getElementById("comanda-header-nuevo");
-        if (header) return header;
-
-        var lista = document.getElementById("lista-comanda") || modal.querySelector(".salon-pos__lista-pos");
-        if (!lista) return null;
-
-        header = document.createElement("div");
-        header.id = "comanda-header-nuevo";
-        header.className = "comanda-header-nuevo";
-
-        header.innerHTML = labels.map(function (item) {
-            return '<span data-col="' + item.key + '">' + item.text + '</span>';
-        }).join("");
-
-        lista.parentNode.insertBefore(header, lista);
-        return header;
-    }
-
-    function fallback(header) {
-        var width = header.clientWidth || 1000;
-        var posiciones = [
-            { key: "cant", left: 0, width: 150, align: "center" },
-            { key: "codigo", left: 165, width: 100, align: "left" },
-            { key: "desc", left: 280, width: Math.max(260, width - 600), align: "left" },
-            { key: "unitario", left: Math.max(0, width - 295), width: 130, align: "right" },
-            { key: "total", left: Math.max(0, width - 145), width: 130, align: "right" }
-        ];
-
-        posiciones.forEach(function (p) {
-            posicionar(header, p.key, p.left, p.width, p.align);
-        });
-    }
-
-    function posicionar(header, key, left, width, align) {
-        var span = header.querySelector('[data-col="' + key + '"]');
-        if (!span) return;
-
-        span.style.setProperty("position", "absolute", "important");
-        span.style.setProperty("left", Math.max(0, Math.round(left)) + "px", "important");
-        span.style.setProperty("top", "50%", "important");
-        span.style.setProperty("transform", "translateY(-50%)", "important");
-        span.style.setProperty("width", Math.max(45, Math.round(width)) + "px", "important");
-        span.style.setProperty("text-align", align, "important");
-        span.style.setProperty("white-space", "nowrap", "important");
-        span.style.setProperty("overflow", "hidden", "important");
-        span.style.setProperty("text-overflow", "ellipsis", "important");
-    }
-
-    function alinearHeader(modal, header) {
-        var row = modal.querySelector(".salon-pos__fila-pos");
-        if (!row) {
-            fallback(header);
-            return;
-        }
-
-        var headerRect = header.getBoundingClientRect();
-
-        labels.forEach(function (item) {
-            var cell = row.querySelector(item.selector);
-            if (!cell) return;
-
-            var rect = cell.getBoundingClientRect();
-            posicionar(header, item.key, rect.left - headerRect.left, rect.width, item.align);
-        });
-    }
-
-    function arreglar() {
-        var modal = document.getElementById("salon-comanda-modal") || document.body;
-        if (!modal) return;
-
-        ocultarCabecerasViejas(modal);
-
-        var header = crearHeader(modal);
-        if (!header) return;
-
-        header.style.setProperty("display", "block", "important");
-        alinearHeader(modal, header);
-    }
-
-    function observar() {
-        var modal = document.getElementById("salon-comanda-modal") || document.body;
-        if (!modal || modal.dataset.headerNuevoObserver === "1") return;
-
-        modal.dataset.headerNuevoObserver = "1";
-        var observer = new MutationObserver(function () {
-            window.requestAnimationFrame(arreglar);
-        });
-
-        observer.observe(modal, {
-            childList: true,
-            subtree: true,
-            characterData: true
-        });
-    }
-
-    function iniciar() {
-        arreglar();
-        observar();
-    }
-
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", iniciar);
-    } else {
-        iniciar();
-    }
-
-    window.addEventListener("load", iniciar);
-    window.addEventListener("resize", arreglar);
-
-    [80, 200, 500, 900, 1600, 2500].forEach(function (t) {
-        window.setTimeout(iniciar, t);
-    });
-
-    document.addEventListener("click", function () {
-        window.setTimeout(arreglar, 50);
-        window.setTimeout(arreglar, 220);
-    });
-
-    document.addEventListener("input", function () {
-        window.setTimeout(arreglar, 80);
-    });
-})();
-
-
-// ==========================================================================
-// FIX OCULTAR LINEA VIEJA CABECERA COMANDA
-// Oculta cualquier cabecera antigua que haya quedado arriba del header nuevo.
 (function () {
     function normalizar(texto) {
         return String(texto || "")
             .toLowerCase()
             .normalize("NFD")
             .replace(/[\u0300-\u036f]/g, "")
-            .replace(/\s+/g, "")
+            .replace(/\s+/g, " ")
             .trim();
     }
 
-    function ocultarElemento(el) {
-        if (!el || el.id === "comanda-header-nuevo") return;
-        el.classList.add("comanda-header-viejo-oculto");
-        el.style.setProperty("display", "none", "important");
-        el.style.setProperty("height", "0", "important");
-        el.style.setProperty("min-height", "0", "important");
-        el.style.setProperty("max-height", "0", "important");
-        el.style.setProperty("padding", "0", "important");
-        el.style.setProperty("margin", "0", "important");
-        el.style.setProperty("border", "0", "important");
-        el.style.setProperty("overflow", "hidden", "important");
-        el.style.setProperty("opacity", "0", "important");
-        el.style.setProperty("visibility", "hidden", "important");
-    }
+    function obtenerCsrfConfig() {
+        var input = document.querySelector('#config-csrf-form input[name="csrfmiddlewaretoken"]');
+        if (input) return input.value;
 
-    function ocultarLineaVieja() {
-        var modal = document.getElementById("salon-comanda-modal") || document;
-        var nuevo = document.getElementById("comanda-header-nuevo");
-
-        modal.querySelectorAll(".salon-pos__lista-head, .salon-pos__lista-head--fix, .salon-pos__lista-head--real, .salon-pos__lista-head--columnas-fijas").forEach(function (el) {
-            ocultarElemento(el);
+        var cookie = document.cookie.split(';').map(function (c) { return c.trim(); }).find(function (c) {
+            return c.indexOf('csrftoken=') === 0;
         });
 
-        // Si quedó una línea de texto suelta arriba del header nuevo, la detectamos por contenido.
-        modal.querySelectorAll("div, section, header, p, span").forEach(function (el) {
-            if (!el || el.id === "comanda-header-nuevo") return;
-            if (nuevo && nuevo.contains(el)) return;
-            if (el.querySelector("button,input,select,textarea")) return;
-            if (el.querySelector("#comanda-header-nuevo")) return;
-            if (el.querySelector(".salon-pos__fila-pos")) return;
+        return cookie ? decodeURIComponent(cookie.split('=').slice(1).join('=')) : '';
+    }
 
-            var texto = normalizar(el.textContent);
-            if (!texto) return;
+    function estadoConfig(mensaje, tipo) {
+        var estado = document.getElementById('config-estado-guardado');
+        if (!estado) return;
 
-            var pareceCabecera =
-                texto === "cant.codigo.descripcionunitariototal" ||
-                texto === "cant.cod.descripcionunitariototal" ||
-                texto === "cant.cod.descripcionunitario" ||
-                texto === "cant.codigodescripcionunitario" ||
-                (
-                    texto.indexOf("cant") !== -1 &&
-                    texto.indexOf("codigo") !== -1 &&
-                    texto.indexOf("descripcion") !== -1 &&
-                    texto.length <= 55
-                );
+        estado.textContent = mensaje || '';
+        estado.classList.toggle('is-error', tipo === 'error');
 
-            if (pareceCabecera) {
-                ocultarElemento(el);
+        if (mensaje && tipo !== 'error') {
+            window.clearTimeout(estado.dataset.timer);
+            estado.dataset.timer = window.setTimeout(function () {
+                estado.textContent = '';
+            }, 2200);
+        }
+    }
+
+    window.guardarConfiguracion = async function guardarConfiguracion(elemento) {
+        var panel = document.querySelector('.config-sistema');
+        if (!panel || !elemento) return;
+
+        var campo = elemento.dataset.configCampo;
+        if (!campo) return;
+
+        var url = panel.dataset.configUrl || '/dashboard/configuracion/actualizar/';
+        var valor = elemento.type === 'checkbox' ? (elemento.checked ? 'true' : 'false') : elemento.value;
+
+        if (campo === 'descuento_efectivo_porcentaje') {
+            var numero = parseInt(valor || '0', 10);
+            if (Number.isNaN(numero)) numero = 0;
+            numero = Math.max(0, Math.min(numero, 100));
+            elemento.value = numero;
+            valor = String(numero);
+        }
+
+        if (campo === 'hora_cierre' && !valor) {
+            estadoConfig('Ingresá una hora válida.', 'error');
+            return;
+        }
+
+        var valorAnterior = elemento.type === 'checkbox' ? !elemento.checked : elemento.defaultValue;
+        var datos = new FormData();
+        datos.append('campo', campo);
+        datos.append('valor', valor);
+
+        elemento.disabled = true;
+        estadoConfig('Guardando...');
+
+        try {
+            var response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': obtenerCsrfConfig(),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: datos
+            });
+
+            var data = await response.json().catch(function () {
+                return {status: 'error', mensaje: 'Respuesta inválida del servidor.'};
+            });
+
+            if (!response.ok || data.status !== 'ok') {
+                throw new Error(data.mensaje || 'No se pudo guardar la configuración.');
+            }
+
+            if (elemento.type !== 'checkbox') {
+                elemento.defaultValue = elemento.value;
+            }
+
+            if (campo === 'buffet_habilitado') {
+                var boton = document.getElementById('btn-estado-global');
+                if (boton) {
+                    boton.classList.toggle('is-danger', elemento.checked);
+                    boton.classList.toggle('is-success', !elemento.checked);
+                    boton.textContent = elemento.checked ? '🔴 Pausar pedidos' : '🟢 Activar pedidos';
+                }
+            }
+
+            if (campo === 'salon_habilitado') {
+                document.querySelectorAll('[href$="/salon/"], [href*="/salon/"]').forEach(function (link) {
+                    link.hidden = !elemento.checked;
+                });
+            }
+
+            estadoConfig('Guardado ✓');
+        } catch (error) {
+            console.error(error);
+            estadoConfig(error.message, 'error');
+
+            if (elemento.type === 'checkbox') {
+                elemento.checked = valorAnterior;
+            } else {
+                elemento.value = valorAnterior;
+            }
+        } finally {
+            elemento.disabled = false;
+        }
+    };
+
+    function ocultarCabeceraComandaSM() {
+        var modal = document.getElementById('salon-comanda-modal') || document;
+
+        modal.querySelectorAll(
+            '#comanda-header-nuevo, .comanda-header-nuevo, ' +
+            '.salon-pos__lista-head, .salon-pos__lista-head--fix, ' +
+            '.salon-pos__lista-head--real, .salon-pos__lista-head--columnas-fijas, ' +
+            '.salon-pos__tabla thead, #salon-comanda-modal thead'
+        ).forEach(function (el) {
+            if (el && el.parentNode) {
+                el.parentNode.removeChild(el);
             }
         });
     }
 
-    function iniciarOcultador() {
-        ocultarLineaVieja();
+    function productoCoincidePuesto(producto, puestoActivo) {
+        if (!puestoActivo || puestoActivo === 'todos') return true;
 
-        var modal = document.getElementById("salon-comanda-modal") || document.body;
-        if (modal && modal.dataset.ocultarHeaderViejoObserver !== "1") {
-            modal.dataset.ocultarHeaderViejoObserver = "1";
+        var puestos = String(producto.dataset.puestos || '')
+            .split(',')
+            .map(function (x) { return String(x).trim(); })
+            .filter(Boolean);
+
+        if (puestos.indexOf(String(puestoActivo)) !== -1) return true;
+
+        return normalizar(producto.textContent).indexOf(normalizar(puestoActivo)) !== -1;
+    }
+
+    function obtenerPuestoActivo() {
+        var btn =
+            document.querySelector('.menu-admin-filtro.is-active') ||
+            document.querySelector('.menu-admin-filtro.active') ||
+            document.querySelector('.btn-filtro-menu.is-active') ||
+            document.querySelector('.btn-filtro-menu.active');
+
+        if (!btn) return 'todos';
+        return String(btn.dataset.puesto || btn.getAttribute('data-puesto') || btn.textContent || 'todos').trim();
+    }
+
+    function aplicarFiltroMenuSM() {
+        var input =
+            document.getElementById('buscador-menu-admin') ||
+            document.querySelector('.menu-admin-buscador input') ||
+            document.querySelector('#tab-menu input[type="search"]') ||
+            document.querySelector('input[placeholder*="Buscar"]');
+
+        var texto = normalizar(input ? input.value : '');
+        var puestoActivo = obtenerPuestoActivo();
+        var totalVisibles = 0;
+
+        document.querySelectorAll('.categoria-menu, .menu-admin-categoria').forEach(function (categoria) {
+            var visiblesCategoria = 0;
+
+            categoria.querySelectorAll('.fila-producto-menu, .menu-admin-producto').forEach(function (producto) {
+                var busqueda = normalizar(producto.dataset.busqueda || producto.getAttribute('data-busqueda') || producto.textContent);
+                var visible = (!texto || busqueda.indexOf(texto) !== -1) && productoCoincidePuesto(producto, puestoActivo);
+
+                producto.hidden = !visible;
+
+                if (visible) {
+                    producto.style.removeProperty('display');
+                    visiblesCategoria += 1;
+                    totalVisibles += 1;
+                } else {
+                    producto.style.setProperty('display', 'none', 'important');
+                }
+            });
+
+            categoria.hidden = visiblesCategoria === 0;
+            if (visiblesCategoria === 0) {
+                categoria.style.setProperty('display', 'none', 'important');
+            } else {
+                categoria.style.removeProperty('display');
+                if (texto && categoria.tagName && categoria.tagName.toLowerCase() === 'details') {
+                    categoria.open = true;
+                }
+            }
+
+            var cantidad = categoria.querySelector('.menu-admin-categoria__cantidad');
+            if (cantidad) {
+                cantidad.textContent = visiblesCategoria + ' producto' + (visiblesCategoria === 1 ? '' : 's');
+            }
+        });
+
+        var sinResultados = document.getElementById('menu-admin-sin-resultados');
+        if (sinResultados) {
+            sinResultados.hidden = totalVisibles > 0;
+            sinResultados.style.setProperty('display', totalVisibles > 0 ? 'none' : 'block', 'important');
+        }
+    }
+
+    window.filtrarMenu = function (puesto, boton) {
+        document.querySelectorAll('.menu-admin-filtro, .btn-filtro-menu').forEach(function (btn) {
+            btn.classList.remove('is-active', 'active');
+        });
+
+        if (boton) {
+            boton.classList.add('is-active', 'active');
+            boton.dataset.puesto = puesto || 'todos';
+        }
+
+        aplicarFiltroMenuSM();
+    };
+
+    function iniciarSistemaSMFinal() {
+        ocultarCabeceraComandaSM();
+        aplicarFiltroMenuSM();
+
+        document.querySelectorAll('.config-sistema [data-config-campo]').forEach(function (campo) {
+            if (campo.dataset.configReady === '1') return;
+            campo.dataset.configReady = '1';
+            campo.addEventListener('change', function () {
+                window.guardarConfiguracion(campo);
+            });
+        });
+
+        var input =
+            document.getElementById('buscador-menu-admin') ||
+            document.querySelector('.menu-admin-buscador input') ||
+            document.querySelector('#tab-menu input[type="search"]') ||
+            document.querySelector('input[placeholder*="Buscar"]');
+
+        if (input && input.dataset.filtroSistemaSMFinal !== '1') {
+            input.dataset.filtroSistemaSMFinal = '1';
+            input.addEventListener('input', aplicarFiltroMenuSM);
+            input.addEventListener('keyup', aplicarFiltroMenuSM);
+            input.addEventListener('search', aplicarFiltroMenuSM);
+            input.addEventListener('change', aplicarFiltroMenuSM);
+        }
+
+        var modal = document.getElementById('salon-comanda-modal') || document.body;
+        if (modal && modal.dataset.sinCabeceraComandaSMFinal !== '1') {
+            modal.dataset.sinCabeceraComandaSMFinal = '1';
             new MutationObserver(function () {
-                window.requestAnimationFrame(ocultarLineaVieja);
+                window.requestAnimationFrame(ocultarCabeceraComandaSM);
+                window.setTimeout(ocultarCabeceraComandaSM, 80);
             }).observe(modal, {
                 childList: true,
                 subtree: true,
@@ -3780,128 +4811,475 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", iniciarOcultador);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', iniciarSistemaSMFinal);
     } else {
-        iniciarOcultador();
+        iniciarSistemaSMFinal();
     }
 
-    window.addEventListener("load", iniciarOcultador);
-    [100, 300, 800, 1500, 2500].forEach(function (t) {
-        window.setTimeout(iniciarOcultador, t);
+    window.addEventListener('load', iniciarSistemaSMFinal);
+    [100, 300, 700, 1400, 2600].forEach(function (t) {
+        window.setTimeout(iniciarSistemaSMFinal, t);
+    });
+})();
+
+
+
+// ==========================================================================
+
+(function () {
+    function iniciarSwitchConfigRobusto() {
+        document.querySelectorAll('.config-switch').forEach(function (switchVisual) {
+            if (switchVisual.dataset.switchRobusto === '1') return;
+            switchVisual.dataset.switchRobusto = '1';
+
+            switchVisual.addEventListener('click', function (event) {
+                var label = switchVisual.closest('label');
+                var input = label ? label.querySelector('input[type="checkbox"][data-config-campo]') : null;
+
+                if (!input) {
+                    input = switchVisual.previousElementSibling;
+                }
+
+                if (!input || input.disabled || !input.dataset || !input.dataset.configCampo) {
+                    return;
+                }
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                input.checked = !input.checked;
+
+                if (typeof window.guardarConfiguracion === 'function') {
+                    window.guardarConfiguracion(input);
+                } else {
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', iniciarSwitchConfigRobusto);
+    } else {
+        iniciarSwitchConfigRobusto();
+    }
+
+    window.addEventListener('load', iniciarSwitchConfigRobusto);
+})();
+
+
+// ==========================================================================
+// SISTEMA SM V89 - REFRESCAR CUENTAS POR MESA
+// ==========================================================================
+
+(function () {
+    function refrescarMesasCuandoCorresponde() {
+        const tabMesas = document.getElementById('tab-mesas');
+        if (!tabMesas) return;
+
+        const visible = tabMesas.style.display !== 'none' && !tabMesas.hidden;
+
+        if (visible && typeof window.renderizarMesas === 'function') {
+            window.setTimeout(window.renderizarMesas, 80);
+            window.setTimeout(window.renderizarMesas, 300);
+        }
+    }
+
+    document.addEventListener('click', function (event) {
+        const boton = event.target.closest('[onclick*="mesas"], #btn-tab-mesas');
+        if (boton) {
+            window.setTimeout(refrescarMesasCuandoCorresponde, 100);
+            window.setTimeout(refrescarMesasCuandoCorresponde, 400);
+        }
     });
 
-    document.addEventListener("click", function () {
-        window.setTimeout(ocultarLineaVieja, 60);
-        window.setTimeout(ocultarLineaVieja, 250);
+    window.addEventListener('load', function () {
+        window.setTimeout(refrescarMesasCuandoCorresponde, 300);
     });
 })();
 
 
 // ==========================================================================
-// FIX MESA VACÍA COMANDA POS
-// Oculta la cabecera cuando no hay productos y centra "Mesa vacía".
+// SISTEMA SM V91 - GRILLA SALÓN ROBUSTA + TICKET PARCIAL
+// ==========================================================================
+
 (function () {
-    function tieneProductosComanda(lista) {
-        if (!lista) return false;
+    function refrescarGrillaSalon() {
+        var wrap = document.querySelector('.salon-pos__tabla-wrap');
+        var lista = document.getElementById('lista-comanda');
+        var header = document.getElementById('salon-pos-grilla-header');
 
-        if (lista.querySelector(".salon-pos__fila-pos")) return true;
-        if (lista.querySelector("tr")) return true;
-
-        return String(lista.textContent || "").trim().length > 0;
-    }
-
-    function arreglarMesaVaciaComanda() {
-        var lista = document.getElementById("lista-comanda");
-        var vacia = document.getElementById("salon-lista-vacia");
-        var headerNuevo = document.getElementById("comanda-header-nuevo");
-        var wrap = lista ? lista.closest(".salon-pos__tabla-wrap") : null;
-
-        var hayProductos = tieneProductosComanda(lista);
-
-        if (wrap) {
-            wrap.classList.toggle("is-empty", !hayProductos);
-            wrap.classList.toggle("has-products", hayProductos);
+        if (!wrap || !lista) {
+            return;
         }
 
-        if (headerNuevo) {
-            headerNuevo.style.setProperty("display", hayProductos ? "block" : "none", "important");
-            headerNuevo.style.setProperty("height", hayProductos ? "38px" : "0", "important");
-            headerNuevo.style.setProperty("min-height", hayProductos ? "38px" : "0", "important");
-            headerNuevo.style.setProperty("margin", hayProductos ? "8px 0 0" : "0", "important");
-            headerNuevo.style.setProperty("padding", hayProductos ? "0 12px" : "0", "important");
-            headerNuevo.style.setProperty("overflow", "hidden", "important");
-            headerNuevo.style.setProperty("visibility", hayProductos ? "visible" : "hidden", "important");
-            headerNuevo.style.setProperty("opacity", hayProductos ? "1" : "0", "important");
-        }
+        var hayProductos = lista.querySelectorAll('.salon-pos__fila-pos').length > 0;
 
-        if (vacia) {
-            if (hayProductos) {
-                vacia.hidden = true;
-                vacia.style.setProperty("display", "none", "important");
-            } else {
-                vacia.hidden = false;
-                vacia.style.setProperty("display", "flex", "important");
-                vacia.style.setProperty("position", "relative", "important");
-                vacia.style.setProperty("inset", "auto", "important");
-                vacia.style.setProperty("transform", "none", "important");
-                vacia.style.setProperty("width", "100%", "important");
-                vacia.style.setProperty("min-height", "96px", "important");
-                vacia.style.setProperty("align-items", "center", "important");
-                vacia.style.setProperty("justify-content", "center", "important");
-                vacia.style.setProperty("flex-direction", "column", "important");
-                vacia.style.setProperty("text-align", "center", "important");
-                vacia.style.setProperty("margin", "8px 0 0", "important");
-                vacia.style.setProperty("pointer-events", "none", "important");
-            }
+        wrap.classList.toggle('has-products', hayProductos);
+        wrap.classList.toggle('is-empty', !hayProductos);
+
+        if (header) {
+            header.style.setProperty('display', hayProductos ? 'grid' : 'none', 'important');
         }
     }
 
-    function iniciarFixMesaVacia() {
-        arreglarMesaVaciaComanda();
+    function iniciarGrillaSalonV91() {
+        refrescarGrillaSalon();
 
-        var modal = document.getElementById("salon-comanda-modal") || document.body;
-        if (modal && modal.dataset.mesaVaciaObserver !== "1") {
-            modal.dataset.mesaVaciaObserver = "1";
+        var lista = document.getElementById('lista-comanda');
+        if (lista && lista.dataset.grillaV91 !== '1') {
+            lista.dataset.grillaV91 = '1';
 
             new MutationObserver(function () {
-                window.requestAnimationFrame(arreglarMesaVaciaComanda);
-                window.setTimeout(arreglarMesaVaciaComanda, 80);
-            }).observe(modal, {
+                window.requestAnimationFrame(refrescarGrillaSalon);
+                window.setTimeout(refrescarGrillaSalon, 80);
+            }).observe(lista, {
                 childList: true,
                 subtree: true,
-                characterData: true,
-                attributes: true
+                characterData: true
             });
         }
     }
 
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", iniciarFixMesaVacia);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', iniciarGrillaSalonV91);
     } else {
-        iniciarFixMesaVacia();
+        iniciarGrillaSalonV91();
     }
 
-    window.addEventListener("load", iniciarFixMesaVacia);
-    window.addEventListener("resize", arreglarMesaVaciaComanda);
+    window.addEventListener('load', iniciarGrillaSalonV91);
 
-    [80, 200, 500, 1000, 1800, 3000].forEach(function (t) {
-        window.setTimeout(iniciarFixMesaVacia, t);
+    document.addEventListener('click', function () {
+        window.setTimeout(refrescarGrillaSalon, 60);
+        window.setTimeout(refrescarGrillaSalon, 180);
     });
 
-    document.addEventListener("click", function () {
-        window.setTimeout(arreglarMesaVaciaComanda, 50);
-        window.setTimeout(arreglarMesaVaciaComanda, 180);
-        window.setTimeout(arreglarMesaVaciaComanda, 500);
-    });
-
-    document.addEventListener("input", function () {
-        window.setTimeout(arreglarMesaVaciaComanda, 80);
-        window.setTimeout(arreglarMesaVaciaComanda, 220);
+    document.addEventListener('input', function () {
+        window.setTimeout(refrescarGrillaSalon, 80);
     });
 })();
 
 
+// ==========================================================================
+// SISTEMA SM V93 - CONFIGURACIÓN ROBUSTA
+// Guarda switches de Configuración y recarga para reflejar el cambio real.
+// ==========================================================================
+
+(function () {
+    function obtenerCsrfConfigV93() {
+        var input = document.querySelector('#config-csrf-form input[name="csrfmiddlewaretoken"]');
+        if (input && input.value) {
+            return input.value;
+        }
+
+        var cookie = document.cookie.split(';').map(function (c) { return c.trim(); }).find(function (c) {
+            return c.indexOf('csrftoken=') === 0;
+        });
+
+        return cookie ? decodeURIComponent(cookie.split('=').slice(1).join('=')) : '';
+    }
+
+    function estadoConfigV93(mensaje, tipo) {
+        var estado = document.getElementById('config-estado-guardado');
+        if (!estado) return;
+
+        estado.textContent = mensaje || '';
+        estado.classList.toggle('is-error', tipo === 'error');
+
+        if (mensaje && tipo !== 'error') {
+            window.clearTimeout(estado.dataset.timer);
+            estado.dataset.timer = window.setTimeout(function () {
+                estado.textContent = '';
+            }, 2600);
+        }
+    }
+
+    window.guardarConfiguracion = async function guardarConfiguracion(elemento) {
+        var panel = document.querySelector('.config-sistema');
+        if (!panel || !elemento) return;
+
+        var campo = elemento.dataset.configCampo;
+        if (!campo) return;
+
+        var url = panel.dataset.configUrl || '/dashboard/configuracion/actualizar/';
+        var valor = elemento.type === 'checkbox' ? (elemento.checked ? 'true' : 'false') : elemento.value;
+        var valorAnterior = elemento.type === 'checkbox' ? !elemento.checked : elemento.defaultValue;
+
+        if (campo === 'descuento_efectivo_porcentaje') {
+            var numero = parseInt(valor || '0', 10);
+            if (Number.isNaN(numero)) numero = 0;
+            numero = Math.max(0, Math.min(numero, 100));
+            elemento.value = numero;
+            valor = String(numero);
+        }
+
+        if (campo === 'hora_cierre' && !valor) {
+            estadoConfigV93('Ingresá una hora válida.', 'error');
+            return;
+        }
+
+        var datos = new FormData();
+        datos.append('campo', campo);
+        datos.append('valor', valor);
+
+        elemento.disabled = true;
+        estadoConfigV93('Guardando...');
+
+        try {
+            var response = await fetch(url, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'X-CSRFToken': obtenerCsrfConfigV93(),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: datos
+            });
+
+            var data = await response.json().catch(function () {
+                return {status: 'error', mensaje: 'Respuesta inválida del servidor.'};
+            });
+
+            if (!response.ok || data.status !== 'ok') {
+                throw new Error(data.mensaje || 'No se pudo guardar la configuración.');
+            }
+
+            if (elemento.type !== 'checkbox') {
+                elemento.defaultValue = elemento.value;
+            }
+
+            estadoConfigV93('Guardado ✓');
+
+            // Recargamos para que el panel, menú público y banners tomen el estado real.
+            window.setTimeout(function () {
+                window.location.reload();
+            }, 550);
+
+        } catch (error) {
+            console.error(error);
+            estadoConfigV93(error.message || 'No se pudo guardar.', 'error');
+
+            if (elemento.type === 'checkbox') {
+                elemento.checked = valorAnterior;
+            } else {
+                elemento.value = valorAnterior;
+            }
+
+            window.alert(error.message || 'No se pudo guardar la configuración.');
+        } finally {
+            elemento.disabled = false;
+        }
+    };
+
+    function inputDeSwitch(switchVisual) {
+        if (!switchVisual) return null;
+
+        var label = switchVisual.closest('label');
+        var input = label ? label.querySelector('input[type="checkbox"][data-config-campo]') : null;
+
+        if (!input) {
+            input = switchVisual.previousElementSibling;
+        }
+
+        if (!input || !input.dataset || !input.dataset.configCampo) {
+            return null;
+        }
+
+        return input;
+    }
+
+    function iniciarConfigV93() {
+        var panel = document.querySelector('.config-sistema');
+        if (!panel || panel.dataset.configV93 === '1') return;
+
+        panel.dataset.configV93 = '1';
+
+        // Click sobre la perilla visual: manejamos nosotros, antes del label.
+        panel.addEventListener('click', function (event) {
+            var switchVisual = event.target.closest('.config-switch');
+            if (!switchVisual || !panel.contains(switchVisual)) return;
+
+            var input = inputDeSwitch(switchVisual);
+            if (!input || input.disabled) return;
+
+            event.preventDefault();
+            event.stopPropagation();
+            if (typeof event.stopImmediatePropagation === 'function') {
+                event.stopImmediatePropagation();
+            }
+
+            input.checked = !input.checked;
+            window.guardarConfiguracion(input);
+        }, true);
+
+        // Cambios sobre input real / time / number.
+        panel.querySelectorAll('[data-config-campo]').forEach(function (campo) {
+            if (campo.dataset.configV93Ready === '1') return;
+            campo.dataset.configV93Ready = '1';
+
+            campo.addEventListener('change', function () {
+                window.guardarConfiguracion(campo);
+            });
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', iniciarConfigV93);
+    } else {
+        iniciarConfigV93();
+    }
+
+    window.addEventListener('load', iniciarConfigV93);
+})();
+
+
+
+// ==========================================================================
+// SISTEMA SM V107 - POPUP SECUENCIAL CON X
+// X = siguiente imagen. En la última X, cierra el popup.
+// ==========================================================================
+
+(function () {
+    function iniciarPopupSecuencialSM() {
+        var modal = document.getElementById('modal-bienvenida-menu');
+
+        if (!modal || modal.dataset.popupSecuencialV107 === '1') {
+            return;
+        }
+
+        modal.dataset.popupSecuencialV107 = '1';
+
+        var slides = Array.prototype.slice.call(
+            modal.querySelectorAll('.bienvenida-popup-slide')
+        );
+        var dots = Array.prototype.slice.call(
+            modal.querySelectorAll('.bienvenida-popup-dot')
+        );
+        var btnPrev = modal.querySelector('[data-popup-prev]');
+        var btnNext = modal.querySelector('[data-popup-next]');
+        var botonCerrar = document.getElementById('btn-cerrar-bienvenida-menu');
+        var index = 0;
+
+        function mostrar(n) {
+            if (!slides.length) {
+                return;
+            }
+
+            index = Math.max(0, Math.min(n, slides.length - 1));
+
+            slides.forEach(function (slide, i) {
+                slide.classList.toggle('is-active', i === index);
+            });
+
+            dots.forEach(function (dot, i) {
+                dot.classList.toggle('is-active', i === index);
+            });
+        }
+
+        function cerrarModal() {
+            modal.classList.remove('is-open');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('bienvenida-menu-abierta');
+        }
+
+        if (btnPrev) {
+            btnPrev.addEventListener('click', function (event) {
+                event.preventDefault();
+                mostrar(index - 1);
+            });
+        }
+
+        if (btnNext) {
+            btnNext.addEventListener('click', function (event) {
+                event.preventDefault();
+
+                if (index < slides.length - 1) {
+                    mostrar(index + 1);
+                } else {
+                    mostrar(0);
+                }
+            });
+        }
+
+        dots.forEach(function (dot, i) {
+            dot.addEventListener('click', function (event) {
+                event.preventDefault();
+                mostrar(i);
+            });
+        });
+
+        if (botonCerrar) {
+            botonCerrar.addEventListener('click', function (event) {
+                // Frenamos el cierre viejo para que la X primero pase al siguiente popup.
+                event.preventDefault();
+                event.stopPropagation();
+                if (event.stopImmediatePropagation) {
+                    event.stopImmediatePropagation();
+                }
+
+                if (slides.length > 1 && index < slides.length - 1) {
+                    mostrar(index + 1);
+                    return;
+                }
+
+                cerrarModal();
+            }, true);
+        }
+
+        // Siempre arranca en la primera imagen cuando se abre.
+        var observer = new MutationObserver(function () {
+            if (modal.classList.contains('is-open')) {
+                mostrar(0);
+            }
+        });
+
+        observer.observe(modal, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
+
+        mostrar(0);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', iniciarPopupSecuencialSM);
+    } else {
+        iniciarPopupSecuencialSM();
+    }
+
+    window.addEventListener('load', iniciarPopupSecuencialSM);
+})();
+
+// ==========================================================================
+// SISTEMA SM V97 - PRECIO RÁPIDO ROBUSTO
+// ==========================================================================
+(function () {
+    function iniciarPrecioRapidoV97() {
+        document.querySelectorAll('.menu-admin-precio-form').forEach(function (form) {
+            if (form.dataset.precioRapidoV97 === '1') return;
+            form.dataset.precioRapidoV97 = '1';
+
+            form.addEventListener('submit', function (event) {
+                if (typeof window.editarPrecioAjax === 'function') {
+                    window.editarPrecioAjax(event, form);
+                }
+            });
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', iniciarPrecioRapidoV97);
+    } else {
+        iniciarPrecioRapidoV97();
+    }
+
+    window.addEventListener('load', iniciarPrecioRapidoV97);
+})();
+
+
+
+// SAN MARTIN v108 - CUENTAS E IMPRESION
 // ==========================================================================
 // STERAKFOOD V100 - CUENTAS: NO SALTAR AL INICIO + ENTER AVANZA CAMPOS
 // ==========================================================================
@@ -4048,8 +5426,6 @@ document.addEventListener("DOMContentLoaded", function () {
         var borrar = panel.querySelector('#cuentas-limpiar');
         var contador = panel.querySelector('#cuentas-resultados');
         var vacio = panel.querySelector('#cuentas-sin-resultados');
-        var cuentas = Array.prototype.slice.call(panel.querySelectorAll('.cuentas-lista .cuenta-card'));
-
         if (!entrada || !estado) return;
 
         function normalizar(valor) {
@@ -4059,36 +5435,35 @@ document.addEventListener("DOMContentLoaded", function () {
                 .trim();
         }
 
-        // Solo se busca en datos de la persona, no en sus movimientos.
-        var catalogo = cuentas.map(function (card) {
-            return {
-                card: card,
-                texto: normalizar([
-                    card.dataset.cuentaNombre,
-                    card.dataset.cuentaTelefono,
-                    card.dataset.cuentaNota
-                ].join(' ')),
-                estado: card.dataset.cuentaEstado || ''
-            };
-        });
-
+        // Leer el DOM cada vez: las tarjetas cambian por AJAX y no se recarga el panel.
         function filtrar() {
+            var tarjetas = Array.prototype.slice.call(panel.querySelectorAll('.cuentas-lista .cuenta-card'));
+            var catalogo = tarjetas.map(function (card) {
+                return {
+                    card: card,
+                    texto: normalizar([
+                        card.dataset.cuentaNombre,
+                        card.dataset.cuentaTelefono,
+                        card.dataset.cuentaNota
+                    ].join(' ')),
+                    estado: card.dataset.cuentaEstado || ''
+                };
+            });
             var palabras = normalizar(entrada.value).split(/\s+/).filter(Boolean);
             var tipo = estado.value;
             var visibles = 0;
-
             catalogo.forEach(function (item) {
-                var coincideTexto = palabras.every(function (p) { return item.texto.includes(p); });
+                var coincideTexto = palabras.every(function (palabra) { return item.texto.includes(palabra); });
                 var coincideEstado = tipo === 'todos' || item.estado === tipo;
                 var mostrar = coincideTexto && coincideEstado;
                 item.card.hidden = !mostrar;
-                if (mostrar) visibles += 1;
+                if (mostrar) visibles++;
             });
-
             if (contador) contador.textContent = visibles + ' de ' + catalogo.length;
             if (vacio) vacio.hidden = visibles !== 0 || catalogo.length === 0;
         }
 
+        panel.addEventListener('sm-cuentas-actualizadas', filtrar);
         entrada.addEventListener('input', filtrar);
         estado.addEventListener('change', filtrar);
         if (borrar) borrar.addEventListener('click', function () {
@@ -4108,38 +5483,200 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 })();
 
-// STERAK V103 - Personal de Salón dentro del POS unificado
+// San Martín v161 - Mozos sin recargas: formulario y lista quedan abiertos.
 (function(){
-    function init(){
-        var form=document.getElementById('salon-form-agregar-mozo');
-        var bloque=document.getElementById('salon-gestion-mozos');
-        if(!form||!bloque||bloque.dataset.iniciado==='1')return;
-        bloque.dataset.iniciado='1';
-        var csrf=form.querySelector('input[name="csrfmiddlewaretoken"]');
-        form.addEventListener('submit',function(event){
-            event.preventDefault();
-            var boton=form.querySelector('button[type="submit"]');
-            if(boton)boton.disabled=true;
-            fetch(form.action,{method:'POST',credentials:'same-origin',headers:{'X-CSRFToken':csrf.value},body:new FormData(form)})
-              .then(function(r){return r.json().then(function(d){if(!r.ok||d.status!=='ok')throw Error(d.mensaje||'No se pudo agregar');return d;});})
-              .then(function(){location.reload();})
-              .catch(function(e){alert(e.message);if(boton)boton.disabled=false;});
-        });
-        bloque.addEventListener('click',function(event){
-            var boton=event.target.closest('[data-salon-borrar-mozo]');
-            if(!boton)return;
-            if(!confirm('¿Eliminar a '+(boton.dataset.nombre||'este mozo')+'?'))return;
-            boton.disabled=true;
-            fetch(boton.dataset.salonBorrarMozo,{method:'POST',credentials:'same-origin',headers:{'X-CSRFToken':csrf.value}})
-              .then(function(r){return r.json().then(function(d){if(!r.ok||d.status!=='ok')throw Error(d.mensaje||'No se pudo eliminar');return d;});})
-              .then(function(){location.reload();})
-              .catch(function(e){alert(e.message);boton.disabled=false;});
-        });
+  function init(){
+    var form = document.getElementById('salon-form-agregar-mozo');
+    var bloque = document.getElementById('salon-gestion-mozos');
+    if (!form || !bloque || bloque.dataset.iniciado === '1') return;
+    bloque.dataset.iniciado = '1';
+    var csrf = form.querySelector('input[name="csrfmiddlewaretoken"]');
+    var lista = bloque.querySelector('.salon-pos__personal-lista');
+    function avisar(texto, error) {
+      if (window.Swal) window.Swal.fire({toast:true,position:'top-end',icon:error?'error':'success',
+        title:texto,timer:2600,showConfirmButton:false,background:'var(--card-bg)',color:'var(--text-color)'});
+      else if (error) window.alert(texto);
     }
-    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
-    else init();
+    function numerar() {
+      lista.querySelectorAll('.salon-pos__personal-chip').forEach(function(chip,indice){
+        var numero=chip.querySelector('.salon-pos__personal-numero');
+        if (numero) numero.textContent=String(indice+1);
+      });
+    }
+    form.addEventListener('submit', async function(event){
+      event.preventDefault();
+      var boton=form.querySelector('button[type="submit"]');
+      if (boton) boton.disabled=true;
+      try {
+        var res=await fetch(form.action,{method:'POST',credentials:'same-origin',
+          headers:{'X-CSRFToken':csrf.value,'X-Requested-With':'XMLHttpRequest'},body:new FormData(form)});
+        var d=await res.json().catch(function(){return {};});
+        if(!res.ok||d.status!=='ok') throw Error(d.mensaje || 'No se pudo agregar el mozo.');
+        lista.querySelectorAll('small').forEach(function(el){el.remove();});
+        var chip=document.createElement('span');chip.className='salon-pos__personal-chip';
+        var numero=document.createElement('b');numero.className='salon-pos__personal-numero';
+        var etiqueta=document.createTextNode(' '+d.mozo.nombre+' ');
+        var borrar=document.createElement('button');borrar.type='button';borrar.textContent='×';
+        borrar.title='Eliminar mozo';borrar.dataset.salonBorrarMozo=d.mozo.eliminar_url;borrar.dataset.nombre=d.mozo.nombre;
+        chip.append(numero,etiqueta,borrar);lista.appendChild(chip);numerar();
+        form.reset();form.querySelector('input[name="nombre"]').focus({preventScroll:true});
+        window.dispatchEvent(new CustomEvent('sm-mozos-modificados',{detail:{accion:'agregar',mozo:d.mozo}}));
+        avisar('Mozo agregado: '+d.mozo.nombre);
+      }catch(e){avisar(e.message||'Error al agregar mozo.',true);}
+      finally{if(boton)boton.disabled=false;}
+    });
+    bloque.addEventListener('click', async function(event){
+      var boton=event.target.closest('[data-salon-borrar-mozo]');
+      if(!boton) return;
+      if(!window.confirm('¿Eliminar a '+(boton.dataset.nombre||'este mozo')+'?')) return;
+      boton.disabled=true;
+      try {
+        var res=await fetch(boton.dataset.salonBorrarMozo,{method:'POST',credentials:'same-origin',
+          headers:{'X-CSRFToken':csrf.value,'X-Requested-With':'XMLHttpRequest'}});
+        var d=await res.json().catch(function(){return {};});
+        if(!res.ok||d.status!=='ok') throw Error(d.mensaje||'No se pudo eliminar el mozo.');
+        var nombre=boton.dataset.nombre;
+        var id=Number((boton.dataset.salonBorrarMozo.match(/\/(\d+)\/eliminar\/?$/)||[])[1]||0);
+        boton.closest('.salon-pos__personal-chip').remove();numerar();
+        window.dispatchEvent(new CustomEvent('sm-mozos-modificados',{detail:{accion:'eliminar',mozo:{id:id,nombre:nombre}}}));
+        avisar('Mozo eliminado: '+nombre);
+      }catch(e){boton.disabled=false;avisar(e.message||'Error al eliminar mozo.',true);}
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 
+// SAN MARTIN v163 - Cuentas sin recargas y saldar deuda en una sola accion.
+(function () {
+    'use strict';
+    function iniciar() {
+        var panel = document.getElementById('tab-cuentas');
+        if (!panel || panel.dataset.ajaxCuentasV163 === '1') return;
+        panel.dataset.ajaxCuentasV163 = '1';
+        var lista = panel.querySelector('.cuentas-lista');
+        var aviso = panel.querySelector('#cuentas-ajax-mensaje');
+        if (!lista) return;
+
+        function informar(mensaje, error) {
+            if (aviso) {
+                aviso.hidden = false;
+                aviso.textContent = mensaje;
+                aviso.classList.toggle('is-error', Boolean(error));
+            }
+            if (window.Swal) {
+                window.Swal.fire({
+                    toast: true, position: 'top-end',
+                    icon: error ? 'error' : 'success',
+                    title: mensaje, timer: error ? 4300 : 2600,
+                    showConfirmButton: false,
+                    background: 'var(--card-bg)', color: 'var(--text-color)'
+                });
+            }
+        }
+
+        function moneda(valor) {
+            var numero = Number(valor);
+            return '$' + (Number.isFinite(numero) ? numero.toLocaleString('es-AR', {minimumFractionDigits:0,maximumFractionDigits:2}) : '0');
+        }
+
+        function actualizarDatos(data, form, eraNueva) {
+            var totalDeuda = panel.querySelector('[data-cuentas-total-deuda]');
+            var totalFavor = panel.querySelector('[data-cuentas-total-favor]');
+            if (totalDeuda) totalDeuda.textContent = moneda(data.total_deuda);
+            if (totalFavor) totalFavor.textContent = moneda(data.total_favor);
+            var id = 'cuenta-' + String(data.cuenta_id);
+            var vieja = document.getElementById(id);
+
+            if (data.eliminada) {
+                if (vieja) vieja.remove();
+            } else if (data.html) {
+                var contenedor = document.createElement('template');
+                contenedor.innerHTML = data.html.trim();
+                var tarjeta = contenedor.content.firstElementChild;
+                if (!tarjeta || !tarjeta.matches('.cuenta-card')) {
+                    throw new Error('El servidor devolvio una ficha incompleta.');
+                }
+                if (vieja) {
+                    tarjeta.open = vieja.open;
+                    vieja.replaceWith(tarjeta);
+                } else {
+                    // Crear una cuenta nueva sin mover ni cerrar las otras fichas.
+                    var tarjetas = Array.from(lista.querySelectorAll('.cuenta-card'));
+                    var siguiente = tarjetas.find(function (c) {
+                        return c.dataset.cuentaNombre.localeCompare(tarjeta.dataset.cuentaNombre, 'es', {sensitivity:'base'}) > 0;
+                    });
+                    if (siguiente) lista.insertBefore(tarjeta, siguiente);
+                    else lista.appendChild(tarjeta);
+                }
+            }
+
+            var totalTarjetas = lista.querySelectorAll('.cuenta-card').length;
+            var vacioGeneral = lista.querySelector('.cuentas-vacio');
+            if (totalTarjetas && vacioGeneral) vacioGeneral.remove();
+            if (!totalTarjetas && !vacioGeneral) {
+                var vacio = document.createElement('div');
+                vacio.className = 'cuentas-vacio';
+                vacio.textContent = 'Todavía no hay cuentas. Creá una arriba para empezar.';
+                lista.prepend(vacio);
+            }
+            panel.dispatchEvent(new CustomEvent('sm-cuentas-actualizadas'));
+            if (eraNueva) {
+                form.reset();
+                var nombre = form.querySelector('input[name="nombre"]');
+                if (nombre) nombre.focus({preventScroll:true});
+            } else if (!data.eliminada && form.matches('.cuenta-mov-form')) {
+                var tarjetaAbierta = document.getElementById(id);
+                if (tarjetaAbierta) {
+                    var monto = tarjetaAbierta.querySelector('.cuenta-mov-form [name="monto"]');
+                    if (monto) monto.focus({preventScroll:true});
+                }
+            }
+        }
+
+        // La captura evita el onsubmit antiguo que forzaba navegar y confirmar 2 veces.
+        document.addEventListener('submit', async function (event) {
+            var form = event.target;
+            if (!panel.contains(form) || !form.matches('form[data-cuenta-ajax]')) return;
+            event.preventDefault();
+            event.stopPropagation();
+            if (form.dataset.enviando === '1') return;
+
+            var pregunta = form.dataset.confirm || '';
+            if (form.matches('.cuenta-saldar-form')) {
+                // Confirmar que se cobro realmente: saldar NO significa perdonar la deuda.
+                pregunta += '\nEsto registra un PAGO en la cuenta; no elimina movimientos ni genera ingreso en caja.';
+            }
+            if (pregunta && !window.confirm(pregunta)) return;
+
+            var boton = form.querySelector('button[type="submit"]');
+            var eraNueva = form.classList.contains('cuentas-form-card');
+            form.dataset.enviando = '1';
+            if (boton) boton.disabled = true;
+            try {
+                var datosFormulario = new FormData(form);
+                var token = datosFormulario.get('csrfmiddlewaretoken');
+                if (!token) throw new Error('Falta el token de seguridad del formulario.');
+                var respuesta = await fetch(form.action, {
+                    method: 'POST', body: datosFormulario, credentials: 'same-origin',
+                    headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': token}
+                });
+                var datos = await respuesta.json().catch(function () { return {}; });
+                if (!respuesta.ok || datos.status !== 'ok') {
+                    throw new Error(datos.mensaje || 'No se pudo guardar. Comproba la conexion o volve a iniciar sesion.');
+                }
+                actualizarDatos(datos, form, eraNueva);
+                informar(datos.mensaje || 'Cuenta actualizada.', false);
+            } catch (error) {
+                informar(error.message || 'No se pudo actualizar la cuenta.', true);
+            } finally {
+                form.dataset.enviando = '';
+                if (boton && boton.isConnected) boton.disabled = false;
+            }
+        }, true);
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar);
+    else iniciar();
+})();
 
 // SterakFood v105 - Reimpresión desde Cuentas sin navegar fuera del panel
 (function () {
@@ -4168,3 +5705,514 @@ document.addEventListener("DOMContentLoaded", function () {
             }).finally(function () {boton.disabled=false;});
     });
 })();
+
+
+// ==========================================================================
+// SAN MARTÍN V111 - EDITOR RÁPIDO DEL CATÁLOGO PRIVADO DE SALÓN
+// ==========================================================================
+(function () {
+    'use strict';
+
+    function iniciarEditorSalonV111() {
+        var panel = document.getElementById('salon-editor-codigos');
+        if (!panel || panel.dataset.editorSalonV111 === '1') return;
+        panel.dataset.editorSalonV111 = '1';
+
+        var inputBuscar = document.getElementById('salon-catalogo-buscar');
+        var lista = document.getElementById('salon-catalogo-lista');
+        var contador = document.getElementById('salon-catalogo-contador');
+        var mensaje = document.getElementById('salon-catalogo-mensaje');
+        var recargar = document.getElementById('salon-catalogo-recargar');
+        var productos = [];
+        var cargando = false;
+        var cargado = false;
+        var maxVisibles = 40;
+
+        function normalizar(valor) {
+            return String(valor || '').normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLocaleLowerCase('es').trim();
+        }
+        function escapar(valor) {
+            return String(valor === undefined || valor === null ? '' : valor)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+        function avisar(texto, error) {
+            mensaje.textContent = texto || '';
+            mensaje.classList.toggle('is-error', Boolean(error));
+        }
+        function tokenCsrf() {
+            var campo = document.querySelector('#salon-csrf-form input[name="csrfmiddlewaretoken"]');
+            if (campo && campo.value) return campo.value;
+            var match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+            return match ? decodeURIComponent(match[1]) : '';
+        }
+        function precioVisible(valor) {
+            // Base de datos usa punto decimal. Se permite editar el importe.
+            return String(valor === undefined || valor === null ? '0' : valor);
+        }
+        function renderizar() {
+            lista.textContent = '';
+            if (!cargado) return;
+
+            var busqueda = normalizar(inputBuscar.value);
+            var palabras = busqueda.split(/\s+/).filter(Boolean);
+            var encontrados = productos.filter(function (producto) {
+                var campo = normalizar(producto.codigo + ' ' + producto.nombre);
+                return palabras.every(function (p) { return campo.indexOf(p) !== -1; });
+            });
+            contador.textContent = encontrados.length + ' de ' + productos.length + ' productos';
+            if (!encontrados.length) {
+                var p = document.createElement('p');
+                p.className = 'salon-catalogo__vacio';
+                p.textContent = 'No encontramos productos con ese código o nombre.';
+                lista.appendChild(p);
+                return;
+            }
+            encontrados.slice(0, maxVisibles).forEach(function (producto) {
+                var fila = document.createElement('article');
+                fila.className = 'salon-catalogo__fila';
+                fila.dataset.id = producto.id;
+                fila.innerHTML =
+                    '<div class="salon-catalogo__identidad">' +
+                      '<span class="salon-catalogo__codigo">#' + escapar(producto.codigo) + '</span>' +
+                      '<div class="salon-catalogo__nombre">' + escapar(producto.nombre) +
+                      (!producto.disponible ? ' <small class="salon-catalogo__inactivo">Inactivo</small>' : '') +
+                      '</div>' +
+                    '</div>' +
+                    '<label class="salon-catalogo__precio-label">Precio $' +
+                      '<input class="salon-catalogo__precio" type="text" inputmode="decimal" aria-label="Precio de ' +
+                      escapar(producto.nombre) + '" value="' + escapar(precioVisible(producto.precio)) + '">' +
+                    '</label>' +
+                    '<div class="salon-catalogo__acciones">' +
+                      '<button type="button" class="salon-catalogo__guardar">Guardar</button>' +
+                      '<button type="button" class="salon-catalogo__editar" aria-expanded="false">Editar</button>' +
+                    '</div>' +
+                    '<div class="salon-catalogo__extras" hidden>' +
+                      '<label>Código<input type="text" class="salon-catalogo__codigo-input" inputmode="numeric" maxlength="20" value="' + escapar(producto.codigo) + '"></label>' +
+                      '<label>Nombre<input type="text" class="salon-catalogo__nombre-input" maxlength="200" value="' + escapar(producto.nombre) + '"></label>' +
+                      '<label class="salon-catalogo__disponibilidad"><input class="salon-catalogo__activo" type="checkbox"' +
+                        (producto.disponible ? ' checked' : '') + '> Disponible en Salón POS</label>' +
+                    '</div>';
+                var inputPrecio = fila.querySelector('.salon-catalogo__precio');
+                var botonGuardar = fila.querySelector('.salon-catalogo__guardar');
+                var botonEditar = fila.querySelector('.salon-catalogo__editar');
+                var extras = fila.querySelector('.salon-catalogo__extras');
+                var inputCodigo = fila.querySelector('.salon-catalogo__codigo-input');
+                var inputNombre = fila.querySelector('.salon-catalogo__nombre-input');
+                var inputActivo = fila.querySelector('.salon-catalogo__activo');
+
+                function guardar() {
+                    if (botonGuardar.disabled) return;
+                    var datos = {
+                        codigo: inputCodigo.value.trim(),
+                        nombre: inputNombre.value.trim(),
+                        precio: inputPrecio.value.trim(),
+                        disponible: inputActivo.checked
+                    };
+                    if (!datos.nombre || !datos.codigo || !datos.precio) {
+                        avisar('Completá el código, el nombre y el precio.', true);
+                        return;
+                    }
+                    botonGuardar.disabled = true;
+                    botonEditar.disabled = true;
+                    botonGuardar.textContent = 'Guardando...';
+                    avisar('');
+                    fetch(panel.dataset.editUrlTemplate.replace('999999', String(producto.id)), {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            'X-CSRFToken': tokenCsrf(),
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(datos)
+                    }).then(function (res) {
+                        return res.json().then(function (data) {
+                            if (!res.ok || data.status !== 'ok') {
+                                throw Error(data.mensaje || 'No se pudo guardar.');
+                            }
+                            return data;
+                        });
+                    }).then(function (data) {
+                        var actualizado = data.producto;
+                        producto.codigo = actualizado.codigo;
+                        producto.nombre = actualizado.nombre;
+                        producto.precio = actualizado.precio;
+                        producto.disponible = actualizado.disponible;
+                        fila.querySelector('.salon-catalogo__codigo').textContent = '#' + producto.codigo;
+                        fila.querySelector('.salon-catalogo__nombre').textContent = producto.nombre;
+                        inputPrecio.value = precioVisible(producto.precio);
+                        extras.hidden = true;
+                        botonEditar.setAttribute('aria-expanded', 'false');
+                        botonEditar.textContent = 'Editar';
+                        fila.classList.add('is-guardado');
+                        setTimeout(function () { fila.classList.remove('is-guardado'); }, 1700);
+                        avisar(data.mensaje || 'Cambios guardados.');
+
+                        // Hace que el buscador del POS utilice el nuevo precio sin recargar.
+                        window.dispatchEvent(new CustomEvent('salon-catalogo-actualizado', {
+                            detail: actualizado
+                        }));
+                    }).catch(function (error) {
+                        avisar(error.message || 'Error de conexión. Intentá otra vez.', true);
+                    }).finally(function () {
+                        botonGuardar.disabled = false;
+                        botonEditar.disabled = false;
+                        botonGuardar.textContent = 'Guardar';
+                    });
+                }
+
+                botonGuardar.addEventListener('click', guardar);
+                botonEditar.addEventListener('click', function () {
+                    extras.hidden = !extras.hidden;
+                    botonEditar.setAttribute('aria-expanded', String(!extras.hidden));
+                    botonEditar.textContent = extras.hidden ? 'Editar' : 'Cerrar';
+                    if (!extras.hidden) inputCodigo.focus();
+                });
+                [inputPrecio, inputCodigo, inputNombre].forEach(function (input) {
+                    input.addEventListener('keydown', function (event) {
+                        if (event.key === 'Enter') {
+                            event.preventDefault();
+                            guardar();
+                        }
+                    });
+                });
+                lista.appendChild(fila);
+            });
+            if (encontrados.length > maxVisibles) {
+                var aviso = document.createElement('p');
+                aviso.className = 'salon-catalogo__vacio';
+                aviso.textContent = 'Mostrando los primeros ' + maxVisibles + ' resultados. Escribí más para encontrar otro artículo.';
+                lista.appendChild(aviso);
+            }
+        }
+        function cargar() {
+            if (cargando) return;
+            cargando = true;
+            avisar('Cargando productos...');
+            fetch(panel.dataset.listUrl, {credentials: 'same-origin', cache: 'no-store'})
+                .then(function (res) {
+                    return res.json().then(function (data) {
+                        if (!res.ok || data.status !== 'ok') throw Error(data.mensaje || 'No se pudo cargar el catálogo.');
+                        return data;
+                    });
+                })
+                .then(function (data) {
+                    productos = data.productos || [];
+                    cargado = true;
+                    avisar('');
+                    renderizar();
+                })
+                .catch(function (error) { avisar(error.message, true); })
+                .finally(function () { cargando = false; });
+        }
+
+        panel.addEventListener('toggle', function () {
+            if (panel.open && !cargado) cargar();
+        });
+        inputBuscar.addEventListener('input', renderizar);
+        recargar.addEventListener('click', cargar);
+        if (panel.open) cargar();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', iniciarEditorSalonV111);
+    } else {
+        iniciarEditorSalonV111();
+    }
+})();
+
+
+/* ==========================================================================
+   SAN MARTIN V118 — WHEEL SCROLL EN COMANDA DEL SALON
+   ========================================================================== */
+(function () {
+    function iniciarWheelComandaSalon() {
+        var modal = document.getElementById('salon-comanda-modal');
+        var lista = document.getElementById('lista-comanda');
+        if (!modal || !lista || modal.dataset.wheelScrollInit === '1') return;
+        modal.dataset.wheelScrollInit = '1';
+
+        modal.addEventListener('wheel', function (event) {
+            if (!lista || lista.hidden) return;
+            if (lista.scrollHeight <= lista.clientHeight) return;
+
+            var editable = event.target.closest('input, textarea, select');
+            var estaEnLista = !!event.target.closest('#lista-comanda');
+            if (estaEnLista) return;
+            if (editable && !event.target.closest('.salon-pos__actionbar--pos')) return;
+
+            lista.scrollTop += event.deltaY;
+            event.preventDefault();
+        }, { passive: false });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', iniciarWheelComandaSalon);
+    } else {
+        iniciarWheelComandaSalon();
+    }
+})();
+
+// SAN MARTIN V120 — Ventanas independientes para Mozos, Importar y Editar catálogo.
+(function () {
+    function iniciarModalesSalonV120() {
+        var salon = document.getElementById('salon-pos') || document.getElementById('tab-config');
+        if (!salon || salon.dataset.herramientasV120 === '1') return;
+        salon.dataset.herramientasV120 = '1';
+        var modalActual = null;
+        var botonAnterior = null;
+        function cerrar() {
+            if (!modalActual) return;
+            var bloque = modalActual.querySelector('details.salon-pos__tool');
+            if (bloque) bloque.open = false;
+            modalActual.hidden = true;
+            modalActual.setAttribute('aria-hidden', 'true');
+            modalActual = null;
+            document.body.classList.remove('salon-tools-modal-open');
+            if (botonAnterior && document.contains(botonAnterior)) botonAnterior.focus();
+            botonAnterior = null;
+        }
+        function abrir(tipo, boton) {
+            var modal = document.getElementById('salon-tool-dialog-' + tipo);
+            if (!modal) return;
+            cerrar();
+            // Cerrar el desplegable al mostrar el editor; el usuario permanece en Mesas.
+            var desplegable = document.getElementById('salon-menu-herramientas');
+            if (desplegable) desplegable.open = false;
+            modalActual = modal;
+            botonAnterior = boton;
+            modal.hidden = false;
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('salon-tools-modal-open');
+            var bloque = modal.querySelector('details.salon-pos__tool');
+            if (bloque) bloque.open = true; // El editor AJAX escucha este 'toggle'.
+            var foco = modal.querySelector('input[type="text"],input[type="search"],input[type="file"],.salon-pos__tool-cerrar');
+            if (foco) foco.focus({preventScroll: true});
+        }
+        salon.addEventListener('click', function (event) {
+            var abrirBoton = event.target.closest('[data-salon-tool-open]');
+            if (abrirBoton) {
+                event.preventDefault();
+                abrir(abrirBoton.getAttribute('data-salon-tool-open'), abrirBoton);
+                return;
+            }
+            if (event.target.closest('[data-salon-tool-close]')) {
+                event.preventDefault();
+                cerrar();
+            }
+        });
+        document.addEventListener('keydown', function (event) {
+            if (!modalActual) return;
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                event.stopPropagation();
+                cerrar();
+                return;
+            }
+            if (event.key !== 'Tab') return;
+            var selectores = 'button:not([disabled]):not([tabindex="-1"]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),a[href]';
+            var posibles = Array.prototype.slice.call(modalActual.querySelectorAll(selectores));
+            var visibles = posibles.filter(function (el) { return el.getClientRects().length > 0; });
+            if (!visibles.length) return;
+            var primero = visibles[0], ultimo = visibles[visibles.length - 1];
+            if (event.shiftKey && document.activeElement === primero) { event.preventDefault(); ultimo.focus(); }
+            else if (!event.shiftKey && document.activeElement === ultimo) { event.preventDefault(); primero.focus(); }
+        }, true);
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciarModalesSalonV120);
+    else iniciarModalesSalonV120();
+})();
+
+
+// San Martín v131: sondeo FEDummy, SOLO homologación; sin factura ni credenciales.
+(function () {
+    function iniciarPruebaArca() {
+        var formulario = document.getElementById('fiscal-probar-arca-form');
+        var resultado = document.getElementById('fiscal-probar-arca-resultado');
+        if (!formulario || !resultado) return;
+        formulario.addEventListener('submit', async function (ev) {
+            ev.preventDefault();
+            var boton = formulario.querySelector('button[type="submit"]');
+            boton.disabled = true;
+            resultado.textContent = 'Consultando ARCA (homologación)...';
+            resultado.className = 'fiscal-prep__estado';
+            try {
+                var datos = new FormData(formulario);
+                var respuesta = await fetch(formulario.action, {
+                    method: 'POST', body: datos, credentials: 'same-origin',
+                    headers: {'Accept':'application/json'},
+                });
+                var cuerpo = await respuesta.json();
+                if (!respuesta.ok || cuerpo.status === 'error') {
+                    throw new Error(cuerpo.mensaje || 'La conexión falló.');
+                }
+                var estados = cuerpo.estados || {};
+                resultado.classList.add(cuerpo.status === 'ok' ? 'fiscal-prep__estado--ok' : 'fiscal-prep__estado--aviso');
+                resultado.textContent = (cuerpo.mensaje || 'Respuesta de homologación.') +
+                    ' AppServer: ' + (estados.AppServer || '-') +
+                    ' · DbServer: ' + (estados.DbServer || '-') +
+                    ' · AuthServer: ' + (estados.AuthServer || '-') +
+                    '. Esto NO confirma permisos para facturar.';
+            } catch (error) {
+                resultado.classList.add('fiscal-prep__estado--error');
+                resultado.textContent = 'Prueba fallida: ' + (error.message || 'Error desconocido.');
+            } finally {
+                boton.disabled = false;
+            }
+        });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciarPruebaArca);
+    else iniciarPruebaArca();
+})();
+
+
+// v157: un solo botón de reinicio con doble clic de confirmación, sin cuadro modal.
+(function(){
+    'use strict';
+    function csrfToken(){
+        var input=document.querySelector('input[name="csrfmiddlewaretoken"]');
+        if(input&&input.value)return input.value;
+        var m=document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+        return m?decodeURIComponent(m[1]):'';
+    }
+    window.smReiniciarHistorialVentas=function(url,alTerminar,boton){
+        if(!url||!boton)return;
+        if(boton.dataset.cargando==='1')return;
+        if(boton.dataset.confirmar!=='1'){
+            boton.dataset.confirmar='1';
+            boton.dataset.etiquetaOriginal=boton.textContent;
+            boton.textContent='¿Confirmar reinicio? Volvé a pulsar';
+            boton.title='Segundo clic: reinicia el historial visible; no elimina deudores ni ventas originales';
+            setTimeout(function(){
+                if(boton.isConnected&&boton.dataset.confirmar==='1'){
+                    boton.dataset.confirmar='0';boton.textContent=boton.dataset.etiquetaOriginal;
+                }
+            },8000);
+            return;
+        }
+        boton.dataset.confirmar='0';boton.dataset.cargando='1';boton.disabled=true;
+        boton.textContent='Reiniciando...';
+        fetch(url,{method:'POST',credentials:'same-origin',
+            headers:{'Content-Type':'application/json','X-CSRFToken':csrfToken()},
+            body:JSON.stringify({confirmacion:'REINICIAR'})
+        }).then(function(r){return r.json().then(function(d){if(!r.ok||d.status!=='ok')throw new Error(d.mensaje||'Error al reiniciar');return d;});})
+          .then(function(d){
+              boton.dataset.cargando='0';
+              boton.textContent='✓ Historial reiniciado ('+d.cantidad_archivada+')';
+              if(typeof alTerminar==='function')alTerminar();
+              else window.location.reload();
+          }).catch(function(e){
+              boton.dataset.cargando='0';boton.disabled=false;
+              boton.textContent='Error: '+(e.message||'No se pudo reiniciar');
+              setTimeout(function(){if(boton.isConnected){boton.textContent=boton.dataset.etiquetaOriginal||'Reiniciar historial';}},5000);
+          });
+    };
+    document.addEventListener('DOMContentLoaded',function(){
+        var b=document.getElementById('sm-reiniciar-ventas-panel');
+        if(b)b.addEventListener('click',function(){
+            window.smReiniciarHistorialVentas(b.getAttribute('data-reset-url'),null,b);
+        });
+    });
+})();
+
+// v157: impresión. Render guarda opciones, el agente Windows las consulta por clave.
+(function(){
+    'use strict';
+    function iniciar(){
+        var root=document.getElementById('sm-impresoras-panel');
+        if(!root)return;
+        var form=document.getElementById('sm-impresoras-form');
+        var msg=document.getElementById('sm-impresoras-mensaje');
+        var estado=document.getElementById('sm-impresoras-estado');
+        var vincular=document.getElementById('sm-impresoras-vincular');
+        var btnAbrir=document.getElementById('sm-impresoras-abrir');
+        var dialogo=document.getElementById('sm-impresoras-dialogo');
+        var focoAnterior=null;
+        function cerrarDialogo(){
+            if(!dialogo||dialogo.hidden)return;
+            dialogo.hidden=true;
+            document.body.style.overflow='';
+            if(focoAnterior&&focoAnterior.isConnected)focoAnterior.focus({preventScroll:true});
+        }
+        if(btnAbrir&&dialogo){
+            btnAbrir.addEventListener('click',function(){
+                focoAnterior=document.activeElement;
+                dialogo.hidden=false;
+                document.body.style.overflow='hidden';
+                var primerCampo=form.querySelector('input');
+                if(primerCampo)primerCampo.focus({preventScroll:true});
+            });
+            dialogo.querySelectorAll('[data-impresoras-cerrar]').forEach(function(btn){
+                btn.addEventListener('click',cerrarDialogo);
+            });
+            document.addEventListener('keydown',function(ev){
+                if(dialogo.hidden)return;
+                if(ev.key==='Escape'){ev.preventDefault();ev.stopPropagation();cerrarDialogo();return;}
+                if(ev.key!=='Tab')return;
+                var els=Array.from(dialogo.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),summary')).filter(function(el){return el.getClientRects().length>0&&el.tabIndex!==-1;});
+                if(!els.length)return;
+                if(ev.shiftKey&&document.activeElement===els[0]){ev.preventDefault();els[els.length-1].focus();}
+                else if(!ev.shiftKey&&document.activeElement===els[els.length-1]){ev.preventDefault();els[0].focus();}
+            },true);
+        }
+        function csrf(){
+            var input=document.querySelector('input[name="csrfmiddlewaretoken"]');
+            if(input&&input.value)return input.value;
+            var m=document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+            return m?decodeURIComponent(m[1]):'';
+        }
+        function fill(d){
+            ['caja_windows','ip_cocina','ip_barra','ancho_ticket'].forEach(function(k){if(form.elements[k]&&d[k]!=null)form.elements[k].value=d[k];});
+            estado.textContent=!d.vinculada?'Sin PC vinculada':d.ultima_conexion?'Última conexión: '+new Date(d.ultima_conexion).toLocaleString('es-AR'):'Clave generada · Aún no conectada';
+        }
+        function send(url,payload){
+            return fetch(url,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRFToken':csrf()},body:JSON.stringify(payload||{})})
+              .then(function(r){return r.json().then(function(d){if(!r.ok||d.status!=='ok')throw Error(d.mensaje||'No se pudo guardar');return d;});});
+        }
+        fetch(root.dataset.leer,{credentials:'same-origin',cache:'no-store'}).then(function(r){return r.json();}).then(function(d){
+            if(d.status!=='ok')throw Error(d.mensaje||'Sin permiso');
+            fill(d.configuracion);
+        }).catch(function(e){estado.textContent='No se pudo leer: '+e.message;});
+        form.addEventListener('submit',function(ev){
+            ev.preventDefault();
+            var data={};['caja_windows','ip_cocina','ip_barra','ancho_ticket'].forEach(function(k){data[k]=form.elements[k].value;});
+            msg.textContent='Guardando...';
+            send(root.dataset.guardar,data).then(function(d){fill(d.configuracion);msg.textContent='✓ Guardado. La ticketera vinculada tomará el cambio al consultar Render.';})
+              .catch(function(e){msg.textContent='Error: '+e.message;});
+        });
+        vincular.addEventListener('click',function(){
+            if(!window.confirm('¿Generar una nueva clave? Si la PC ya estaba vinculada, la clave anterior dejará de servir.'))return;
+            vincular.disabled=true;msg.textContent='Preparando vinculación...';
+            send(root.dataset.vincular,{}).then(function(d){
+                var blob=new Blob([JSON.stringify(d.archivo,null,2)],{type:'application/json'});
+                var url=URL.createObjectURL(blob);var a=document.createElement('a');
+                a.href=url;a.download=d.nombre_archivo||'VINCULAR_IMPRESORA_SAN_MARTIN.json';
+                document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1000);
+                msg.textContent='Clave descargada. Copiala en datos_locales como impresoras_config.json. No la compartas.';
+                estado.textContent='Esperando conexión desde la PC';
+            }).catch(function(e){msg.textContent='Error: '+e.message;}).finally(function(){vincular.disabled=false;});
+        });
+    }
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',iniciar);else iniciar();
+})();
+
+// Alta de producto en iframe seguro del propio dominio, sin cerrar la mesa ni recargar.
+window.addEventListener('message', function(event){
+    var iframe=document.getElementById('salon-form-producto-iframe');
+    if (!iframe || event.origin!==window.location.origin || event.source!==iframe.contentWindow) return;
+    var datos=event.data||{};
+    if (datos.tipo==='sm-producto-cerrar') {
+        var cerrar=document.querySelector('#salon-tool-dialog-producto [data-salon-tool-close="producto"]');
+        if (cerrar) cerrar.click();
+        return;
+    }
+    if (datos.tipo!=='sm-producto-guardado' || !datos.producto) return;
+    var p=datos.producto;
+    window.dispatchEvent(new CustomEvent('salon-catalogo-actualizado', {detail:p}));
+    var actualizar=document.getElementById('salon-catalogo-recargar');
+    if (actualizar) actualizar.click();
+});

@@ -214,7 +214,7 @@ Ejemplo:
 DASHBOARD_PIN=1234
 ```
 
-La maqueta mantiene `5968` como acceso de respaldo en el código actual. Si el restaurante va a producción y querés que dependa únicamente del entorno, buscá `5968` en:
+La versión actual requiere `PANEL_PIN` por entorno; NO existe PIN de respaldo fijo. No reutilizar un PIN entre clientes.
 
 ```text
 pedidos/views.py

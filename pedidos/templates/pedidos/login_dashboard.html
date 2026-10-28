@@ -16,13 +16,11 @@
     <div class="login-box">
         <h2>Ingreso al Panel</h2>
         <p>Por favor, ingresá el PIN de seguridad.</p>
-        
         {% if messages %}
             {% for message in messages %}
                 <div class="error">{{ message }}</div>
             {% endfor %}
         {% endif %}
-
         <form method="POST">
             {% csrf_token %}
             <input type="password" name="pin" maxlength="4" required autofocus autocomplete="off">

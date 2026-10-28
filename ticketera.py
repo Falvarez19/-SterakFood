@@ -2,7 +2,8 @@ import os
 import time
 import requests
 import winsound
-import textwrap 
+import textwrap
+import re
 import threading 
 from datetime import datetime
 from escpos.printer import Win32Raw, Network 
@@ -15,11 +16,13 @@ URL_MARCAR = f"{BASE_URL}/api/marcar-impreso/"
 URL_TICKETS_CUENTA = f"{BASE_URL}/api/tickets-cuenta-pendientes/"
 URL_MARCAR_CUENTA = f"{BASE_URL}/api/marcar-ticket-cuenta-impreso/"
 TICKETERA_PRINT_TOKEN = os.environ.get('TICKETERA_PRINT_TOKEN', '').strip()
+URL_FACTURAS = f'{BASE_URL}/api/tickets-fiscales-pendientes/'
+URL_FACTURAS_CONFIRMAR = f'{BASE_URL}/api/tickets-fiscales-confirmar/'
 
 NOMBRE_RESTAURANTE = os.environ.get("RESTAURANT_NAME", "SterakFood").strip() or "SterakFood"
 IMPRESORA_CAJA = os.environ.get("IMPRESORA_CAJA", "FACTURA_PYTHON")
-IP_COCINA = os.environ.get("IP_COCINA", "192.168.200.250")
-IP_BARRA = os.environ.get("IP_BARRA", "192.168.200.198")
+IP_COCINA = os.environ.get("IP_COCINA", "192.168.1.100")
+IP_BARRA = os.environ.get("IP_BARRA", "192.168.1.101")
 ANCHO_TICKET = int(os.environ.get("ANCHO_TICKET", "32")) 
 
 # Variable global para prender/apagar
@@ -29,6 +32,12 @@ def hacer_ruido():
     for _ in range(3):
         winsound.Beep(2500, 300)
         time.sleep(0.1)
+
+def _texto_cocina_sin_importe(texto):
+    """Protección extra para el agente: no imprime suplementos económicos en comandas."""
+    return re.sub(r'\s*\(\s*[+-]\s*\$?\s*\d+(?:[.,]\d{1,2})?\s*\)', '',
+                  str(texto or '')).strip()
+
 
 def imprimir_ticket(impresora, pedido, tipo_ticket, items):
     impresora.text('\x1b\x40') 
@@ -43,7 +52,10 @@ def imprimir_ticket(impresora, pedido, tipo_ticket, items):
     cliente = str(pedido.get('cliente', '')).upper()
     
     impresora.set(align='center', font='a', bold=True)
-    if entrega == 'mesa':
+    if entrega == 'para_llevar':
+        impresora.text("*** PARA LLEVAR ***\n")
+        impresora.text(f"PEDIDO #{pedido.get('id', '')}\n")
+    elif entrega == 'mesa':
         impresora.text("LLEVAR A:\n")
         impresora.set(align='center', bold=True, double_height=True, double_width=False)
         impresora.text(f"MESA {pedido.get('mesa', '?')}\n")
@@ -56,32 +68,53 @@ def imprimir_ticket(impresora, pedido, tipo_ticket, items):
     
     impresora.set(align='left', font='a', bold=False)
     impresora.text("-" * ANCHO_TICKET + "\n")
+    if pedido.get('alerta_celiaco') or any(i.get('aviso_celiaco') for i in items):
+        impresora.set(align='center', font='a', bold=True, double_height=True)
+        impresora.text('*** ALERTA CELIAQUIA ***\n')
+        impresora.set(align='left', font='a', bold=True, double_height=False)
+        for aviso in ('REVISAR INGREDIENTES APTOS', 'EVITAR CONTAMINACION CRUZADA',
+                      'CONFIRMAR CON COCINA ANTES DE PREPARAR'):
+            for linea in textwrap.wrap(aviso, width=ANCHO_TICKET):
+                impresora.text(linea+'\n')
+        impresora.text("-" * ANCHO_TICKET + "\n")
     
+    if entrega == 'para_llevar' and pedido.get('notas'):
+        impresora.set(align='left', font='a', bold=True)
+        impresora.text("INDICACIONES:\n")
+        for linea in textwrap.wrap(str(pedido['notas']), width=ANCHO_TICKET):
+            impresora.text(f"{linea}\n")
+        impresora.text("-" * ANCHO_TICKET + "\n")
     for item in items:
-        nombre_crudo = item['nombre']
-        if "(" in nombre_crudo and ")" in nombre_crudo:
-            partes = nombre_crudo.split("(")
-            plato_principal = partes[0].strip()
-            opciones_texto = partes[1].replace(")", "").strip()
-            
-            impresora.set(align='left', font='a', bold=True)
-            for linea in textwrap.wrap(f"{item['cantidad']}x {plato_principal}", width=ANCHO_TICKET):
-                impresora.text(f"{linea}\n")
-            
-            impresora.set(align='left', font='b', bold=False)
-            lista_opciones = opciones_texto.split(" | ")
-            for opcion in lista_opciones:
-                for op_linea in textwrap.wrap(f"   -> {opcion}", width=42): 
-                    impresora.text(f"{op_linea}\n")
+        nombre_crudo = str(item.get('nombre') or 'Producto')
+        plato_principal = str(item.get('plato') or '').strip()
+        opciones = item.get('opciones')
+        if plato_principal and isinstance(opciones, list):
+            # Estructura explícita: conserva las variantes con (+precio) y
+            # nombres que contienen paréntesis, sin truncar las indicaciones.
+            lista_opciones = [_texto_cocina_sin_importe(op) for op in opciones if str(op).strip()]
+        elif ' (' in nombre_crudo and nombre_crudo.endswith(')'):
+            # Compatibilidad con agentes/servidores antiguos.
+            plato_principal, resto = nombre_crudo.split(' (', 1)
+            lista_opciones = [_texto_cocina_sin_importe(op) for op in resto.rsplit(')', 1)[0].split(' | ')]
         else:
-            impresora.set(align='left', font='a', bold=True)
-            for linea in textwrap.wrap(f"{item['cantidad']}x {nombre_crudo}", width=ANCHO_TICKET):
-                impresora.text(f"{linea}\n")
-    
+            plato_principal = nombre_crudo
+            lista_opciones = []
+        plato_principal = _texto_cocina_sin_importe(plato_principal)
+        impresora.set(align='left', font='a', bold=True)
+        if item.get('aviso_celiaco'):
+            impresora.text('!!! CELIACO - REVISAR !!!\n')
+        for linea in textwrap.wrap(f"{item['cantidad']}x {plato_principal}", width=ANCHO_TICKET):
+            impresora.text(f"{linea}\n")
+        if lista_opciones:
+            impresora.set(align='left', font='b', bold=False)
+            for opcion in lista_opciones:
+                for op_linea in textwrap.wrap(f"   -> {opcion}", width=42):
+                    impresora.text(f"{op_linea}\n")
+
     if "FALTA PAGAR" in pedido.get('pago', '') or "NO PAGADO" in pedido.get('pago', ''):
         impresora.text("-" * ANCHO_TICKET + "\n")
         impresora.set(align='center', font='a', bold=True)
-        impresora.text("EFECTIVO - FALTA PAGAR\n")
+        impresora.text("PEDIDO PENDIENTE DE COBRO\n" if entrega == 'para_llevar' else "EFECTIVO - FALTA PAGAR\n")
 
     impresora.set(align='left', font='a', bold=False)
     impresora.text("-" * ANCHO_TICKET + "\n\n\n\n")
@@ -253,6 +286,73 @@ def imprimir_pendientes_cuenta():
             # Si falla la impresora, NO marcar impreso: queda en cola.
             print(f'Error imprimiendo ticket de deuda: {error}')
 
+
+# Facturas fiscales: mismo destino Win32Raw de caja, diferente cola. Solo
+# imprime comprobantes con CAE confirmado por ARCA en el servidor.
+def imprimir_factura_fiscal(impresora, factura):
+    import qrcode
+    entorno = factura.get('entorno')
+    prueba = entorno != 'produccion'
+    impresora.text('\x1b\x40')
+    impresora.set(align='center',font='a',bold=True)
+    impresora.text(str(factura.get('razon_social') or NOMBRE_RESTAURANTE).upper()+'\n')
+    if prueba:
+        impresora.text('HOMOLOGACION - SIN VALOR FISCAL\n')
+    if factura.get('domicilio'):
+        for l in textwrap.wrap(str(factura['domicilio']),width=ANCHO_TICKET): impresora.text(l+'\n')
+    impresora.text('CUIT '+str(factura['cuit'])+'\n')
+    for campo,etiqueta in [('condicion_iva_emisor','IVA: '),('ingresos_brutos','IIBB: '),('inicio_actividades','Inicio actividades: ')]:
+        if factura.get(campo):
+            for l in textwrap.wrap(etiqueta+str(factura[campo]),width=ANCHO_TICKET): impresora.text(l+'\n')
+    impresora.text('FACTURA B\n')
+    impresora.text('Nro. '+str(factura['numero'])+'\n')
+    fecha = str(factura.get('fecha',''))
+    if len(fecha)==8: fecha=f'{fecha[6:8]}/{fecha[4:6]}/{fecha[:4]}'
+    impresora.text('Fecha: '+fecha+'\n')
+    impresora.set(align='left',bold=False)
+    impresora.text('-'*ANCHO_TICKET+'\n')
+    impresora.text('Consumidor Final\n')
+    impresora.text('Mesa '+str(factura.get('mesa',''))+'  Mozo '+str(factura.get('mozo',''))+'\n')
+    impresora.text('-'*ANCHO_TICKET+'\n')
+    for item in factura.get('items',[]):
+        nombre=str(item.get('nombre','Producto')).upper()
+        cantidad=int(item.get('cantidad',1)); subtotal=str(item.get('subtotal','0'))
+        for l in textwrap.wrap(f'{cantidad}x {nombre}',width=ANCHO_TICKET): impresora.text(l+'\n')
+        impresora.set(align='right');impresora.text('$ '+subtotal+'\n')
+        impresora.set(align='left')
+    impresora.text('-'*ANCHO_TICKET+'\n')
+    impresora.set(align='right',bold=True)
+    impresora.text('TOTAL $ '+str(factura['total'])+'\n')
+    impresora.set(align='center',bold=False)
+    impresora.text('CAE: '+str(factura['cae'])+'\n')
+    venc=str(factura.get('vencimiento_cae',''))
+    if len(venc)==8: venc=f'{venc[6:8]}/{venc[4:6]}/{venc[:4]}'
+    impresora.text('Vto. CAE: '+venc+'\n')
+    qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M,box_size=4,border=2)
+    qr.add_data(factura['url_qr']);qr.make(fit=True)
+    impresora.image(qr.make_image(fill_color='black',back_color='white').convert('RGB'))
+    if prueba: impresora.text('COMPROBANTE DE PRUEBA\n')
+    impresora.text('\n\n\n')
+    impresora.cut()
+
+
+def imprimir_pendientes_fiscales():
+    if not TICKETERA_PRINT_TOKEN:
+        return   # No consultar cola fiscal sin token configurado.
+    headers={'X-Ticketera-Token':TICKETERA_PRINT_TOKEN}
+    respuesta=requests.get(URL_FACTURAS,headers=headers,timeout=10)
+    respuesta.raise_for_status()
+    for factura in respuesta.json().get('tickets',[]):
+        try:
+            impresora=Win32Raw(IMPRESORA_CAJA)
+            try: imprimir_factura_fiscal(impresora,factura)
+            finally: impresora.close()
+            # ACK después de imprimir; si se pierde ACK podría reimprimirse.
+            ack=requests.post(f"{URL_FACTURAS_CONFIRMAR}{factura['id']}/",headers=headers,timeout=10)
+            ack.raise_for_status()
+        except Exception as exc:
+            print(f'Error imprimiendo factura fiscal #{factura.get("id")}: {exc}')
+
 # ====================================================================
 # 🔥 BUCLE QUE CORRE EN SEGUNDO PLANO 🔥
 # ====================================================================
@@ -266,14 +366,16 @@ def bucle_impresion():
                 if datos.get('status') == 'ok' and datos.get('pedidos'):
                     for pedido in datos['pedidos']:
                         hacer_ruido()
-                        
+                        impresa_cocina = True
+
                         # 🔥 IMPRIME EN COCINA (AHORA SÍ VA POR RED A LA IP) 🔥
                         if len(pedido.get('items_cocina', [])) > 0:
                             try:
                                 imp_cocina = Network(IP_COCINA) # Acá estaba el error, ya está arreglado
                                 imprimir_ticket(imp_cocina, pedido, "COCINA", pedido['items_cocina'])
                                 imp_cocina.close()
-                            except Exception as e: 
+                            except Exception as e:
+                                impresa_cocina = False
                                 print(f"Error en cocina: {e}")
                                 
                         # 🔥 IMPRIME EN BARRA (Va por RED a la IP de la barra) 🔥
@@ -294,6 +396,10 @@ def bucle_impresion():
                             except Exception as e: 
                                 print(f"Error en caja: {e}")
 
+                        if pedido.get('entrega', '').lower() == 'para_llevar' and not impresa_cocina:
+                            # No perder una comanda para llevar si no se pudo imprimir.
+                            # ATENCIÓN: corte de red entre impresión y confirmación puede causar duplicados.
+                            continue
                         requests.post(f"{URL_MARCAR}{pedido['id']}/", timeout=10)
         except Exception: 
             pass
@@ -301,6 +407,10 @@ def bucle_impresion():
             imprimir_pendientes_cuenta()
         except Exception as error:
             print(f'No se pudo consultar cola de comprobantes: {error}')
+        try:
+            imprimir_pendientes_fiscales()
+        except Exception as error:
+            print(f'No se pudo consultar cola fiscal: {error}')
         time.sleep(5)
 
 # ====================================================================
@@ -323,7 +433,7 @@ def iniciar_tray():
         pystray.MenuItem('❌ Apagar Ticketera', apagar_sistema)
     )
     
-    icono = pystray.Icon("ticketera", crear_imagen_icono(), "Ticketera Buffet SM", menu)
+    icono = pystray.Icon("ticketera", crear_imagen_icono(), "Ticketera SterakFood", menu)
     
     hilo = threading.Thread(target=bucle_impresion, daemon=True)
     hilo.start()

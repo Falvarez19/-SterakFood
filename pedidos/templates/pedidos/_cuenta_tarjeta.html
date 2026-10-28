@@ -1,0 +1,92 @@
+{# SterakFood: tarjeta reutilizable para Cuentas sin recargar el panel. #}
+                    <details id="cuenta-{{ cuenta.id }}" class="cuenta-card cuenta-card--{{ cuenta.estado_clase }}" data-cuenta-estado="{{ cuenta.estado_clase }}" data-cuenta-nombre="{{ cuenta.nombre }}" data-cuenta-telefono="{{ cuenta.telefono|default:'' }}" data-cuenta-nota="{{ cuenta.nota|default:'' }}">
+                        <summary class="cuenta-card__summary">
+                            <div class="cuenta-card__top">
+                                <div class="cuenta-card__persona">
+                                    <span class="cuenta-card__estado">{{ cuenta.estado_panel }}</span>
+                                    <h3>{{ cuenta.nombre }}</h3>
+                                    <p>
+                                        {% if cuenta.telefono %}📞 {{ cuenta.telefono }}{% else %}Sin teléfono{% endif %}
+                                        {% if cuenta.nota %} · {{ cuenta.nota }}{% endif %}
+                                    </p>
+                                </div>
+                                <div class="cuenta-card__saldo">
+                                    <small>Saldo</small>
+                                    {% if cuenta.saldo_panel < 0 %}
+                                        <strong class="is-deuda">Debe ${{ cuenta.saldo_abs|floatformat:0 }}</strong>
+                                    {% elif cuenta.saldo_panel > 0 %}
+                                        <strong class="is-favor">A favor ${{ cuenta.saldo_abs|floatformat:0 }}</strong>
+                                    {% else %}
+                                        <strong>Al día</strong>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <span class="cuenta-card__toggle" aria-hidden="true"></span>
+                        </summary>
+
+                        <div class="cuenta-card__body">
+                            <div class="cuenta-ticket-acciones">
+                                <button type="button" class="cuenta-ticket-btn"
+                                    data-cuenta-imprimir-url="{% url 'pedidos:imprimir_estado_cuenta' cuenta.id %}">
+                                    🖨 Imprimir estado de cuenta
+                                </button>
+                                {% if cuenta.saldo_panel < 0 %}
+                                <form class="cuenta-saldar-form" method="post" data-cuenta-ajax="1"
+                                      data-confirm="¿Confirmás que recibiste el pago completo de ${{ cuenta.saldo_abs|floatformat:0 }} de {{ cuenta.nombre }}?"
+                                      action="{% url 'pedidos:saldar_cuenta_corriente' cuenta.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" title="Registrar pago total y dejar saldo en cero, conservando el historial">✓ Limpiar deuda · ${{ cuenta.saldo_abs|floatformat:0 }}</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                            <form class="cuenta-mov-form" data-cuenta-ajax="1" action="{% url 'pedidos:agregar_movimiento_cuenta' cuenta.id %}" method="post">
+                            {% csrf_token %}
+                            <select name="tipo">
+                                <option value="consumo">Consumo / suma deuda</option>
+                                <option value="pago">Pago recibido</option>
+                                <option value="favor">Cargar dinero a favor</option>
+                                <option value="ajuste_debe">Ajuste: debe</option>
+                                <option value="ajuste_favor">Ajuste: a favor</option>
+                            </select>
+                            <input type="text" name="monto" placeholder="Monto" required>
+                            <input type="text" name="descripcion" placeholder="Detalle opcional">
+                            <button type="submit">Agregar</button>
+                        </form>
+
+                        <div class="cuenta-historial">
+                            <strong>Historial</strong>
+                            {% for movimiento in cuenta.movimientos.all|slice:":6" %}
+                                <div class="cuenta-movimiento {% if movimiento.monto < 0 %}is-deuda{% else %}is-favor{% endif %}">
+                                    <div>
+                                        <span>{{ movimiento.fecha|date:"d/m H:i" }}</span>
+                                        <p>{{ movimiento.descripcion|default:movimiento.get_tipo_display }}</p>
+                                    </div>
+                                    <div class="cuenta-movimiento__monto">
+                                        {% if movimiento.monto < 0 %}
+                                            -${{ movimiento.monto|floatformat:0|slice:"1:" }}
+                                        {% else %}
+                                            +${{ movimiento.monto|floatformat:0 }}
+                                        {% endif %}
+                                    </div>
+                                    {% if movimiento.comprobante_pos %}
+                                        <button type="button" class="cuenta-ticket-reimprimir"
+                                            title="Reimprimir comprobante de este consumo"
+                                            aria-label="Reimprimir comprobante de este consumo"
+                                            data-cuenta-imprimir-url="{% url 'pedidos:imprimir_comprobante_cuenta' movimiento.comprobante_pos.id %}">🖨</button>
+                                    {% endif %}
+                                    <form data-cuenta-ajax="1" data-confirm="¿Eliminar este movimiento?" action="{% url 'pedidos:eliminar_movimiento_cuenta' movimiento.id %}" method="post" onsubmit="return confirm('¿Eliminar este movimiento?');">
+                                        {% csrf_token %}
+                                        <button type="submit" title="Eliminar movimiento">×</button>
+                                    </form>
+                                </div>
+                            {% empty %}
+                                <p class="cuenta-historial__vacio">Todavía no hay movimientos.</p>
+                            {% endfor %}
+                        </div>
+
+                            <form class="cuenta-eliminar-form" data-cuenta-ajax="1" data-confirm="¿Eliminar la cuenta completa de {{ cuenta.nombre }}?" action="{% url 'pedidos:eliminar_cuenta_corriente' cuenta.id %}" method="post" onsubmit="return confirm('¿Eliminar la cuenta completa de {{ cuenta.nombre }}?');">
+                                {% csrf_token %}
+                                <button type="submit">🗑 Eliminar cuenta</button>
+                            </form>
+                        </div>
+                    </details>

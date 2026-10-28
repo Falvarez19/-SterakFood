@@ -1,9 +1,9 @@
 {% extends 'pedidos/base.html' %}
 {% load static %}
-{% block title %}SterakFood | Menú{% endblock %}
+{% block title %}Menú {{ puesto_activo.nombre }} | {{ restaurant_name }}{% endblock %}
 {% block content %}
 
-    {% if welcome_modal_enabled %}
+    {% if welcome_modal_enabled and bienvenida_popup_urls %}
     <!-- # MODAL DE BIENVENIDA DEL MENÚ -->
     <div
         id="modal-bienvenida-menu"
@@ -19,7 +19,7 @@
             class="bienvenida-menu-modal__tarjeta"
             role="dialog"
             aria-modal="true"
-            aria-label="Bienvenida al Buffet SterakFood"
+            aria-label="Bienvenida al {{ restaurant_name }}"
         >
             <button
                 type="button"
@@ -30,58 +30,73 @@
                 ×
             </button>
 
-            <img
-                src="{% static 'img/fondo-buffet.png' %}"
-                alt="Bienvenido al Buffet SterakFood. Podés pedir al mozo o hacer tu pedido desde el celular."
-                class="bienvenida-menu-modal__imagen"
-            >
+            <div class="bienvenida-popup-carrusel">
+                {% for imagen in bienvenida_popup_urls %}
+                    <img
+                        src="{{ imagen.url }}"
+                        alt="Bienvenida {{ forloop.counter }} del {{ restaurant_name }}"
+                        class="bienvenida-menu-modal__imagen bienvenida-popup-slide {% if forloop.first %}is-active{% endif %}"
+                    >
+                {% endfor %}
+            </div>
+
+            {% if bienvenida_popup_urls|length > 1 %}
+                <div class="bienvenida-popup-controles">
+                    <button type="button" class="bienvenida-popup-nav" data-popup-prev>‹</button>
+                    <div class="bienvenida-popup-dots">
+                        {% for imagen in bienvenida_popup_urls %}
+                            <button
+                                type="button"
+                                class="bienvenida-popup-dot {% if forloop.first %}is-active{% endif %}"
+                                data-popup-dot="{{ forloop.counter0 }}"
+                                aria-label="Ver imagen {{ forloop.counter }}"
+                            ></button>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="bienvenida-popup-nav" data-popup-next>›</button>
+                </div>
+            {% endif %}
         </div>
     </div>
     {% endif %}
     {% if not buffet_habilitado %}
     <div class="aviso-pedidos-pausados">
-        {% if cierre_automatico_en_curso %}
-            🕐 LOS PEDIDOS ONLINE ESTÁN CERRADOS POR HORARIO
-        {% else %}
-            ⚠️ LOS PEDIDOS POR EL CELULAR ESTÁN DESACTIVADOS TEMPORALMENTE
-        {% endif %}
+        ⚠️ LOS PEDIDOS POR EL CELULAR ESTÁN DESACTIVADOS POR ALTA DEMANDA
     </div>
     {% endif %}
     {% if descuento_activo %}
     <div class="aviso-descuento-efectivo">
         <span>💵</span>
-        ¡{{ descuento_porcentaje }}% DE DESCUENTO pagando en EFECTIVO!
+        ¡10% DE DESCUENTO pagando en EFECTIVO el total de la mesa!
         <span>💵</span>
     </div>
     {% endif %}
-    <!-- # HERO CON FOTO PRINCIPAL -->
-    <header class="hero hero-menu-moderno hero-solo-fondo">
+    <!-- # HERO -->
+    <header class="hero hero-menu-moderno">
         <div class="hero-content">
             <div class="hero-texto">
                 <span class="hero-kicker">
-                    STERAKFOOD
+                    {{ restaurant_name|upper }}
                 </span>
                 <h1>
                     {{ puesto_activo.nombre }}
                 </h1>
                 <p>
-                    Elegí lo que quieras y armá tu pedido.
+                    Elegí lo que quieras. ¡Que tengas buen provecho!
                 </p>
             </div>
-
-            <!-- FOTO PRINCIPAL DEL BUFFET -->
-            <div class="hero-logo-side hero-logo-side--solo">
+            <div class="hero-logo-side">
                 <img
                     src="{% static 'img/logo.png' %}"
-                    alt="Logo SterakFood"
+                    alt="Escudo {{ restaurant_name }}"
                 >
             </div>
-</div>
+        </div>
     </header>
     <main class="container menu-principal-moderno">
         {% regroup productos by categoria.nombre as categorias_lista %}
-        <!-- # PROMOCIONES -->
         {% if mostrar_promociones %}
+        <!-- # PROMOCIONES -->
         <section
             id="zona-promos"
             class="seccion-categoria seccion-promos"
@@ -217,7 +232,7 @@
              OPINIONES Y RESEÑAS
              ===================================================== -->
 
-        {% if mostrar_opiniones or mostrar_google_reviews and google_review_url %}
+        {% if mostrar_opiniones or mostrar_google_reviews %}
         <section class="feedback-cliente">
             <div class="feedback-cliente__header">
                 <span class="categoria-kicker">TU OPINIÓN IMPORTA</span>
@@ -225,9 +240,9 @@
             </div>
 
             <div class="feedback-cliente__grid">
-                {% if mostrar_google_reviews and google_review_url %}
+                {% if mostrar_google_reviews %}
                 <a
-                    href="{{ google_review_url }}"
+                    href="https://share.google/8KFezox0rrf2E9vwa"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="feedback-card feedback-card--google"
@@ -257,20 +272,21 @@
                 {% endif %}
             </div>
         </section>
-        {% endif %}
 
+                {% endif %}
+
+{% if mostrar_opiniones %}
         <!-- =====================================================
              MODAL DE OPINIÓN PRIVADA
              ===================================================== -->
 
-        {% if mostrar_opiniones %}
         <div id="modal-opinion" class="opinion-modal" aria-hidden="true">
             <div class="opinion-modal__fondo" onclick="cerrarModalOpinion()"></div>
             <div class="opinion-modal__contenido">
                 <button type="button" class="opinion-modal__cerrar" onclick="cerrarModalOpinion()">×</button>
                 <span class="categoria-kicker">QUEREMOS MEJORAR</span>
                 <h2>💬 Contanos qué pasó</h2>
-                <p class="opinion-modal__intro">Este comentario es privado y solamente lo verá el equipo de SterakFood.</p>
+                <p class="opinion-modal__intro">Este comentario es privado y solamente lo verá el equipo del {{ restaurant_name }}.</p>
 
                 <form id="form-opinion" action="{% url 'pedidos:enviar_opinion' %}" method="POST">
                     {% csrf_token %}
@@ -287,7 +303,6 @@
                         </label>
                     </div>
 
-                    {% if salon_habilitado %}
                     <label class="opinion-campo">
                         <span>Mozo que te atendió</span>
                         <input
@@ -305,7 +320,6 @@
                             {% endfor %}
                         </datalist>
                     </label>
-                    {% endif %}
 
                     <label class="opinion-campo">
                         <span>Tu opinión</span>
@@ -324,6 +338,7 @@
                 </form>
             </div>
         </div>
+
         {% endif %}
 
         <!-- # CARTA COMPLETA -->

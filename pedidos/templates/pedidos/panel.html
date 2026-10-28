@@ -1,5 +1,5 @@
 {% extends 'pedidos/base.html' %}
-{% block title %}Panel | SterakFood{% endblock %}
+{% block title %}Panel | {{ restaurant_name }}{% endblock %}
 {% block nav_acciones %}
     <a
         href="{% url 'pedidos:inicio' %}"
@@ -19,83 +19,43 @@
     class="container dash-container"
     style="margin-top: 30px;"
 >
-<h1
-        style="
-            margin-bottom: 25px;
-            font-size: 2rem;
-            font-weight: 900;
-            letter-spacing: -0.5px;
-        "
-    >
-        Panel SterakFood
+
+    <h1 class="panel-titulo-principal">
+        Panel {{ restaurant_name }}
     </h1>
+
     <!-- # TABS -->
-    <div class="panel-tabs">
-        <button
-            class="panel-tab-btn"
-            onclick="abrirTab('inicio', this)"
-            id="btn-tab-inicio"
-        >
-            🏠 Inicio
-        </button>
-        <button
-            class="panel-tab-btn"
-            onclick="abrirTab('pedidos', this)"
-            id="btn-tab-pedidos"
-        >
-            📝 Pedidos
-        </button>
+    <div class="panel-tabs panel-tabs--moderno">
+        <button class="panel-tab-btn" onclick="abrirTab('inicio', this)" id="btn-tab-inicio">🏠 Inicio</button>
+        <button class="panel-tab-btn" onclick="abrirTab('pedidos', this)" id="btn-tab-pedidos">📝 Pedidos</button>
         <a
             href="{% url 'pedidos:salon' %}"
             class="panel-tab-btn"
-            data-requiere-salon
-            {% if not configuracion.salon_habilitado %}hidden{% endif %}
-            style="
-                text-decoration: none;
-                display: inline-flex;
-                align-items: center;
-            "
+            {% if not salon_habilitado %}hidden{% endif %}
+            style="text-decoration: none; display: inline-flex; align-items: center;"
         >
             🧾 Salón POS
         </a>
-        <button
-            class="panel-tab-btn"
-            onclick="abrirTab('menu', this)"
-            id="btn-tab-menu"
-        >
-            🍔 Menú
-        </button>
-        <button
-            class="panel-tab-btn"
-            onclick="abrirTab('mostradores', this)"
-            id="btn-tab-mostradores"
-        >
-            🏪 Mostradores
-        </button>
-        <button
-            class="panel-tab-btn"
-            onclick="abrirTab('opiniones', this)"
-            id="btn-tab-opiniones"
-        >
+        {% if sm_local_mode %}
+        <button class="panel-tab-btn" onclick="abrirTab('qr', this)" id="btn-tab-qr">📲 Pedidos QR</button>
+        {% endif %}
+        <button class="panel-tab-btn" onclick="abrirTab('menu', this)" id="btn-tab-menu">🍔 Menú</button>
+        <button class="panel-tab-btn" onclick="abrirTab('mostradores', this)" id="btn-tab-mostradores">🏪 Mostradores</button>
+        <button class="panel-tab-btn" onclick="abrirTab('opiniones', this)" id="btn-tab-opiniones">
             💬 Opiniones
             {% if opiniones_no_leidas %}
                 <span class="opiniones-badge">{{ opiniones_no_leidas }}</span>
             {% endif %}
         </button>
-        <button
-            class="panel-tab-btn"
-            onclick="abrirTab('cuentas', this)"
-            id="btn-tab-cuentas"
-        >
-            💳 Cuentas
-        </button>
-        <button class="panel-tab-btn" onclick="abrirTab('config', this)" id="btn-tab-config">
-            ⚙️ Configuración
-        </button>
+        <button class="panel-tab-btn" onclick="abrirTab('cuentas', this)" id="btn-tab-cuentas">💳 Cuentas</button>
+        <button class="panel-tab-btn" onclick="abrirTab('config', this)" id="btn-tab-config">⚙️ Configuración</button>
     </div>
+
+    {# Módulo local QR retirado: web exclusivamente en Render. #}
+
     <!-- # TAB INICIO -->
     <div id="tab-inicio" class="tab-content">
-        <section class="panel-inicio-v4">
+        <section class="panel-inicio-v4 panel-inicio-v4--sm">
             <div class="panel-inicio-v4__header">
                 <div>
                     <span class="categoria-kicker">VISTA RÁPIDA</span>
@@ -103,6 +63,9 @@
                     <p>Resumen general. Para navegar usá solo las pestañas de abajo.</p>
                 </div>
 
+                {% if sm_local_mode %}
+                <div class="panel-inicio-v4__estado">🖥️ POS local · <span id="smqr-home-sync">Pedidos QR: esperando sincronización</span></div>
+                {% else %}
                 <div class="panel-inicio-v4__estado {% if buffet_habilitado %}is-online{% else %}is-offline{% endif %}">
                     {% if buffet_habilitado %}
                         🟢 Pedidos online activos
@@ -110,54 +73,35 @@
                         🔴 Pedidos online pausados
                     {% endif %}
                 </div>
+                {% endif %}
             </div>
 
             <div class="panel-inicio-v4__cards">
                 <article>
                     <small>Ventas de hoy</small>
                     <strong>${{ ventas_hoy_total|floatformat:0 }}</strong>
+                    <span>Total registrado del día.</span>
                 </article>
 
                 <article>
                     <small>Pendientes</small>
                     <strong>{{ pedidos_pendientes_count }}</strong>
+                    <span>Pedidos esperando atención.</span>
                 </article>
 
                 <article>
-                    <small>Preparación</small>
+                    <small>En preparación</small>
                     <strong>{{ pedidos_preparacion_count }}</strong>
+                    <span>Pedidos que ya se están haciendo.</span>
                 </article>
 
                 <article>
-                    <small>Menú activo</small>
+                    <small>Productos activos</small>
                     <strong>{{ productos_activos_count }}</strong>
+                    <span>{{ productos_pausados_count }} pausados.</span>
                 </article>
             </div>
 
-            <div class="panel-inicio-v4__herramientas">
-                <div>
-                    <strong>Herramientas rápidas</strong>
-                    <span>Acciones del sistema. No repiten la navegación principal.</span>
-                </div>
-
-                <div class="panel-inicio-v4__herramientas-botones">
-                    <a
-                        href="{% url 'pedidos:cambiar_estado_global' %}"
-                        id="btn-estado-global"
-                        class="{% if buffet_habilitado %}is-danger{% else %}is-success{% endif %}"
-                    >
-                        {{ buffet_habilitado|yesno:"🔴 Pausar pedidos,🟢 Activar pedidos" }}
-                    </a>
-
-                    <a href="{% url 'pedidos:descargar_backup' %}">
-                        📦 Backup
-                    </a>
-
-                    <button type="button" onclick="abrirCierreCaja()">
-                        📊 Cierre de caja
-                    </button>
-                </div>
-            </div>
         </section>
     </div>
 
@@ -173,15 +117,17 @@
                     font-size: 1.3rem;
                 "
             >
-                Historial del día
+                Pedidos web / mostradores
             </h3>
-            <a
-                href="{% url 'pedidos:eliminar_todo_historial' %}"
+            <button
+                type="button"
+                id="sm-reiniciar-ventas-panel"
+                data-reset-url="{% url 'pedidos:reiniciar_historial_ventas' %}"
                 class="btn-panel btn-rojo"
-                onclick="eliminarTodoAjax(event, this)"
+                title="Oculta las ventas finalizadas del historial y reportes actuales, sin borrar registros ni cuentas corrientes"
             >
-                🗑️ Limpiar Historial
-            </a>
+                🧹 Reiniciar historial de ventas
+            </button>
         </div>
 
         <!-- # FILTROS -->
@@ -256,6 +202,10 @@
                         id="pedido-{{ pedido.id }}"
                         class="fila-pedido"
                         data-puesto="{{ pedido.punto_venta.slug|default:'general' }}"
+                        data-mesa="{{ pedido.numero_mesa|default:'' }}"
+                        data-total="{{ pedido.total }}"
+                        data-pago="{{ pedido.tipo_pago|default:'' }}"
+                        data-estado="{{ pedido.estado|default:'' }}"
                     >
                         <td>
                             <strong
@@ -460,7 +410,7 @@
                         <button type="button" class="menu-admin-filtro btn-filtro-menu" data-puesto="{{ puesto.id }}" onclick="filtrarMenu('{{ puesto.id }}', this)">{{ puesto.nombre }}</button>
                     {% endfor %}
                 </div>
-                <a href="{% url 'pedidos:agregar_producto' %}" class="menu-admin-nuevo">+ NUEVO PRODUCTO</a>
+                <button type="button" class="menu-admin-nuevo" onclick="abrirNuevoProducto()" data-url-nuevo="{% url 'pedidos:agregar_producto' %}">+ NUEVO PRODUCTO</button>
             </div>
             <div class="menu-admin-toolbar__fila menu-admin-toolbar__fila--busqueda">
                 <div class="menu-admin-buscador">
@@ -793,298 +743,6 @@
             {% endfor %}
         </div>
     </div>
-
-    <!-- # TAB CUENTAS CORRIENTES -->
-    <div id="tab-cuentas" class="tab-content">
-        <section class="cuentas-panel">
-            <div class="cuentas-panel__header">
-                <div>
-                    <span class="categoria-kicker">CUENTAS CORRIENTES</span>
-                    <h2>💳 Cuentas</h2>
-                    <p>Clientes con deuda o saldo a favor, todo en una vista simple.</p>
-                </div>
-                <div class="cuentas-resumen">
-                    <article>
-                        <small>Total deben</small>
-                        <strong class="is-deuda">${{ cuentas_total_deuda|floatformat:0 }}</strong>
-                    </article>
-                    <article>
-                        <small>Total a favor</small>
-                        <strong class="is-favor">${{ cuentas_total_favor|floatformat:0 }}</strong>
-                    </article>
-                </div>
-            </div>
-
-            <div class="cuentas-quickbar">
-                <details class="cuentas-alta-acordeon">
-                    <summary class="cuentas-alta-toggle">
-                        <span><strong>＋ Nueva cuenta</strong><small>Crear una cuenta para otro cliente</small></span>
-                        <span class="cuentas-alta-flecha" aria-hidden="true">⌄</span>
-                    </summary>
-                <form class="cuentas-form-card cuentas-form-card--simple" action="{% url 'pedidos:crear_cuenta_corriente' %}" method="post">
-                    {% csrf_token %}
-                    <div class="cuentas-form-grid cuentas-form-grid--simple">
-                        <label>
-                            <span>Nombre</span>
-                            <input type="text" name="nombre" placeholder="Ej: Juan Pérez" required>
-                        </label>
-
-                        <label>
-                            <span>Teléfono</span>
-                            <input type="text" name="telefono" placeholder="Opcional">
-                        </label>
-
-                        <label>
-                            <span>Monto inicial</span>
-                            <input type="text" name="saldo_inicial" placeholder="Ej: 10000">
-                        </label>
-
-                        <label>
-                            <span>Estado</span>
-                            <select name="estado_inicial">
-                                <option value="debe">Debe</option>
-                                <option value="favor">A favor</option>
-                            </select>
-                        </label>
-
-                        <label class="is-wide">
-                            <span>Nota</span>
-                            <input type="text" name="nota" placeholder="Opcional: equipo, área, referencia...">
-                        </label>
-
-                        <button type="submit" class="cuentas-btn cuentas-btn--crear">
-                            Crear
-                        </button>
-                    </div>
-
-                    <div class="cuentas-mini-ayuda" aria-label="Ayuda rápida">
-                        <span><b>Consumo</b> suma deuda</span>
-                        <span><b>Pago</b> descuenta</span>
-                        <span><b>A favor</b> queda crédito</span>
-                    </div>
-                </form>
-                </details>
-            </div>
-
-            <div class="cuentas-filtros" role="search" aria-label="Buscar cuentas corrientes">
-                <label class="cuentas-filtros__buscador" for="cuentas-buscar">
-                    <span aria-hidden="true">⌕</span>
-                    <input id="cuentas-buscar" type="search" placeholder="Buscar por nombre, teléfono o nota..." autocomplete="off" aria-label="Buscar cuentas">
-                </label>
-                <label class="cuentas-filtros__estado">
-                    <span class="sr-only">Filtrar por saldo</span>
-                    <select id="cuentas-filtro-estado" aria-label="Filtrar por estado">
-                        <option value="todos">Todas las cuentas</option>
-                        <option value="debe">Deben</option>
-                        <option value="favor">A favor</option>
-                        <option value="aldia">Al día</option>
-                    </select>
-                </label>
-                <span class="cuentas-filtros__contador" id="cuentas-resultados" aria-live="polite"></span>
-                <button id="cuentas-limpiar" class="cuentas-filtros__limpiar" type="button">Limpiar</button>
-            </div>
-
-            <div class="cuentas-lista">
-                {% for cuenta in cuentas_corrientes %}
-                    <details id="cuenta-{{ cuenta.id }}" class="cuenta-card cuenta-card--{{ cuenta.estado_clase }}" data-cuenta-estado="{{ cuenta.estado_clase }}" data-cuenta-nombre="{{ cuenta.nombre }}" data-cuenta-telefono="{{ cuenta.telefono|default:'' }}" data-cuenta-nota="{{ cuenta.nota|default:'' }}">
-                        <summary class="cuenta-card__summary">
-                            <div class="cuenta-card__top">
-                                <div class="cuenta-card__persona">
-                                    <span class="cuenta-card__estado">{{ cuenta.estado_panel }}</span>
-                                    <h3>{{ cuenta.nombre }}</h3>
-                                    <p>
-                                        {% if cuenta.telefono %}📞 {{ cuenta.telefono }}{% else %}Sin teléfono{% endif %}
-                                        {% if cuenta.nota %} · {{ cuenta.nota }}{% endif %}
-                                    </p>
-                                </div>
-                                <div class="cuenta-card__saldo">
-                                    <small>Saldo</small>
-                                    {% if cuenta.saldo_panel < 0 %}
-                                        <strong class="is-deuda">Debe ${{ cuenta.saldo_abs|floatformat:0 }}</strong>
-                                    {% elif cuenta.saldo_panel > 0 %}
-                                        <strong class="is-favor">A favor ${{ cuenta.saldo_abs|floatformat:0 }}</strong>
-                                    {% else %}
-                                        <strong>Al día</strong>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <span class="cuenta-card__toggle" aria-hidden="true"></span>
-                        </summary>
-
-                        <div class="cuenta-card__body">
-                            <div class="cuenta-ticket-acciones">
-                                <button type="button" class="cuenta-ticket-btn"
-                                    data-cuenta-imprimir-url="{% url 'pedidos:imprimir_estado_cuenta' cuenta.id %}">
-                                    🖨 Imprimir estado de cuenta
-                                </button>
-                            </div>
-                            <form class="cuenta-mov-form" action="{% url 'pedidos:agregar_movimiento_cuenta' cuenta.id %}" method="post">
-                            {% csrf_token %}
-                            <select name="tipo">
-                                <option value="consumo">Consumo / suma deuda</option>
-                                <option value="pago">Pago recibido</option>
-                                <option value="favor">Cargar dinero a favor</option>
-                                <option value="ajuste_debe">Ajuste: debe</option>
-                                <option value="ajuste_favor">Ajuste: a favor</option>
-                            </select>
-                            <input type="text" name="monto" placeholder="Monto" required>
-                            <input type="text" name="descripcion" placeholder="Detalle opcional">
-                            <button type="submit">Agregar</button>
-                        </form>
-
-                        <div class="cuenta-historial">
-                            <strong>Historial</strong>
-                            {% for movimiento in cuenta.movimientos.all|slice:":6" %}
-                                <div class="cuenta-movimiento {% if movimiento.monto < 0 %}is-deuda{% else %}is-favor{% endif %}">
-                                    <div>
-                                        <span>{{ movimiento.fecha|date:"d/m H:i" }}</span>
-                                        <p>{{ movimiento.descripcion|default:movimiento.get_tipo_display }}</p>
-                                    </div>
-                                    <div class="cuenta-movimiento__monto">
-                                        {% if movimiento.monto < 0 %}
-                                            -${{ movimiento.monto|floatformat:0|slice:"1:" }}
-                                        {% else %}
-                                            +${{ movimiento.monto|floatformat:0 }}
-                                        {% endif %}
-                                    </div>
-                                    {% if movimiento.comprobante_pos %}
-                                        <button type="button" class="cuenta-ticket-reimprimir"
-                                            title="Reimprimir comprobante de este consumo"
-                                            aria-label="Reimprimir comprobante de este consumo"
-                                            data-cuenta-imprimir-url="{% url 'pedidos:imprimir_comprobante_cuenta' movimiento.comprobante_pos.id %}">🖨</button>
-                                    {% endif %}
-                                    <form action="{% url 'pedidos:eliminar_movimiento_cuenta' movimiento.id %}" method="post" onsubmit="return confirm('¿Eliminar este movimiento?');">
-                                        {% csrf_token %}
-                                        <button type="submit" title="Eliminar movimiento">×</button>
-                                    </form>
-                                </div>
-                            {% empty %}
-                                <p class="cuenta-historial__vacio">Todavía no hay movimientos.</p>
-                            {% endfor %}
-                        </div>
-
-                            <form class="cuenta-eliminar-form" action="{% url 'pedidos:eliminar_cuenta_corriente' cuenta.id %}" method="post" onsubmit="return confirm('¿Eliminar la cuenta completa de {{ cuenta.nombre }}?');">
-                                {% csrf_token %}
-                                <button type="submit">🗑 Eliminar cuenta</button>
-                            </form>
-                        </div>
-                    </details>
-                {% empty %}
-                    <div class="cuentas-vacio">
-                        <span>💳</span>
-                        <strong>Todavía no cargaste cuentas.</strong>
-                        <p>Creá una cuenta arriba para empezar a registrar consumos, pagos o dinero a favor.</p>
-                    </div>
-                {% endfor %}
-                <div class="cuentas-sin-resultados" id="cuentas-sin-resultados" hidden>
-                    No encontramos cuentas con esa búsqueda.
-                </div>
-            </div>
-        </section>
-    </div>
-
-    <!-- # TAB CONFIGURACIÓN -->
-    <div id="tab-config" class="tab-content">
-        <section class="config-sistema" data-config-url="{% url 'pedidos:actualizar_configuracion' %}">
-            <form id="config-csrf-form" hidden>{% csrf_token %}</form>
-            <div class="config-sistema__header">
-                <div>
-                    <span class="categoria-kicker">CONFIGURACIÓN RÁPIDA</span>
-                    <h2>⚙️ Funciones del sistema</h2>
-                    <p>Activá o desactivá las funciones más usadas sin tocar código.</p>
-                </div>
-                <span id="config-estado-guardado" class="config-guardado" aria-live="polite"></span>
-            </div>
-
-
-            <div class="config-ayuda-v2">
-                <div>
-                    <strong>🟢 Pedidos online</strong>
-                    <span>Activa o pausa el menú público.</span>
-                </div>
-                <div>
-                    <strong>💵 Descuento</strong>
-                    <span>Solo se aplica al pago en efectivo.</span>
-                </div>
-                <div>
-                    <strong>🕐 Cierre automático</strong>
-                    <span>Al llegar la hora, pausa los pedidos.</span>
-                </div>
-            </div>
-
-            <div class="config-grupo">
-                <h3>🛒 Ventas</h3>
-                <label class="config-fila">
-                    <span><strong>Aceptar pedidos online</strong><small>Pausa o habilita los pedidos desde el menú público.</small></span>
-                    <input type="checkbox" data-config-campo="buffet_habilitado" {% if configuracion.buffet_habilitado %}checked{% endif %}>
-                    <i class="config-switch" aria-hidden="true"></i>
-                </label>
-                <div class="config-fila config-fila--con-campo">
-                    <span><strong>Descuento en efectivo</strong><small>Se aplica cuando el switch está activo.</small></span>
-                    <div class="config-control-doble">
-                        <input class="config-input" type="number" min="0" max="100" value="{{ configuracion.descuento_efectivo_porcentaje }}" data-config-campo="descuento_efectivo_porcentaje">
-                        <span>%</span>
-                        <label class="config-switch-label" title="Activar descuento en efectivo">
-                            <input type="checkbox" data-config-campo="descuento_efectivo_activo" {% if configuracion.descuento_efectivo_activo %}checked{% endif %}>
-                            <i class="config-switch" aria-hidden="true"></i>
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <div class="config-grupo">
-                <h3>🕐 Horarios</h3>
-                <div class="config-fila config-fila--con-campo">
-                    <span><strong>Cierre automático</strong><small>Desactiva los pedidos a esa hora y quedan pausados hasta que los vuelvas a activar.</small></span>
-                    <div class="config-control-doble">
-                        <input class="config-input config-input--hora" type="time" value="{{ configuracion.hora_cierre|time:'H:i' }}" data-config-campo="hora_cierre">
-                        <label class="config-switch-label" title="Activar cierre automático">
-                            <input type="checkbox" data-config-campo="cierre_automatico_activo" {% if configuracion.cierre_automatico_activo %}checked{% endif %}>
-                            <i class="config-switch" aria-hidden="true"></i>
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <div class="config-grupo">
-                <h3>🍔 Menú público</h3>
-                <label class="config-fila">
-                    <span><strong>Mostrar promociones</strong><small>Muestra u oculta el bloque completo de Promos.</small></span>
-                    <input type="checkbox" data-config-campo="mostrar_promociones" {% if configuracion.mostrar_promociones %}checked{% endif %}>
-                    <i class="config-switch" aria-hidden="true"></i>
-                </label>
-                <label class="config-fila">
-                    <span><strong>Popup de bienvenida</strong><small>{% if welcome_image_available %}Muestra la imagen de bienvenida al entrar al menú.{% else %}Agregá static/img/bienvenida_buffet.webp para habilitarlo.{% endif %}</small></span>
-                    <input type="checkbox" data-config-campo="mostrar_bienvenida" {% if configuracion.mostrar_bienvenida %}checked{% endif %} {% if not welcome_image_available %}disabled{% endif %}>
-                    <i class="config-switch" aria-hidden="true"></i>
-                </label>
-            </div>
-
-            <div class="config-grupo">
-                <h3>💬 Clientes</h3>
-                <label class="config-fila">
-                    <span><strong>Opiniones privadas</strong><small>Muestra u oculta el formulario de comentarios privados.</small></span>
-                    <input type="checkbox" data-config-campo="mostrar_opiniones" {% if configuracion.mostrar_opiniones %}checked{% endif %}>
-                    <i class="config-switch" aria-hidden="true"></i>
-                </label>
-                <label class="config-fila">
-                    <span><strong>Google Reviews</strong><small>Muestra u oculta el acceso para dejar una reseña en Google.</small></span>
-                    <input type="checkbox" data-config-campo="mostrar_google_reviews" {% if configuracion.mostrar_google_reviews %}checked{% endif %}>
-                    <i class="config-switch" aria-hidden="true"></i>
-                </label>
-            </div>
-
-            <div class="config-grupo">
-                <h3>🍽️ Salón</h3>
-                <label class="config-fila">
-                    <span><strong>Módulo Salón / Mesas</strong><small>Activa el POS de salón, mesas y selección de mozos.</small></span>
-                    <input type="checkbox" data-config-campo="salon_habilitado" {% if configuracion.salon_habilitado %}checked{% endif %}>
-                    <i class="config-switch" aria-hidden="true"></i>
-                </label>
-            </div>
-        </section>
-    </div>
-
     <!-- # TAB OPINIONES -->
     <div id="tab-opiniones" class="tab-content">
         <div class="opiniones-dashboard-header">
@@ -1149,6 +807,518 @@
             {% endfor %}
         </div>
     </div>
+
+
+    <!-- # TAB CUENTAS CORRIENTES -->
+    <div id="tab-cuentas" class="tab-content">
+        <section class="cuentas-panel">
+            <div class="cuentas-panel__header">
+                <div>
+                    <span class="categoria-kicker">CUENTAS CORRIENTES</span>
+                    <h2>💳 Cuentas</h2>
+                    <p>Clientes con deuda o saldo a favor, todo en una vista simple.</p>
+                </div>
+                <div class="cuentas-resumen">
+                    <article>
+                        <small>Total deben</small>
+                        <strong class="is-deuda" data-cuentas-total-deuda>${{ cuentas_total_deuda|floatformat:0 }}</strong>
+                    </article>
+                    <article>
+                        <small>Total a favor</small>
+                        <strong class="is-favor" data-cuentas-total-favor>${{ cuentas_total_favor|floatformat:0 }}</strong>
+                    </article>
+                </div>
+            </div>
+
+            <div class="cuentas-panel__atajos">
+                <a href="{% url 'pedidos:salon' %}" class="cuentas-panel__atajo">🧾 Ir a Mesas</a>
+                <button type="button" class="cuentas-panel__atajo cuentas-panel__atajo--secundario" onclick="abrirTab('pedidos', document.getElementById('btn-tab-pedidos'))">📝 Ir a Pedidos</button>
+            </div>
+
+            <div id="cuentas-ajax-mensaje" role="status" aria-live="polite" class="cuentas-ajax-mensaje" hidden></div>
+            <div class="cuentas-quickbar">
+                <details class="cuentas-alta-acordeon">
+                    <summary class="cuentas-alta-toggle">
+                        <span><strong>＋ Nueva cuenta</strong><small>Crear una cuenta para otro cliente</small></span>
+                        <span class="cuentas-alta-flecha" aria-hidden="true">⌄</span>
+                    </summary>
+                <form class="cuentas-form-card cuentas-form-card--simple" data-cuenta-ajax="1" action="{% url 'pedidos:crear_cuenta_corriente' %}" method="post">
+                    {% csrf_token %}
+                    <div class="cuentas-form-grid cuentas-form-grid--simple">
+                        <label>
+                            <span>Nombre</span>
+                            <input type="text" name="nombre" placeholder="Ej: Juan Pérez" required>
+                        </label>
+
+                        <label>
+                            <span>Teléfono</span>
+                            <input type="text" name="telefono" placeholder="Opcional">
+                        </label>
+
+                        <label>
+                            <span>Monto inicial</span>
+                            <input type="text" name="saldo_inicial" placeholder="Ej: 10000">
+                        </label>
+
+                        <label>
+                            <span>Estado</span>
+                            <select name="estado_inicial">
+                                <option value="debe">Debe</option>
+                                <option value="favor">A favor</option>
+                            </select>
+                        </label>
+
+                        <label class="is-wide">
+                            <span>Nota</span>
+                            <input type="text" name="nota" placeholder="Opcional: equipo, área, referencia...">
+                        </label>
+
+                        <button type="submit" class="cuentas-btn cuentas-btn--crear">
+                            Crear
+                        </button>
+                    </div>
+
+                    <div class="cuentas-mini-ayuda" aria-label="Ayuda rápida">
+                        <span><b>Consumo</b> suma deuda</span>
+                        <span><b>Pago</b> descuenta</span>
+                        <span><b>A favor</b> queda crédito</span>
+                    </div>
+                </form>
+                </details>
+            </div>
+
+            <div class="cuentas-filtros" role="search" aria-label="Buscar cuentas corrientes">
+                <label class="cuentas-filtros__buscador" for="cuentas-buscar">
+                    <span aria-hidden="true">⌕</span>
+                    <input id="cuentas-buscar" type="search" placeholder="Buscar por nombre, teléfono o nota..." autocomplete="off" aria-label="Buscar cuentas">
+                </label>
+                <label class="cuentas-filtros__estado">
+                    <span class="sr-only">Filtrar por saldo</span>
+                    <select id="cuentas-filtro-estado" aria-label="Filtrar por estado">
+                        <option value="todos">Todas las cuentas</option>
+                        <option value="debe">Deben</option>
+                        <option value="favor">A favor</option>
+                        <option value="aldia">Al día</option>
+                    </select>
+                </label>
+                <span class="cuentas-filtros__contador" id="cuentas-resultados" aria-live="polite"></span>
+                <button id="cuentas-limpiar" class="cuentas-filtros__limpiar" type="button">Limpiar</button>
+            </div>
+
+            <div class="cuentas-lista">
+                {% for cuenta in cuentas_corrientes %}
+                    {% include 'pedidos/_cuenta_tarjeta.html' %}
+                {% empty %}
+                    <div class="cuentas-vacio">
+                        <span>💳</span>
+                        <strong>Todavía no cargaste cuentas.</strong>
+                        <p>Creá una cuenta arriba para empezar a registrar consumos, pagos o dinero a favor.</p>
+                    </div>
+                {% endfor %}
+                <div class="cuentas-sin-resultados" id="cuentas-sin-resultados" hidden>
+                    No encontramos cuentas con esa búsqueda.
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- # TAB HERRAMIENTAS: mantiene ID tab-config por compatibilidad -->
+    <div id="tab-config" class="tab-content">
+        <section id="sm-herramientas-central" class="sm-herramientas-central" aria-labelledby="sm-herramientas-title">
+            <div class="sm-herramientas-central__titulo">
+                <div>
+                    <span class="categoria-kicker">ADMINISTRACIÓN CENTRALIZADA</span>
+                    <h2 id="sm-herramientas-title">⚙ Herramientas</h2>
+                    <p>Todo en un lugar, sin salir del panel. También disponible desde el desplegable de Mesas, sin abrir pestañas nuevas.</p>
+                </div>
+                <a class="sm-herramientas-central__volver" href="{% url 'pedidos:salon' %}">← Volver a Mesas</a>
+            </div>
+            <div class="sm-herramientas-central__grid">
+                <button type="button" data-salon-tool-open="catalogo" aria-controls="salon-tool-dialog-catalogo" aria-haspopup="dialog">
+                    <b>💲 Precios del salón</b><small>Buscar códigos, actualizar precios y productos</small>
+                </button>
+                <button type="button" data-salon-tool-open="mozos" aria-controls="salon-tool-dialog-mozos" aria-haspopup="dialog">
+                    <b>👥 Mozos</b><small>Agregar y administrar personal del turno</small>
+                </button>
+                <button type="button" data-salon-tool-open="importar" aria-controls="salon-tool-dialog-importar" aria-haspopup="dialog">
+                    <b>📋 Importar códigos</b><small>Importar catálogo CSV del POS anterior</small>
+                </button>
+                <a href="#sm-impresoras-panel">
+                    <b>🖨 Impresoras</b><small>Caja, cocina, barra y vinculación de esta PC</small>
+                </a>
+                <a href="{% url 'pedidos:panel_control' %}?tab=menu#tab-menu">
+                    <b>🍔 Menú web</b><small>Precios y productos del menú QR</small>
+                </a>
+                <a href="{% url 'pedidos:fiscal_preparacion' %}">
+                    <b>🧾 Preparación fiscal</b><small>Solo borradores, sin emitir comprobantes</small>
+                </a>
+                <a href="#sm-ajustes-sistema">
+                    <b>⚙ Ajustes del sistema</b><small>Pedidos online, descuentos y funciones activas</small>
+                </a>
+            </div>
+            <form id="salon-csrf-form" hidden>{% csrf_token %}</form>
+        </section>
+        <section class="sm-herramientas-operaciones" aria-label="Operaciones administrativas">
+            <h3>Operaciones del negocio</h3>
+            <div class="panel-inicio-v4__herramientas">
+                <div>
+                    <strong>Acciones administrativas</strong>
+                    <span>Control de pedidos online, backup y cierre de caja desde este mismo apartado.</span>
+                </div>
+
+                <div class="panel-inicio-v4__herramientas-botones">
+                    {% if not sm_local_mode %}
+                    <form method="post" action="{% url 'pedidos:cambiar_estado_global' %}" class="panel-accion-pedidos-manuales">
+                        {% csrf_token %}
+                        <button type="submit" id="btn-estado-global" class="{% if buffet_habilitado %}is-danger{% else %}is-success{% endif %}">
+                            {{ buffet_habilitado|yesno:"🔴 Pausar pedidos,🟢 Activar pedidos" }}
+                        </button>
+                    </form>
+                    {% else %}
+                    <small>Pedidos web: usar el panel público en Render (cuando tengas internet).</small>
+                    {% endif %}
+
+                    <a href="{% url 'pedidos:descargar_backup' %}">📦 Backup</a>
+
+                    <button type="button" onclick="abrirCierreCaja()">📊 Cierre de caja</button>
+                </div>
+            </div>
+        </section>
+
+    <div id="salon-tool-dialog-mozos" class="salon-pos__tool-overlay" data-salon-tool-dialog="mozos" aria-hidden="true" hidden>
+      <button type="button" class="salon-pos__tool-fondo" data-salon-tool-close="mozos" tabindex="-1" aria-label="Cerrar"></button>
+      <section class="salon-pos__tool-ventana salon-pos__tool-ventana--mozos" role="dialog" aria-modal="true" aria-labelledby="salon-tool-title-mozos" tabindex="-1">
+        <header class="salon-pos__tool-ventana-header">
+          <div><small>HERRAMIENTAS DEL SALÓN</small><h2 id="salon-tool-title-mozos">👥 Personal del turno</h2><p>Asigná y administrá a los mozos.</p></div>
+          <button type="button" class="salon-pos__tool-cerrar" data-salon-tool-close="mozos" aria-label="Cerrar ventana">✕</button>
+        </header>
+        <div class="salon-pos__tool-ventana-cuerpo">
+<details class="salon-pos__personal salon-pos__tool" id="salon-gestion-mozos">
+        <summary>
+            <div class="salon-pos__tool-main">
+                <strong>👤 Mozos del turno</strong>
+                <small>Alta rápida y administración del personal del salón.</small>
+            </div>
+            <span class="salon-pos__tool-action">Gestionar ▾</span>
+        </summary>
+        <div class="salon-pos__personal-contenido">
+            <form action="{% url 'pedidos:agregar_mozo' %}" id="salon-form-agregar-mozo" method="post">
+                {% csrf_token %}
+                <input type="text" name="nombre" maxlength="100" placeholder="Nombre del mozo" required autocomplete="off" aria-label="Nombre del mozo">
+                <button type="submit">+ Agregar</button>
+            </form>
+            <div class="salon-pos__personal-lista">
+                {% for mozo in mozos %}
+                    <span class="salon-pos__personal-chip"><b class="salon-pos__personal-numero">{{ forloop.counter }}</b> {{ mozo.nombre }}
+                        <button type="button" title="Eliminar mozo" data-salon-borrar-mozo="{% url 'pedidos:eliminar_mozo' mozo.id %}" data-nombre="{{ mozo.nombre }}">×</button>
+                    </span>
+                {% empty %}<small>Todavía no cargaste mozos.</small>{% endfor %}
+            </div>
+        </div>
+    </details>
+        </div>
+      </section>
+    </div>
+    <div id="salon-tool-dialog-importar" class="salon-pos__tool-overlay" data-salon-tool-dialog="importar" aria-hidden="true" hidden>
+      <button type="button" class="salon-pos__tool-fondo" data-salon-tool-close="importar" tabindex="-1" aria-label="Cerrar"></button>
+      <section class="salon-pos__tool-ventana salon-pos__tool-ventana--importar" role="dialog" aria-modal="true" aria-labelledby="salon-tool-title-importar" tabindex="-1">
+        <header class="salon-pos__tool-ventana-header">
+          <div><small>HERRAMIENTAS DEL SALÓN</small><h2 id="salon-tool-title-importar">📋 Códigos del Salón</h2><p>Importá el CSV sin tocar el menú público.</p></div>
+          <button type="button" class="salon-pos__tool-cerrar" data-salon-tool-close="importar" aria-label="Cerrar ventana">✕</button>
+        </header>
+        <div class="salon-pos__tool-ventana-cuerpo">
+<details class="salon-pos__importacion salon-pos__tool" id="salon-importador-codigos">
+        <summary>
+            <div class="salon-pos__tool-main">
+                <strong>📋 Códigos antiguos del Salón</strong>
+                <small>Importá el CSV del sistema viejo solo para el POS del salón.</small>
+            </div>
+            <span class="salon-pos__tool-action">Importar CSV ▾</span>
+        </summary>
+        <form action="{% url 'pedidos:importar_codigos_salon' %}" method="post" enctype="multipart/form-data"
+              onsubmit="return confirm('¿Importar códigos al Salón POS? Los productos actuales y los del menú público no se modificarán.');">
+            {% csrf_token %}
+            <label for="catalogo-salon-csv">Archivo CSV de catálogo (Código, Producto, Precio, Activo)</label>
+            <input type="file" name="catalogo_salon_csv" id="catalogo-salon-csv" accept=".csv,text/csv" required>
+            <button type="submit">Importar al Salón</button>
+            <small>Solo aparecen en Salón POS. Si el código ya existe en Salón, no se duplica ni cambia el precio. No afecta el menú público.</small>
+        </form>
+    </details>
+        </div>
+      </section>
+    </div>
+    <div id="salon-tool-dialog-catalogo" class="salon-pos__tool-overlay" data-salon-tool-dialog="catalogo" aria-hidden="true" hidden>
+      <button type="button" class="salon-pos__tool-fondo" data-salon-tool-close="catalogo" tabindex="-1" aria-label="Cerrar"></button>
+      <section class="salon-pos__tool-ventana salon-pos__tool-ventana--catalogo" role="dialog" aria-modal="true" aria-labelledby="salon-tool-title-catalogo" tabindex="-1">
+        <header class="salon-pos__tool-ventana-header">
+          <div><small>HERRAMIENTAS DEL SALÓN</small><h2 id="salon-tool-title-catalogo">💲 Precios del Salón POS</h2><p>Buscá, editá y guardá precios sin salir de las mesas.</p></div>
+          <button type="button" class="salon-pos__tool-cerrar" data-salon-tool-close="catalogo" aria-label="Cerrar ventana">✕</button>
+        </header>
+        <div class="salon-pos__tool-ventana-cuerpo">
+          <div class="salon-precios__destinos">
+            <span><strong>Salón POS:</strong> estos precios se aplican al catálogo interno de las mesas.</span>
+            <a href="{% url 'pedidos:panel_control' %}?tab=menu#tab-menu"
+               onclick="localStorage.setItem('tabDashboardActiva','menu')"
+               title="Abrir el administrador de precios del menú QR en otra pestaña">
+              Cambiar precios del menú web
+            </a>
+          </div>
+<details class="salon-pos__catalogo salon-pos__tool" id="salon-editor-codigos"
+             data-list-url="{% url 'pedidos:catalogo_salon_api' %}"
+             data-edit-url-template="{% url 'pedidos:editar_producto_salon' 999999 %}">
+        <summary>
+            <div class="salon-pos__tool-main">
+                <strong>✏️ Editar precios y productos</strong>
+                <small>Buscá por código o nombre y actualizá el salón sin tocar el menú público.</small>
+            </div>
+            <span class="salon-pos__tool-action">Editar catálogo ▾</span>
+        </summary>
+        <div class="salon-catalogo__contenido">
+            <div class="salon-catalogo__barra">
+                <label for="salon-catalogo-buscar">Buscar producto
+                    <input id="salon-catalogo-buscar" type="search" autocomplete="off"
+                           placeholder="Ej: 1, café, milanesa..." aria-label="Buscar producto del salón">
+                </label>
+                <small id="salon-catalogo-contador" aria-live="polite"></small>
+                <button type="button" id="salon-catalogo-recargar">Actualizar</button>
+            </div>
+            <p class="salon-catalogo__ayuda">Cambiá el precio y presioná <strong>Enter</strong>. Para modificar nombre, código o disponibilidad, usá <strong>Editar</strong>. Los cambios no afectan mesas ya cargadas.</p>
+            <div id="salon-catalogo-mensaje" class="salon-catalogo__mensaje" role="status" aria-live="polite"></div>
+            <div id="salon-catalogo-lista" class="salon-catalogo__lista" aria-label="Productos internos del salón"></div>
+        </div>
+    </details>
+        </div>
+      </section>
+    </div>
+
+
+        <section id="sm-ajustes-sistema" class="config-sistema" data-config-url="{% url 'pedidos:actualizar_configuracion' %}">
+            <form id="config-csrf-form" hidden>{% csrf_token %}</form>
+            <div class="config-sistema__header">
+                <div>
+                    <span class="categoria-kicker">AJUSTES GENERALES</span>
+                    <h2>Funciones del sistema</h2>
+                    <p>Activá o desactivá las funciones más usadas sin tocar código.</p>
+                </div>
+                <span id="config-estado-guardado" class="config-guardado" aria-live="polite"></span>
+            </div>
+
+            <!-- Configuración cloud + agente Windows (v157). -->
+            <div id="sm-impresoras-panel" class="sm-impresoras"
+                 data-leer="{% url 'pedidos:impresoras_obtener' %}"
+                 data-guardar="{% url 'pedidos:impresoras_guardar' %}"
+                 data-vincular="{% url 'pedidos:impresoras_vincular' %}">
+                <div class="sm-impresoras__resumen">
+                    <div class="sm-impresoras__resumen-icono" aria-hidden="true">🖨</div>
+                    <div class="sm-impresoras__resumen-info">
+                        <strong>Impresoras del POS</strong>
+                        <span>Configurá caja, cocina y barra desde el panel.</span>
+                    </div>
+                    <span id="sm-impresoras-estado" class="sm-impresoras__estado" role="status">Consultando...</span>
+                    <button type="button" id="sm-impresoras-abrir" class="sm-impresoras__btn sm-impresoras__btn--principal"
+                            aria-haspopup="dialog" aria-controls="sm-impresoras-dialogo">Configurar impresoras</button>
+                </div>
+                <div id="sm-impresoras-dialogo" class="sm-impresoras__overlay" hidden>
+                    <button type="button" class="sm-impresoras__fondo" data-impresoras-cerrar
+                            tabindex="-1" aria-label="Cerrar configuración"></button>
+                    <section class="sm-impresoras__ventana" role="dialog" aria-modal="true"
+                             aria-labelledby="sm-impresoras-titulo">
+                        <header class="sm-impresoras__cabecera">
+                            <div>
+                                <span class="sm-impresoras__kicker">HERRAMIENTAS · IMPRESIÓN</span>
+                                <h3 id="sm-impresoras-titulo">Configurar impresoras</h3>
+                                <p>Elegí los destinos de impresión. La PC vinculada recibirá estos ajustes.</p>
+                            </div>
+                            <button type="button" class="sm-impresoras__cerrar" data-impresoras-cerrar
+                                    aria-label="Cerrar ventana">×</button>
+                        </header>
+                        <form id="sm-impresoras-form" class="sm-impresoras__form">
+                            <label>Impresora de caja <small>Nombre exacto en Windows</small>
+                                <input name="caja_windows" maxlength="120" placeholder="FACTURA_PYTHON"
+                                       autocomplete="off" required></label>
+                            <label>Ancho del ticket <small>Caracteres por línea</small>
+                                <select name="ancho_ticket"><option value="32">32</option><option value="42">42</option><option value="48">48</option></select></label>
+                            <label>Impresora de cocina <small>Dirección IP</small>
+                                <input name="ip_cocina" placeholder="192.168.1.100" required inputmode="decimal"></label>
+                            <label>Impresora de barra <small>Dirección IP</small>
+                                <input name="ip_barra" placeholder="192.168.1.101" required inputmode="decimal"></label>
+                            <div class="sm-impresoras__acciones">
+                                <button type="submit" class="sm-impresoras__btn sm-impresoras__btn--principal">Guardar cambios</button>
+                                <button type="button" id="sm-impresoras-vincular" class="sm-impresoras__btn sm-impresoras__btn--secundario">Vincular PC / descargar clave</button>
+                            </div>
+                        </form>
+                        <details class="sm-impresoras__ayuda">
+                            <summary>¿Cómo vinculo esta computadora?</summary>
+                            <p>Descargá la clave y guardala como <code>datos_locales\impresoras_config.json</code>
+                               dentro de SisteMaSM. Reiniciá la ticketera si hace falta. No subas esa clave a GitHub.
+                               Generar otra clave invalida la anterior.</p>
+                        </details>
+                        <div id="sm-impresoras-mensaje" role="status" aria-live="polite"></div>
+                    </section>
+                </div>
+            </div>
+
+            <div class="config-ayuda-v2">
+                <div>
+                    <strong>🟢 Pedidos online</strong>
+                    <span>Activa o pausa el menú público.</span>
+                </div>
+                <div>
+                    <strong>💵 Descuento</strong>
+                    <span>Solo se aplica al pago en efectivo.</span>
+                </div>
+                <div>
+                    <strong>🔒 Solo control manual</strong>
+                    <span>Cerrar la pestaña o quedarse sin internet no pausa ni cancela pedidos.</span>
+                </div>
+            </div>
+
+            <div class="config-grupo">
+                <h3>🛒 Ventas</h3>
+                {% if sm_local_mode %}
+                <p>🖥️ Este panel es LOCAL. Para pausar o activar pedidos por celular, ingresá al panel público de Render con internet o datos móviles. El estado local no controla la web.</p>
+                {% else %}
+                <label class="config-fila">
+                    <span><strong>Aceptar pedidos online</strong><small>Lo decidís vos desde el panel. El estado se guarda en la nube aunque cierres la web.</small></span>
+                    <input type="checkbox" data-config-campo="buffet_habilitado" {% if configuracion.buffet_habilitado %}checked{% endif %}>
+                    <i class="config-switch" aria-hidden="true"></i>
+                </label>
+                {% endif %}
+
+                <div class="config-fila config-fila--con-campo">
+                    <span><strong>Descuento en efectivo</strong><small>Se aplica cuando el switch está activo.</small></span>
+                    <div class="config-control-doble">
+                        <input class="config-input" type="number" min="0" max="100" value="{{ configuracion.descuento_efectivo_porcentaje }}" data-config-campo="descuento_efectivo_porcentaje">
+                        <span>%</span>
+                        <label class="config-switch-label" title="Activar descuento en efectivo">
+                            <input type="checkbox" data-config-campo="descuento_efectivo_activo" {% if configuracion.descuento_efectivo_activo %}checked{% endif %}>
+                            <i class="config-switch" aria-hidden="true"></i>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="config-grupo">
+                <h3>🛡️ Pedidos sin cierre automático</h3>
+                <p>La web pública mantiene el estado de pedidos que elegiste manualmente. Si no hay internet en el buffet, los pedidos web pueden seguir entrando a Render y no serán visibles localmente hasta volver la conexión. Los pedidos ya creados no se cancelan al pausar.</p>
+            </div>
+
+            <div class="config-grupo">
+                <h3>🍔 Menú público</h3>
+                <label class="config-fila">
+                    <span><strong>Mostrar promociones</strong><small>Muestra u oculta el bloque completo de Promos.</small></span>
+                    <input type="checkbox" data-config-campo="mostrar_promociones" {% if configuracion.mostrar_promociones %}checked{% endif %}>
+                    <i class="config-switch" aria-hidden="true"></i>
+                </label>
+
+                <div class="config-fila config-fila--popup {% if not welcome_image_available %}is-disabled{% endif %}">
+                    <span>
+                        <strong>Popup de bienvenida</strong>
+                        <small>
+                            Subí una foto para mostrarla cuando abran el menú público.
+                            {% if not welcome_image_available %}Primero cargá una imagen para poder activarlo.{% endif %}
+                        </small>
+                    </span>
+
+                    <label class="config-switch-label" title="Activar popup de bienvenida">
+                        <input type="checkbox" data-config-campo="mostrar_bienvenida" {% if configuracion.mostrar_bienvenida %}checked{% endif %} {% if not welcome_image_available %}disabled{% endif %}>
+                        <i class="config-switch" aria-hidden="true"></i>
+                    </label>
+                </div>
+
+                <div class="popup-bienvenida-panel">
+                    {% if welcome_images %}
+                        <div class="popup-bienvenida-grid">
+                            {% for imagen in welcome_images %}
+                                <div class="popup-bienvenida-preview">
+                                    <img src="{{ imagen.url }}" alt="Foto {{ forloop.counter }} del popup de bienvenida">
+                                    <div>
+                                        <strong>Popup {{ forloop.counter }}</strong>
+                                        <small>{{ imagen.nombre }}</small>
+
+                                        <form
+                                            action="{% url 'pedidos:eliminar_popup_bienvenida' %}"
+                                            method="post"
+                                            class="popup-bienvenida-delete-form"
+                                        >
+                                            {% csrf_token %}
+                                            <input type="hidden" name="archivo" value="{{ imagen.nombre }}">
+                                            <button type="submit" class="config-accion-link is-danger" onclick="return confirm('¿Eliminar esta imagen del popup?');">
+                                                🗑️ Eliminar
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <small class="popup-bienvenida-ayuda">
+                            Podés tener hasta 3 imágenes. Al subir otra, se agrega sin borrar las anteriores.
+                        </small>
+                    {% else %}
+                        <div class="popup-bienvenida-vacia">
+                            <strong>Sin fotos cargadas</strong>
+                            <small>Subí de 1 a 3 imágenes JPG, PNG o WEBP para usarlas como popup.</small>
+                        </div>
+                    {% endif %}
+
+                    <form
+                        action="{% url 'pedidos:subir_popup_bienvenida' %}"
+                        method="post"
+                        enctype="multipart/form-data"
+                        class="popup-bienvenida-form"
+                    >
+                        {% csrf_token %}
+                        <label class="popup-bienvenida-file">
+                            <span>📷 Agregar foto/s</span>
+                            <input type="file" name="popup_bienvenida" accept="image/png,image/jpeg,image/webp" multiple required>
+                        </label>
+                        <button type="submit" class="config-accion-link">
+                            Agregar foto/s
+                        </button>
+                    </form>
+
+                    {% if welcome_images %}
+                        <form
+                            action="{% url 'pedidos:eliminar_popup_bienvenida' %}"
+                            method="post"
+                            class="popup-bienvenida-delete-form"
+                        >
+                            {% csrf_token %}
+                            <button type="submit" class="config-accion-link is-danger" onclick="return confirm('¿Eliminar todas las imágenes del popup?');">
+                                🗑️ Eliminar todas
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+
+
+<div class="config-grupo">
+                <h3>💬 Clientes</h3>
+                <label class="config-fila">
+                    <span><strong>Opiniones privadas</strong><small>Muestra u oculta el formulario de comentarios privados.</small></span>
+                    <input type="checkbox" data-config-campo="mostrar_opiniones" {% if configuracion.mostrar_opiniones %}checked{% endif %}>
+                    <i class="config-switch" aria-hidden="true"></i>
+                </label>
+
+                <label class="config-fila">
+                    <span><strong>Google Reviews</strong><small>Muestra u oculta el acceso para dejar una reseña en Google.</small></span>
+                    <input type="checkbox" data-config-campo="mostrar_google_reviews" {% if configuracion.mostrar_google_reviews %}checked{% endif %}>
+                    <i class="config-switch" aria-hidden="true"></i>
+                </label>
+            </div>
+
+            <div class="config-grupo">
+                <h3>🍽️ Salón</h3>
+                <label class="config-fila">
+                    <span><strong>Módulo Salón / Mesas</strong><small>Oculta el Salón POS del panel y bloquea el acceso directo.</small></span>
+                    <input type="checkbox" data-config-campo="salon_habilitado" {% if configuracion.salon_habilitado %}checked{% endif %}>
+                    <i class="config-switch" aria-hidden="true"></i>
+                </label>
+            </div>
+        </section>
+    </div>
+
 
     <!-- # MODAL CIERRE -->
     <div
@@ -1215,7 +1385,6 @@
     </div>
 </div>
 <script>
-
     // =========================================================
     // IMPRIMIR CUENTA
     // =========================================================

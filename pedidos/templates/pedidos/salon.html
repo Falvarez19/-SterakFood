@@ -1,6 +1,7 @@
 {% extends 'pedidos/base.html' %}
 
-{% block title %}Salón | SterakFood{% endblock %}
+{% block title %}Salón | {{ restaurant_name }}{% endblock %}
+{% load static %}
 
 {% block nav_acciones %}
 
@@ -21,9 +22,16 @@
     class="salon-pos salon-pos--clasico"
 
     data-print-url="{% url 'pedidos:imprimir_ticket_salon' %}"
+    data-print-status-url="{% url 'pedidos:estado_ticket_salon' %}"
 
     data-charge-url="{% url 'pedidos:cobrar_mesa_salon' %}"
+    data-sales-url="{% url 'pedidos:salon_resumen_ventas_api' %}"
+    data-reset-sales-url="{% url 'pedidos:reiniciar_historial_ventas' %}"
+    data-fiscal-draft-url="{% url 'pedidos:fiscal_guardar_borrador' %}"
+    data-fiscal-emit-url="{% url 'pedidos:fiscal_emitir_manual' %}"
+    data-fiscal-emission-enabled="{{ fiscal_emision_activa|yesno:'1,0' }}"
     data-web-pedidos-url="{% url 'pedidos:salon_pedidos_web_api' %}"
+    {% if sm_local_mode %}data-backup-url="{% url 'pedidos:respaldo_mesas_local_api' %}"{% endif %}
 
 >
 
@@ -34,6 +42,7 @@
             <h1>Control de Salón 🍽️</h1>
 
             <p>Elegí una mesa y administrá la cuenta como en un POS clásico.</p>
+            {% if sm_local_mode %}<span id="sm-local-save-state" class="sm-local-save">Cargando respaldo de mesas...</span>{% endif %}
 
         </div>
 
@@ -55,6 +64,8 @@
 
             </span>
 
+            <span><i class="salon-pos__estado salon-pos__estado--impresa"></i> Ticket impreso</span>
+
             <span>
 
                 <i class="salon-pos__estado salon-pos__estado--actual"></i>
@@ -67,9 +78,137 @@
 
     </div>
 
-    <!-- Gestor de mozos dentro del mismo Salón POS, sin pestaña Mesas duplicada -->
-    <details class="salon-pos__personal" id="salon-gestion-mozos">
-        <summary>👤 Mozos del turno <span>Gestionar personal ▾</span></summary>
+    <nav class="salon-pos__barra-discreta salon-pos__barra-discreta--operativa" aria-label="Accesos del Salón">
+        <div class="salon-pos__atajos">
+            <a href="#grilla-mesas" class="salon-pos__atajo salon-pos__atajo--mesas">🍽 Mesas</a>
+            <button type="button" id="salon-ver-ventas" class="salon-pos__atajo salon-pos__atajo--ventas" title="Ver ventas y mesas pendientes">📊 Ventas</button>
+            <button type="button" id="pl-abrir" class="salon-pos__atajo salon-pos__atajo--llevar" aria-haspopup="dialog" aria-controls="pl-dialog">🥡 Para llevar</button>
+            <a href="{% url 'pedidos:panel_control' %}?tab=cuentas#tab-cuentas"
+               class="salon-pos__atajo salon-pos__atajo--cuentas"
+               title="Abrir Cuentas en esta misma pestaña">💳 Cuentas</a>
+        </div>
+        <details class="salon-pos__menu-herramientas" id="salon-menu-herramientas">
+            <summary>⚙ Herramientas <span aria-hidden="true">▾</span></summary>
+            <div class="salon-pos__herramientas-grid" aria-label="Herramientas del Salón">
+                <button type="button" class="salon-pos__herramienta-boton"
+                        data-salon-tool-open="mozos" aria-haspopup="dialog" aria-controls="salon-tool-dialog-mozos">
+                    <span class="salon-pos__herramienta-icono" aria-hidden="true">👥</span>
+                    <span class="salon-pos__herramienta-textos"><strong>Mozos</strong><small>Administrar mozos sin salir de las mesas.</small></span>
+                </button>
+                <button type="button" class="salon-pos__herramienta-boton"
+                        data-salon-tool-open="catalogo" aria-haspopup="dialog" aria-controls="salon-tool-dialog-catalogo">
+                    <span class="salon-pos__herramienta-icono" aria-hidden="true">💲</span>
+                    <span class="salon-pos__herramienta-textos"><strong>Cambiar precios</strong><small>Editar precios del salón en una ventana.</small></span>
+                </button>
+                <a href="{% url 'pedidos:panel_control' %}?tab=menu#tab-menu"
+                   class="salon-pos__herramienta-boton" title="Administrar menú en la misma pestaña">
+                    <span class="salon-pos__herramienta-icono" aria-hidden="true">🍔</span>
+                    <span class="salon-pos__herramienta-textos"><strong>Menú</strong><small>Editar el catálogo y el menú web.</small></span>
+                </a>
+                <button type="button" class="salon-pos__herramienta-boton" data-salon-tool-open="producto"
+                        aria-controls="salon-tool-dialog-producto" aria-haspopup="dialog" title="Agregar producto sin salir de Mesas">
+                    <span class="salon-pos__herramienta-icono" aria-hidden="true">➕</span>
+                    <span class="salon-pos__herramienta-textos"><strong>Agregar producto</strong><small>Crear y seguir cargando sin salir de Mesas.</small></span>
+                </button>
+                <button type="button" class="salon-pos__herramienta-boton"
+                        data-salon-tool-open="importar" aria-haspopup="dialog" aria-controls="salon-tool-dialog-importar">
+                    <span class="salon-pos__herramienta-icono" aria-hidden="true">📋</span>
+                    <span class="salon-pos__herramienta-textos"><strong>Importar códigos</strong><small>CSV de productos internos del salón.</small></span>
+                </button>
+                <a href="{% url 'pedidos:panel_control' %}?tab=config#sm-impresoras-panel"
+                   class="salon-pos__herramienta-boton" title="Configurar impresoras sin abrir pestañas">
+                    <span class="salon-pos__herramienta-icono" aria-hidden="true">🖨</span>
+                    <span class="salon-pos__herramienta-textos"><strong>Impresoras</strong><small>Caja, cocina y barra.</small></span>
+                </a>
+                <a href="{% url 'pedidos:fiscal_preparacion' %}"
+                   class="salon-pos__herramienta-boton" title="Facturación ARCA: habilitación y datos fiscales">
+                    <span class="salon-pos__herramienta-icono" aria-hidden="true">🧾</span>
+                    <span class="salon-pos__herramienta-textos"><strong>Facturación ARCA</strong><small>Control manual con * y emisión habilitable.</small></span>
+                </a>
+            </div>
+        </details>
+    </nav>
+    <!-- Pedido para llevar: módulo POS, sin consumir una mesa -->
+    <div id="pl-dialog" class="pl-overlay" hidden aria-hidden="true"
+         data-list-url="{% url 'pedidos:pedidos_para_llevar' %}"
+         data-create-url="{% url 'pedidos:pedidos_para_llevar' %}"
+         data-charge-template="{% url 'pedidos:cobrar_para_llevar' 999999 %}"
+         data-status-template="{% url 'pedidos:estado_para_llevar' 999999 %}">
+      <div class="pl-backdrop" data-pl-close></div>
+      <section class="pl-window" role="dialog" aria-modal="true" aria-labelledby="pl-title" tabindex="-1">
+        <div class="pl-head">
+          <div><small>STERAKFOOD · POS</small><h2 id="pl-title">🥡 Pedido para llevar</h2><p>Elegí los platos y sus opciones tal como aparecen en el menú público. La comanda va directo a cocina.</p></div>
+          <button type="button" class="pl-close" data-pl-close aria-label="Cerrar">✕</button>
+        </div>
+        <div class="pl-content">
+          <div class="pl-editor">
+            <div class="pl-fields">
+              <label>Cliente <input id="pl-cliente" maxlength="100" placeholder="Nombre o referencia (opcional)"></label>
+              <label>Teléfono (opcional) <input id="pl-telefono" maxlength="20" placeholder="Para avisar cuando esté listo"></label>
+            </div>
+            <label class="pl-alerta-alimentos pl-alerta-pedido" for="pl-celiaco-pedido">
+              <input type="checkbox" id="pl-celiaco-pedido">
+              <span><strong>CELÍACO (pedido completo)</strong>
+                <small>Marcá esta casilla si el pedido es para una persona celíaca. Se destacará en TODOS los platos y en la comanda de cocina. Confirmar ingredientes y evitar contaminación cruzada.</small></span>
+            </label>
+            <label class="pl-label">Buscar producto <input id="pl-buscar" placeholder="Escribí nombre o código" autocomplete="off"></label>
+            <div id="pl-catalogo" class="pl-catalogo" aria-label="Productos del menú público"></div>
+            <section id="pl-configurador" class="pl-configurador" hidden aria-label="Personalizar producto">
+              <h3 id="pl-config-titulo">Elegí las opciones</h3>
+              <div id="pl-config-grupos" class="pl-config-grupos"></div>
+              <label class="pl-alerta-alimentos">
+                <input type="checkbox" id="pl-aviso-celiaco">
+                <span><strong>CELÍACO (solo este plato)</strong>
+                  <small>No garantiza que el plato sea libre de gluten. Verificar ingredientes y contaminación cruzada antes de prepararlo.</small></span>
+              </label>
+              <div class="pl-config-footer">
+                <strong id="pl-config-precio"></strong>
+                <button type="button" id="pl-config-cancelar" class="pl-config-cancelar">Cancelar</button>
+                <button type="button" id="pl-config-agregar" class="pl-config-agregar">+ Agregar con estas opciones</button>
+              </div>
+            </section>
+            <h3>Detalle del pedido</h3>
+            <div id="pl-carrito" class="pl-carrito"><p>Elegí productos del menú público.</p></div>
+            <label class="pl-label">Observaciones para cocina <textarea id="pl-notas" rows="2" maxlength="350" placeholder="Ej.: sin cebolla, bien cocido..."></textarea></label>
+            <div class="pl-footer-editor">
+              <label>Estado de cobro
+                <select id="pl-pago">
+                  <option value="pendiente">Pendiente de cobro</option>
+                  <option value="efectivo">Cobrado · Efectivo</option>
+                  <option value="debito">Cobrado · Débito</option>
+                  <option value="mercadopago">Cobrado · Mercado Pago</option>
+                </select>
+              </label>
+              <div class="pl-total"><small>Total</small><strong id="pl-total">$ 0</strong></div>
+            </div>
+            <button type="button" id="pl-enviar" class="pl-enviar">🖨 Enviar pedido a cocina</button>
+            <p id="pl-aviso" class="pl-aviso" role="status" aria-live="polite"></p>
+          </div>
+          <aside class="pl-history">
+            <div class="pl-history-head"><h3>Últimos pedidos</h3><button id="pl-actualizar" type="button">Actualizar</button></div>
+            <div id="pl-pedidos">Todavía no hay pedidos.</div>
+            <p class="pl-hint">Se imprimen por la cola habitual. Marcá el cobro cuando recibas el pago; no genera factura ARCA automáticamente.</p>
+          </aside>
+        </div>
+      </section>
+    </div>
+
+    <div id="salon-tool-dialog-mozos" class="salon-pos__tool-overlay" data-salon-tool-dialog="mozos" aria-hidden="true" hidden>
+      <button type="button" class="salon-pos__tool-fondo" data-salon-tool-close="mozos" tabindex="-1" aria-label="Cerrar"></button>
+      <section class="salon-pos__tool-ventana salon-pos__tool-ventana--mozos" role="dialog" aria-modal="true" aria-labelledby="salon-tool-title-mozos" tabindex="-1">
+        <header class="salon-pos__tool-ventana-header">
+          <div><small>HERRAMIENTAS DEL SALÓN</small><h2 id="salon-tool-title-mozos">👥 Personal del turno</h2><p>Asigná y administrá a los mozos.</p></div>
+          <button type="button" class="salon-pos__tool-cerrar" data-salon-tool-close="mozos" aria-label="Cerrar ventana">✕</button>
+        </header>
+        <div class="salon-pos__tool-ventana-cuerpo">
+<details class="salon-pos__personal salon-pos__tool" id="salon-gestion-mozos">
+        <summary>
+            <div class="salon-pos__tool-main">
+                <strong>👤 Mozos del turno</strong>
+                <small>Alta rápida y administración del personal del salón.</small>
+            </div>
+            <span class="salon-pos__tool-action">Gestionar ▾</span>
+        </summary>
         <div class="salon-pos__personal-contenido">
             <form action="{% url 'pedidos:agregar_mozo' %}" id="salon-form-agregar-mozo" method="post">
                 {% csrf_token %}
@@ -78,13 +217,98 @@
             </form>
             <div class="salon-pos__personal-lista">
                 {% for mozo in mozos %}
-                    <span class="salon-pos__personal-chip">{{ mozo.nombre }}
+                    <span class="salon-pos__personal-chip"><b class="salon-pos__personal-numero">{{ forloop.counter }}</b> {{ mozo.nombre }}
                         <button type="button" title="Eliminar mozo" data-salon-borrar-mozo="{% url 'pedidos:eliminar_mozo' mozo.id %}" data-nombre="{{ mozo.nombre }}">×</button>
                     </span>
                 {% empty %}<small>Todavía no cargaste mozos.</small>{% endfor %}
             </div>
         </div>
     </details>
+        </div>
+      </section>
+    </div>
+    <div id="salon-tool-dialog-producto" class="salon-pos__tool-overlay" data-salon-tool-dialog="producto" aria-hidden="true" hidden>
+      <button type="button" class="salon-pos__tool-fondo" data-salon-tool-close="producto" tabindex="-1" aria-label="Cerrar"></button>
+      <section class="salon-pos__tool-ventana salon-pos__tool-ventana--producto" role="dialog" aria-modal="true" aria-labelledby="salon-tool-title-producto" tabindex="-1">
+        <header class="salon-pos__tool-ventana-header">
+          <div><small>HERRAMIENTAS DEL SALÓN</small><h2 id="salon-tool-title-producto">➕ Agregar producto</h2><p>Guardá y seguí cargando sin salir de Mesas.</p></div>
+          <button type="button" class="salon-pos__tool-cerrar" data-salon-tool-close="producto" aria-label="Cerrar ventana">✕</button>
+        </header>
+        <iframe id="salon-form-producto-iframe" title="Formulario para agregar producto"
+                src="{% url 'pedidos:agregar_producto' %}?embed=1" loading="lazy"></iframe>
+      </section>
+    </div>
+    <div id="salon-tool-dialog-importar" class="salon-pos__tool-overlay" data-salon-tool-dialog="importar" aria-hidden="true" hidden>
+      <button type="button" class="salon-pos__tool-fondo" data-salon-tool-close="importar" tabindex="-1" aria-label="Cerrar"></button>
+      <section class="salon-pos__tool-ventana salon-pos__tool-ventana--importar" role="dialog" aria-modal="true" aria-labelledby="salon-tool-title-importar" tabindex="-1">
+        <header class="salon-pos__tool-ventana-header">
+          <div><small>HERRAMIENTAS DEL SALÓN</small><h2 id="salon-tool-title-importar">📋 Códigos del Salón</h2><p>Importá el CSV sin tocar el menú público.</p></div>
+          <button type="button" class="salon-pos__tool-cerrar" data-salon-tool-close="importar" aria-label="Cerrar ventana">✕</button>
+        </header>
+        <div class="salon-pos__tool-ventana-cuerpo">
+<details class="salon-pos__importacion salon-pos__tool" id="salon-importador-codigos">
+        <summary>
+            <div class="salon-pos__tool-main">
+                <strong>📋 Códigos antiguos del Salón</strong>
+                <small>Importá el CSV del sistema viejo solo para el POS del salón.</small>
+            </div>
+            <span class="salon-pos__tool-action">Importar CSV ▾</span>
+        </summary>
+        <form action="{% url 'pedidos:importar_codigos_salon' %}" method="post" enctype="multipart/form-data"
+              onsubmit="return confirm('¿Importar códigos al Salón POS? Los productos actuales y los del menú público no se modificarán.');">
+            {% csrf_token %}
+            <label for="catalogo-salon-csv">Archivo CSV de catálogo (Código, Producto, Precio, Activo)</label>
+            <input type="file" name="catalogo_salon_csv" id="catalogo-salon-csv" accept=".csv,text/csv" required>
+            <button type="submit">Importar al Salón</button>
+            <small>Solo aparecen en Salón POS. Si el código ya existe en Salón, no se duplica ni cambia el precio. No afecta el menú público.</small>
+        </form>
+    </details>
+        </div>
+      </section>
+    </div>
+    <div id="salon-tool-dialog-catalogo" class="salon-pos__tool-overlay" data-salon-tool-dialog="catalogo" aria-hidden="true" hidden>
+      <button type="button" class="salon-pos__tool-fondo" data-salon-tool-close="catalogo" tabindex="-1" aria-label="Cerrar"></button>
+      <section class="salon-pos__tool-ventana salon-pos__tool-ventana--catalogo" role="dialog" aria-modal="true" aria-labelledby="salon-tool-title-catalogo" tabindex="-1">
+        <header class="salon-pos__tool-ventana-header">
+          <div><small>HERRAMIENTAS DEL SALÓN</small><h2 id="salon-tool-title-catalogo">💲 Precios del Salón POS</h2><p>Buscá, editá y guardá precios sin salir de las mesas.</p></div>
+          <button type="button" class="salon-pos__tool-cerrar" data-salon-tool-close="catalogo" aria-label="Cerrar ventana">✕</button>
+        </header>
+        <div class="salon-pos__tool-ventana-cuerpo">
+          <div class="salon-precios__destinos">
+            <span><strong>Salón POS:</strong> estos precios se aplican al catálogo interno de las mesas.</span>
+            <a href="{% url 'pedidos:panel_control' %}?tab=menu#tab-menu"
+               onclick="localStorage.setItem('tabDashboardActiva','menu')"
+               title="Ir al menú QR sin abrir otra pestaña">
+              Cambiar precios del menú web
+            </a>
+          </div>
+<details class="salon-pos__catalogo salon-pos__tool" id="salon-editor-codigos"
+             data-list-url="{% url 'pedidos:catalogo_salon_api' %}"
+             data-edit-url-template="{% url 'pedidos:editar_producto_salon' 999999 %}">
+        <summary>
+            <div class="salon-pos__tool-main">
+                <strong>✏️ Editar precios y productos</strong>
+                <small>Buscá por código o nombre y actualizá el salón sin tocar el menú público.</small>
+            </div>
+            <span class="salon-pos__tool-action">Editar catálogo ▾</span>
+        </summary>
+        <div class="salon-catalogo__contenido">
+            <div class="salon-catalogo__barra">
+                <label for="salon-catalogo-buscar">Buscar producto
+                    <input id="salon-catalogo-buscar" type="search" autocomplete="off"
+                           placeholder="Ej: 1, café, milanesa..." aria-label="Buscar producto del salón">
+                </label>
+                <small id="salon-catalogo-contador" aria-live="polite"></small>
+                <button type="button" id="salon-catalogo-recargar">Actualizar</button>
+            </div>
+            <p class="salon-catalogo__ayuda">Cambiá el precio y presioná <strong>Enter</strong>. Para modificar nombre, código o disponibilidad, usá <strong>Editar</strong>. Los cambios no afectan mesas ya cargadas.</p>
+            <div id="salon-catalogo-mensaje" class="salon-catalogo__mensaje" role="status" aria-live="polite"></div>
+            <div id="salon-catalogo-lista" class="salon-catalogo__lista" aria-label="Productos internos del salón"></div>
+        </div>
+    </details>
+        </div>
+      </section>
+    </div>
 
     <section class="salon-pos__card salon-pos__mesas-panel">
 
@@ -94,7 +318,7 @@
 
                 <h2>Mesas</h2>
 
-                <p>Escribí el número y Enter, o tocá una mesa.</p>
+                <p>Presioná Enter para ir a Mesa rápida, escribí el número y Enter para abrir.</p>
 
             </div>
 
@@ -370,7 +594,7 @@
 
                     <input
 
-                        type="number"
+                        type="text"
 
                         id="input-cant"
 
@@ -378,11 +602,15 @@
 
                         value="1"
 
-                        min="1"
+                        inputmode="text"
 
-                        step="1"
+                        maxlength="8"
 
-                        inputmode="numeric"
+                        autocomplete="off"
+
+                        spellcheck="false"
+
+                        aria-describedby="salon-ayuda-teclado"
 
                     >
 
@@ -392,7 +620,7 @@
 
                     <label for="buscador">
 
-                        CÓDIGO / PRODUCTO
+                        CÓDIGO DEL PRODUCTO
 
                     </label>
 
@@ -404,7 +632,7 @@
 
                         class="salon-pos__input"
 
-                        placeholder="Ej: 157 o Coca..."
+                        placeholder="Código o nombre del producto"
 
                         autocomplete="off"
 
@@ -422,6 +650,13 @@
 
                 </div>
 
+            </div>
+
+            <div class="salon-pos__atajos-v115" id="salon-ayuda-teclado" aria-label="Atajos en el campo Cantidad"><small>Escribilos en <strong>CANTIDAD</strong> y presioná Enter: </small>
+                <span><b>..</b> imprimir ticket</span>
+                <span><b>//</b> cobrar</span>
+                <span><b>* / **</b> facturación fiscal manual (requiere habilitación ARCA)</span>
+                <span><b>F2</b> dividir cuenta</span>
             </div>
 
             <!-- TABLA -->
@@ -534,6 +769,16 @@
                 </button>
 
                 <button
+                    type="button"
+                    id="btn-pago-parcial"
+                    class="salon-pos__btn salon-pos__btn--dividir"
+                    title="Dividir cuenta (F2): elegí los productos que querés cobrar"
+                    aria-label="Dividir cuenta y cobrar solo productos seleccionados"
+                >
+                    ✂ Dividir cuenta
+                </button>
+
+                <button
 
                     type="button"
 
@@ -573,4 +818,8 @@
 {{ pedidos_web_salon|json_script:"salon-pedidos-web-data" }}
 {{ cuentas_corrientes_pos|json_script:"salon-cuentas-corrientes-data" }}
 
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'script/para_llevar_pos.js' %}?v=20261028-celiaco-pedido"></script>
 {% endblock %}

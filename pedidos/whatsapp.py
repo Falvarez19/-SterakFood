@@ -1,14 +1,18 @@
 import requests
 from .models import Pedido
+from django.conf import settings
+import os
 
 # ==========================================
 # CONFIGURACIÓN DE GREEN API
 # ==========================================
-API_URL = "https://7107.api.greenapi.com"
-ID_INSTANCE = "7107648073"
-API_TOKEN = "8f6a296ff1554db0b8c5daaa8fcd14170e50cd11c0d24980bc" 
+API_URL = os.environ.get("GREEN_API_URL", "").strip().rstrip("/")
+ID_INSTANCE = os.environ.get("GREEN_API_INSTANCE", "").strip()
+API_TOKEN = os.environ.get("GREEN_API_TOKEN", "").strip() 
 
 def _enviar_mensaje_green_api(telefono_cliente, mensaje_texto):
+    if not (API_URL and ID_INSTANCE and API_TOKEN):
+        return False
     num_limpio = str(telefono_cliente).replace("+", "").replace(" ", "").replace("-", "").strip()
     if num_limpio.startswith("0"):
         num_limpio = num_limpio[1:]
@@ -65,7 +69,7 @@ def notificar_nuevo_pedido(pedido_id):
         nombre_limpio = pedido.nombre_cliente.split(" (Nota:")[0] if pedido.nombre_cliente else "Cliente"
         
         texto = (
-            f"🇸🇱 *BUFFET SAN MARTÍN* 🇸🇱\n\n"
+            f"*{settings.RESTAURANT_NAME}*\n\n"
             f"¡Hola {nombre_limpio}! 👋\n"
             f"Recibimos tu pedido *#{pedido.id}* y ya lo estamos preparando 👨‍🍳🔥\n\n"
             f"*Detalle de tu pedido:*\n"
@@ -88,7 +92,7 @@ def notificar_pago_procesado(pedido_id):
         nombre_limpio = pedido.nombre_cliente.split(" (Nota:")[0] if pedido.nombre_cliente else "Cliente"
         
         texto = (
-            f"🇸🇱 *BUFFET SAN MARTÍN* 🇸🇱\n\n"
+            f"*{settings.RESTAURANT_NAME}*\n\n"
             f"¡Pago confirmado, {nombre_limpio}! ✅\n"
             f"Tu pedido *#{pedido.id}* ya ingresó a la cocina 👨‍🍳🔥\n\n"
             f"*Detalle de tu pedido:*\n"
@@ -119,7 +123,7 @@ def notificar_pedido_listo(pedido_id):
             texto_entrega = "¡Ya podés venir a retirar tu pedido por la barra principal!"
 
         texto = (
-            f"🇸🇱 *BUFFET SAN MARTÍN* 🇸🇱\n\n"
+            f"*{settings.RESTAURANT_NAME}*\n\n"
             f"¡Tu pedido *#{pedido.id}* está LISTO! 🚀🍔\n\n"
             f"🗣️ {nombre_limpio},\n"
             f"*{texto_entrega}*\n\n"
@@ -135,7 +139,7 @@ def notificar_pedido_cancelado(pedido_id):
         pedido = Pedido.objects.get(id=pedido_id)
         nombre_limpio = pedido.nombre_cliente.split(" (Nota:")[0] if pedido.nombre_cliente else "Cliente"
         texto = (
-            f"🇸🇱 *BUFFET SAN MARTÍN* 🇸🇱\n\n"
+            f"*{settings.RESTAURANT_NAME}*\n\n"
             f"Hola {nombre_limpio}.\n"
             f"Lamentablemente tu pedido *#{pedido.id}* ha sido cancelado ❌.\n\n"
             f"Si hubo algún problema o fue un error, por favor acercate al mostrador del buffet. 🙏"

@@ -10,14 +10,14 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-cambiar-en-produccion')
+SECRET_KEY = os.environ.get('SECRET_KEY', '')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True').strip().lower() in {'1', 'true', 'yes', 'on'}
+DEBUG = os.environ.get('DEBUG', 'False').strip().lower() in {'1', 'true', 'yes', 'on'}
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.environ.get('ALLOWED_HOSTS', '*').split(',')
+    for host in os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
     if host.strip()
 ]
 
@@ -25,13 +25,17 @@ ALLOWED_HOSTS = [
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000',
     'http://localhost:8000',
-    'https://*.onrender.com',
 ]
 CSRF_TRUSTED_ORIGINS += [
     origin.strip()
     for origin in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
     if origin.strip()
 ]
+
+if not SECRET_KEY:
+    if not DEBUG:
+        raise RuntimeError('Configurar SECRET_KEY en el entorno de producción.')
+    SECRET_KEY = 'django-insecure-solo-desarrollo-local-cambiar-antes-de-publicar'
 
 # Application definition
 INSTALLED_APPS = [
@@ -68,6 +72,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'pedidos.context_processors.branding',
             ],
         },
     },
@@ -128,3 +133,8 @@ GOOGLE_REVIEW_URL = os.environ.get('GOOGLE_REVIEW_URL', '').strip()
 
 # Nombre general para procesos externos como ticketera.py.
 RESTAURANT_NAME = os.environ.get('RESTAURANT_NAME', 'SterakFood').strip() or 'SterakFood'
+
+# Requerido en cada instalación antes de permitir acceso al panel.
+PANEL_PIN = os.environ.get('PANEL_PIN', '').strip()
+# Facturación instalada pero DESACTIVADA hasta homologar y configurar cada CUIT.
+ARCA_FISCAL_ENABLED = os.environ.get('ARCA_FISCAL_ENABLED', '0') == '1'

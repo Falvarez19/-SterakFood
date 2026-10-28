@@ -1,18 +1,23 @@
-# Archivos de entorno y temporales
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-__pycache__/
-
-# Base de datos local
-#db.sqlite3 comentada para subirla para mi portafiolio
-
-# Archivos de entorno virtual
-venv/
-env/
+# Credenciales, claves fiscales y datos privados
 .env
-
-# Archivos de sistema
+.env.*
+!.env.example
+*.p12
+*.pfx
+*.key
+*.pem
+*.crt
+secrets*.json
+db.sqlite3
+db.sqlite3-*
+media/
+datos_locales/
+VINCULAR_IMPRESORA_*.json
+# Entornos y temporales
+venv/
+.venv*/
+__pycache__/
+*.py[cod]
+staticfiles/
 .DS_Store
 Thumbs.db
