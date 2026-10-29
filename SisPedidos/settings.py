@@ -17,9 +17,8 @@ DEBUG = os.environ.get('DEBUG', 'False').strip().lower() in {'1', 'true', 'yes',
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost, sterakfood-igel.onrender.com').split(',')
+    for host in os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
     if host.strip()
-    
 ]
 
 # 🔥 ARREGLO CLAVE: Agregamos el dominio de Render para que funcionen los botones y Mercado Pago
@@ -136,6 +135,6 @@ GOOGLE_REVIEW_URL = os.environ.get('GOOGLE_REVIEW_URL', '').strip()
 RESTAURANT_NAME = os.environ.get('RESTAURANT_NAME', 'SterakFood').strip() or 'SterakFood'
 
 # Requerido en cada instalación antes de permitir acceso al panel.
-PANEL_PIN = os.environ.get('PANEL_PIN', '').strip()
+PANEL_PIN = (os.environ.get('PANEL_PIN') or os.environ.get('DASHBOARD_PIN') or '').strip()
 # Facturación instalada pero DESACTIVADA hasta homologar y configurar cada CUIT.
 ARCA_FISCAL_ENABLED = os.environ.get('ARCA_FISCAL_ENABLED', '0') == '1'

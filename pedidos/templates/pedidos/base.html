@@ -9,11 +9,11 @@
     <link rel="preload" as="image" href="{% static 'img/wok.gif' %}">
     
     <link rel="icon" href="{% static 'img/logo.png' %}" type="image/png">
-    <link rel="stylesheet" href="{% static 'css/estilos.css' %}?v=sterak-salon-sm-merge-20261028-v4">
+    <link rel="stylesheet" href="{% static 'css/estilos.css' %}?v=sterak-restauracion-tema-20261029">
     {% block extra_css %}{% endblock %}
 
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#103b70">
+    <meta name="theme-color" content="#0a0b0d">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -51,7 +51,8 @@
     <nav class="navbar">
         <div class="nav-container">
             <a href="{% url 'pedidos:inicio' %}?puesto={{ request.GET.puesto }}" class="marca">
-                <img src="{% static 'img/logo.png' %}" alt="Logo del negocio" class="nav-logo">
+                <img src="{% static 'img/logo.png' %}" alt="Logo SterakFood modo oscuro" class="nav-logo logo-dark">
+                <img src="{% static 'img/logo_2.png' %}" alt="Logo SterakFood modo claro" class="nav-logo logo-light">
                 <span class="logo-texto">{{ restaurant_name }}</span>
             </a>
             
@@ -216,7 +217,7 @@
     </div>
 
     <!-- 🔥 ACORDATE QUE CAMBIAMOS LA VERSIÓN A v=21 ACÁ ABAJO 🔥 -->
-    <script src="{% static 'script/script.js' %}?v=sterak-salon-sm-merge-20261028-v4"></script>
+    <script src="{% static 'script/script.js' %}?v=sterak-restauracion-tema-20261029"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

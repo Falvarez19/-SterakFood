@@ -1,27 +1,43 @@
 @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap');
-/* # 1. VARIABLES DE COLOR Y TEMA - CLUB SAN MARTÍN */
-:root {
-    --azul-sanmartin: #103b70;
-    --verde-sanmartin: #198754;
-    --dorado-sanmartin: #F6C055;
-    --oscuro: #1c2025;
-    --gris-fondo: #f8f9fa;
-    --texto-oscuro: #2b2d31;
-    --texto-mutado: #6c757d;
+/* SterakFood: paleta ORIGINAL recuperada (negro + naranja).
+   Las variables de compatibilidad conservan los componentes POS/SM nuevos. */
+:root, body[data-theme="dark"] {
+    --naranja-sterak: #ff6600;
+    --naranja-brillo: #ff8533;
+    --negro-fondo: #0a0b0d;
+    --negro-tarjetas: #16181c;
+    --texto-claro: #f8f9fa;
+    --texto-mutado: #9ba1a6;
+    --borde-suave: #2a2d32;
+    --error: #ef4444;
+    --error-fondo: rgba(239, 68, 68, .1);
+    --bg-color: var(--negro-fondo);
+    --text-color: var(--texto-claro);
+    --card-bg: var(--negro-tarjetas);
+    --borde: var(--borde-suave);
+    --verde-sanmartin: var(--naranja-sterak);
+    --dorado-sanmartin: var(--naranja-brillo);
+    --azul-sanmartin: var(--naranja-sterak);
+    --oscuro: var(--negro-fondo);
+    --gris-fondo: var(--negro-fondo);
+    --texto-oscuro: var(--texto-claro);
     --blanco: #ffffff;
-    --error: #dc3545;
-    --error-fondo: #f8d7da;
-    --borde: rgba(0, 0, 0, 0.08);
-    --bg-color: var(--gris-fondo);
-    --text-color: var(--texto-oscuro);
-    --card-bg: var(--blanco);
+    --hero-overlay-start: rgba(10,11,13,.80);
+    --hero-overlay-end: rgba(10,11,13,1);
 }
-[data-theme='dark'] {
-    --bg-color: #121212;
-    --text-color: #e0e0e0;
-    --card-bg: #1e1e1e;
-    --borde: #333;
-    --texto-mutado: #a0a0a0;
+body[data-theme="light"] {
+    --bg-color: #f8f9fa;
+    --text-color: #23262c;
+    --card-bg: #ffffff;
+    --borde: #d9dce0;
+    --texto-mutado: #626973;
+    --gris-fondo: #f8f9fa;
+    --texto-oscuro: #23262c;
+    --azul-sanmartin: #e65c00;
+    --verde-sanmartin: #e65c00;
+    --dorado-sanmartin: #ff8533;
+    --hero-overlay-start: rgba(10,11,13,.55);
+    --hero-overlay-end: rgba(10,11,13,.85);
 }
 /* # 2. RESET Y ESTRUCTURA GENERAL */
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -8655,3 +8671,59 @@ body.producto-embebido {overflow:auto!important}
 .pl-alerta-pedido strong{font-size:1.02rem;letter-spacing:.025em}
 .pl-alerta-pedido:has(input:checked){background:rgba(227,145,19,.26);border-color:#f3a52b;box-shadow:0 0 0 2px rgba(243,165,43,.16)}
 .pl-alerta-pedido:focus-within{outline:2px solid #e3a12a;outline-offset:3px}
+
+
+/* SterakFood · recuperación visual de la versión original.
+   No modifica interacciones, colas, ventas, ni herramientas rápidas. */
+.navbar {
+    background-color: var(--card-bg);
+    border-bottom: 1px solid var(--borde);
+    box-shadow: 0 4px 15px rgba(0,0,0,.4);
+}
+.logo-texto {
+    font-size: 1.8rem;
+    font-family: sans-serif;
+    font-weight: 900;
+    color: var(--naranja-sterak) !important;
+    letter-spacing: -.5px;
+}
+.nav-logo { height: 60px; width: auto; object-fit: contain; }
+.navbar .logo-dark { display: block !important; }
+.navbar .logo-light { display: none !important; }
+body[data-theme="light"] .navbar .logo-dark { display: none !important; }
+body[data-theme="light"] .navbar .logo-light { display: block !important; }
+.btn-instalar-app {
+    background: var(--naranja-sterak);
+    color: #111 !important;
+    border: 1px solid var(--naranja-sterak);
+}
+.btn-instalar-app:hover { background: var(--naranja-brillo); }
+.btn-pagar-block, .panel-tab-btn.active,
+.menu-admin-producto__precio strong, .menu-admin-filtro.is-active {
+    border-color: var(--naranja-sterak);
+}
+.panel-tab-btn.active { color: var(--naranja-sterak); }
+.hero {
+    background-image: linear-gradient(var(--hero-overlay-start),var(--hero-overlay-end)),url('../img/fondo-buffet.png');
+    border-bottom: 1px solid var(--borde);
+}
+[data-theme="dark"] .hero { background-image: linear-gradient(var(--hero-overlay-start),var(--hero-overlay-end)),url('../img/fondo-buffet.png'); }
+.btn-pagar-block { background: var(--naranja-sterak); color: #111 !important; }
+.btn-pagar-block:hover { background: var(--naranja-brillo); }
+.salon-pos__atajo--llevar {
+    border-color: rgba(255,102,0,.55)!important;
+    background: rgba(255,102,0,.09)!important;
+}
+.pl-head small,.pl-producto strong,.pl-precio-producto,
+.pl-config-footer strong,.pl-item-opciones { color: var(--naranja-sterak); }
+.pl-producto:hover { background: rgba(255,102,0,.10); }
+.pl-editor input:focus,.pl-editor select:focus,.pl-editor textarea:focus {
+    outline-color: var(--naranja-sterak);
+}
+.pl-configurador { border-color: rgba(255,102,0,.50); background: rgba(255,102,0,.06); }
+.pl-opcion input { accent-color: var(--naranja-sterak); }
+.pl-config-agregar,.pl-enviar { background: var(--naranja-sterak); color: #111; }
+.pl-aviso.is-success { color: var(--naranja-brillo); }
+.pl-alerta-alimentos, .pl-alerta-pedido { border-color: #e3a12a; }
+/* Semáforos de mesas y alertas de celiaquía conservan sus colores funcionales. */
+@media (max-width:768px) { .nav-logo { height: 52px; } .logo-texto { font-size: 1.55rem; } }
