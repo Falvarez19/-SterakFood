@@ -17,7 +17,7 @@ DEBUG = os.environ.get('DEBUG', 'False').strip().lower() in {'1', 'true', 'yes',
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
+    for host in os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost, https://sterakfood-igel.onrender.com/').split(',')
     if host.strip()
 ]
 
@@ -25,6 +25,7 @@ ALLOWED_HOSTS = [
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000',
     'http://localhost:8000',
+    'https://sterakfood-igel.onrender.com/',
 ]
 CSRF_TRUSTED_ORIGINS += [
     origin.strip()
