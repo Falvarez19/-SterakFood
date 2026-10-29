@@ -17,8 +17,9 @@ DEBUG = os.environ.get('DEBUG', 'False').strip().lower() in {'1', 'true', 'yes',
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
+    for host in os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost, sterakfood-igel.onrender.com').split(',')
     if host.strip()
+    
 ]
 
 # 🔥 ARREGLO CLAVE: Agregamos el dominio de Render para que funcionen los botones y Mercado Pago
