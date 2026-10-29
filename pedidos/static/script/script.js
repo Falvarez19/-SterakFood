@@ -5550,6 +5550,8 @@ document.addEventListener('DOMContentLoaded', function () {
         filtrar();
     }
 
+    // El Salón carga la sección Cuentas al abrirla; permitir iniciar el fragmento.
+    window.sterakInitBuscadorCuentas = iniciarBuscadorCuentasV102;
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', iniciarBuscadorCuentasV102);
     } else {
@@ -5708,7 +5710,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // La captura evita el onsubmit antiguo que forzaba navegar y confirmar 2 veces.
-        document.addEventListener('submit', async function (event) {
+        panel.addEventListener('submit', async function (event) {
             var form = event.target;
             if (!panel.contains(form) || !form.matches('form[data-cuenta-ajax]')) return;
             event.preventDefault();
@@ -5748,6 +5750,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }, true);
     }
+    window.sterakInitAjaxCuentas = iniciar;
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar);
     else iniciar();
 })();

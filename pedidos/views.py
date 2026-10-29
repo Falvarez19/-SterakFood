@@ -745,11 +745,17 @@ def cuentas_ventana_salon(request):
     if not request.session.get('dashboard_auth'):
         return redirect('pedidos:login_dashboard')
     cuentas, total_deuda, total_favor = _preparar_cuentas_corrientes()
-    return render(request, 'pedidos/cuentas_ventana.html', {
+    context = {
         'cuentas_corrientes': cuentas,
         'cuentas_total_deuda': total_deuda,
         'cuentas_total_favor': total_favor,
-    })
+    }
+    # La ventana del Salón solicita solo el fragmento; no usar iframes
+    # (XFrameOptionsMiddleware de Django bloquea su renderizado).
+    template = ('pedidos/_cuentas_panel.html'
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+                else 'pedidos/cuentas_ventana.html')
+    return render(request, template, context)
 
 
 def crear_cuenta_corriente(request):

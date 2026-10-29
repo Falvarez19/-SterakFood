@@ -139,8 +139,11 @@
             <p>Administrá saldos, registrá pagos y creá cuentas sin salir de las mesas.</p></div>
           <button type="button" class="sc-dialog__close" data-sc-cerrar aria-label="Cerrar ventana de Cuentas">✕</button>
         </header>
-        <iframe class="sc-dialog__frame" id="sc-dialog-frame" title="Administración de cuentas corrientes"
-                data-src="{% url 'pedidos:cuentas_ventana_salon' %}" referrerpolicy="same-origin"></iframe>
+        <div class="sc-dialog__content" id="sc-dialog-content" role="region"
+             aria-label="Administración de cuentas corrientes"
+             data-src="{% url 'pedidos:cuentas_ventana_salon' %}">
+          <div class="sc-dialog__status" role="status">Abrí Cuentas para cargar los saldos.</div>
+        </div>
       </section>
     </div>
 
@@ -863,5 +866,5 @@
 
 {% block extra_js %}
 <script src="{% static 'script/para_llevar_pos.js' %}?v=20261029-ux-takeout-1"></script>
-<script src="{% static 'script/salon_cuentas_modal.js' %}?v=20261029-cuentas-popup-1"></script>
+<script src="{% static 'script/salon_cuentas_modal.js' %}?v=20261029-cuentas-inline-2"></script>
 {% endblock %}
