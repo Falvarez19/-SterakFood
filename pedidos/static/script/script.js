@@ -2808,8 +2808,18 @@ function eliminarOpinion(opinionId, url) {
         return cuentas[clave];
     }
     // Pedidos del menú público se fusionan por ID: NO se crean ventas POS duplicadas.
+    // Evitar redibujar las 100 mesas y escribir localStorage si el servidor devolvió
+    // exactamente las mismas cantidades, productos y precios que en la consulta previa.
+    var ultimaFirmaPedidosWebSalon = null;
     function sincronizarPedidosWebSalon(itemsWeb) {
         if (!Array.isArray(itemsWeb)) return;
+        var firma = JSON.stringify(itemsWeb.map(function (web) {
+            return [Number(web.detalle_id || 0), String(web.mesa || ''),
+                Number(web.cantidad || 0), Number(web.precio || 0),
+                Number(web.producto_id || 0), String(web.codigo || ''),
+                String(web.nombre || '')];
+        }).sort(function (a, b) { return a[0] - b[0]; }));
+        if (firma === ultimaFirmaPedidosWebSalon) return;
         var pendientes = new Map();
         itemsWeb.forEach(function (web) {
             var id = Number(web.detalle_id || 0);
@@ -2845,17 +2855,33 @@ function eliminarOpinion(opinionId, url) {
             }
             recalcular(cuenta);
         });
+        ultimaFirmaPedidosWebSalon = firma;
         guardar();
         if (mesaActual) render();
         else actualizarMesas();
     }
+    var consultaPedidosWebActiva = false;
     function refrescarPedidosWebSalon() {
         var url = root.getAttribute('data-web-pedidos-url');
-        if (!url || enviando || modoParcial || document.hidden) return;
-        fetch(url, {credentials:'same-origin',cache:'no-store'})
-          .then(function (resp) { if (!resp.ok) throw new Error('No se pudo sincronizar salón');return resp.json(); })
+        // Una sola consulta a la vez. No llenar Render de peticiones pendientes.
+        if (!url || consultaPedidosWebActiva || enviando || modoParcial || document.hidden) return;
+        consultaPedidosWebActiva = true;
+        var controlador = new AbortController();
+        var vencimiento = window.setTimeout(function () { controlador.abort(); }, 12000);
+        fetch(url, {credentials:'same-origin',cache:'no-store',signal:controlador.signal})
+          .then(function (resp) {
+              if (!resp.ok) throw new Error('No se pudo sincronizar salón (HTTP ' + resp.status + ')');
+              return resp.json();
+          })
           .then(function (resp) { if (resp.status === 'ok') sincronizarPedidosWebSalon(resp.items); })
-          .catch(function (error) {console.warn('Sincronización de pedidos web:',error.message);});
+          .catch(function (error) {
+              console.warn('Sincronización de pedidos web:',
+                  error.name === 'AbortError' ? 'la consulta excedió 12 segundos' : error.message);
+          })
+          .finally(function () {
+              window.clearTimeout(vencimiento);
+              consultaPedidosWebActiva = false;
+          });
     }
 
     function cuentaActual() {
@@ -3250,10 +3276,12 @@ function eliminarOpinion(opinionId, url) {
             boton.classList.toggle('ticket-en-cola', estadoTicket === 'pendiente');
             boton.classList.toggle('ticket-impreso', estadoTicket === 'impreso');
             if (ocupada) {
-                boton.innerHTML = "<span class=\"salon-pos__mesa-numero\">" + escapar(numero) + "</span>" + "<span class=\"salon-pos__mesa-total\">" + dinero(total) + "</span>" + (cuenta && cuenta.mozo_nombre ? "<span class=\"salon-pos__mesa-mozo\">\uD83E\uDDD1\u200D\uD83C\uDF73 " + escapar(cuenta.mozo_nombre) + "</span>" : "") + "<span class=\"salon-pos__mesa-items\">" + items.length + (items.length === 1 ? " producto" : " productos") + "</span>" + (estadoTicket ? "<span class=\"salon-pos__mesa-ticket\">" + (estadoTicket === 'impreso' ? '✓ Control impreso' : '⌛ En cola') + "</span>" : '');
+                var htmlOcupada = "<span class=\"salon-pos__mesa-numero\">" + escapar(numero) + "</span>" + "<span class=\"salon-pos__mesa-total\">" + dinero(total) + "</span>" + (cuenta && cuenta.mozo_nombre ? "<span class=\"salon-pos__mesa-mozo\">\uD83E\uDDD1\u200D\uD83C\uDF73 " + escapar(cuenta.mozo_nombre) + "</span>" : "") + "<span class=\"salon-pos__mesa-items\">" + items.length + (items.length === 1 ? " producto" : " productos") + "</span>" + (estadoTicket ? "<span class=\"salon-pos__mesa-ticket\">" + (estadoTicket === 'impreso' ? '✓ Control impreso' : '⌛ En cola') + "</span>" : '');
+                if (boton.innerHTML !== htmlOcupada) boton.innerHTML = htmlOcupada;
             }
             else {
-                boton.innerHTML = "<span class=\"salon-pos__mesa-numero\">" + escapar(numero) + "</span>" + "<span class=\"salon-pos__mesa-libre\">Libre</span>";
+                var htmlLibre = "<span class=\"salon-pos__mesa-numero\">" + escapar(numero) + "</span>" + "<span class=\"salon-pos__mesa-libre\">Libre</span>";
+                if (boton.innerHTML !== htmlLibre) boton.innerHTML = htmlLibre;
             }
         });
     }
@@ -3736,9 +3764,50 @@ function eliminarOpinion(opinionId, url) {
             try { localStorage.setItem(storageCobro, JSON.stringify(opPendiente)); }
             catch (error) { /* no guardar jamás datos fiscales ni claves */ }
         }
+        // No borrar el identificador de cobro ante un timeout. Render puede
+        // haber confirmado el cobro aunque el navegador no haya recibido el 200.
+        var controladorCobro = window.AbortController ? new AbortController() : null;
+        var temporizadorCobro = controladorCobro ? window.setTimeout(function () {
+            controladorCobro.abort();
+        }, 20000) : null;
+        function confirmarCobroLocal(data) {
+                try {
+                    // Limpiar solamente el cobro que acabamos de completar.
+                    var actual = JSON.parse(localStorage.getItem(storageCobro) || 'null');
+                    if (actual && actual.id === opPendiente.id) localStorage.removeItem(storageCobro);
+                    if (tipoPago === 'cuenta_corriente') localStorage.removeItem('sterak_pos_credito_pendiente');
+                } catch (error) { /* no afecta el cobro */ }
+                if (tipoPago === 'cuenta_corriente') {
+                    var cliente = cuentasCorrientesPOS.find(function (c) {
+                        return Number(c.id) === Number(data.cuenta_corriente_id);
+                    });
+                    if (cliente) cliente.saldo = Number(data.cuenta_saldo || 0);
+                }
+        }
+        function recuperarCobroSinRespuesta(errorOriginal) {
+            var statusUrl = root.getAttribute('data-charge-status-url');
+            if (!statusUrl) throw new Error('No se pudo confirmar el cobro. Consultá Ventas antes de reintentarlo.');
+            return fetch(statusUrl + '?operacion_id=' + encodeURIComponent(opPendiente.id), {
+                credentials: 'same-origin', cache: 'no-store'
+            }).then(function(res) {
+                if (!res.ok) throw new Error('Consulta de estado no disponible.');
+                return res.json();
+            }).then(function(resultado) {
+                if (resultado.status === 'ok' && resultado.confirmado && resultado.cobro) {
+                    confirmarCobroLocal(resultado.cobro);
+                    return resultado.cobro;
+                }
+                throw new Error('Cobro sin confirmación (' + opPendiente.id.slice(0,8) + '). Revisá Ventas antes de reintentarlo; la mesa sigue abierta.');
+            }).catch(function(error) {
+                if (error.message.indexOf('Cobro sin confirmación') === 0) throw error;
+                throw new Error('Sin respuesta de Render. Revisá Ventas antes de reintentar; conservamos el identificador del cobro.');
+            });
+        }
         enviando = true;
         render();
         return fetch(url, {
+            credentials: "same-origin",
+            signal: controladorCobro ? controladorCobro.signal : undefined,
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -3761,21 +3830,17 @@ function eliminarOpinion(opinionId, url) {
                         : 'No se pudo registrar el cobro.');
                     throw new Error(mensaje);
                 }
-                try {
-                    // Limpiar solamente el cobro que acabamos de completar.
-                    var actual = JSON.parse(localStorage.getItem(storageCobro) || 'null');
-                    if (actual && actual.id === opPendiente.id) localStorage.removeItem(storageCobro);
-                    if (tipoPago === 'cuenta_corriente') localStorage.removeItem('sterak_pos_credito_pendiente');
-                } catch (error) { /* no afecta el cobro */ }
-                if (tipoPago === 'cuenta_corriente') {
-                    var cliente = cuentasCorrientesPOS.find(function (c) {
-                        return Number(c.id) === Number(data.cuenta_corriente_id);
-                    });
-                    if (cliente) cliente.saldo = Number(data.cuenta_saldo || 0);
-                }
+                confirmarCobroLocal(data);
                 return data;
             });
+        }).catch(function(error) {
+            // Un error HTTP valido (400/403/500) ya tiene mensaje y NO se
+            // reintenta silenciosamente. Solo red/timeout justifica consultar.
+            if (error.name === 'AbortError' || error.name === 'TypeError')
+                return recuperarCobroSinRespuesta(error);
+            throw error;
         }).finally(function () {
+            if (temporizadorCobro !== null) window.clearTimeout(temporizadorCobro);
             enviando = false;
             if (mesaActual)
                 render();
@@ -4443,7 +4508,7 @@ function eliminarOpinion(opinionId, url) {
         }
     });
     sincronizarPedidosWebSalon(pedidosWebIniciales);
-    window.setInterval(refrescarPedidosWebSalon, 15000);
+    window.setInterval(refrescarPedidosWebSalon, 25000);
     window.setInterval(consultarEstadoTickets, 4500);
     window.setTimeout(consultarEstadoTickets, 900);
     document.addEventListener('visibilitychange',function () { if (!document.hidden) refrescarPedidosWebSalon(); });

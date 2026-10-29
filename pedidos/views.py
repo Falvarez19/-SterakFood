@@ -1627,30 +1627,41 @@ def imprimir_ticket_salon(request):
 
 
 def _salon_items_pedidos_web():
-    """Pending cash orders at a numbered table, excluding POS-origin transactions."""
-    pedidos = (Pedido.objects.filter(tipo_entrega='mesa', tipo_pago='efectivo')
-        .exclude(numero_mesa__isnull=True).exclude(numero_mesa__exact='')
-        .exclude(estado__in=['cancelado', 'entregado'])
-        .exclude(nombre_cliente__istartswith='POS SALON')
-        .prefetch_related('items__producto')
-        .order_by('fecha_creacion','id'))
+    """Pedidos QR de mesa aún abiertos, en una sola consulta liviana.
+
+    Importante: NO recortamos pedidos por fecha ni cantidad: un pedido sin
+    cobrar nunca debe desaparecer del Salón por una optimización.
+    """
+    filas = (
+        DetallePedido.objects.filter(
+            pedido__tipo_entrega='mesa', pedido__tipo_pago='efectivo',
+            cantidad__gt=0,
+        )
+        .exclude(pedido__numero_mesa__isnull=True)
+        .exclude(pedido__numero_mesa__exact='')
+        .exclude(pedido__estado__in=['cancelado', 'entregado'])
+        .exclude(pedido__nombre_cliente__istartswith='POS SALON')
+        .values(
+            'id', 'pedido_id', 'pedido__numero_mesa', 'producto_id',
+            'producto__codigo_rapido', 'producto__nombre',
+            'precio_unitario', 'cantidad',
+        )
+        .order_by('pedido__fecha_creacion', 'pedido_id', 'id')
+    )
     salida = []
-    for pedido in pedidos:
-        mesa = str(pedido.numero_mesa or '').strip()
-        if not mesa.isdigit() or not (1 <= int(mesa) <= 100):
+    for fila in filas.iterator(chunk_size=500):
+        mesa = str(fila['pedido__numero_mesa'] or '').strip()
+        if not mesa.isdigit() or not 1 <= int(mesa) <= 100:
             continue
-        for detalle in pedido.items.all():
-            if detalle.cantidad <= 0:
-                continue
-            producto = detalle.producto
-            salida.append({
-                'mesa': str(int(mesa)), 'pedido_id': pedido.id,
-                'detalle_id': detalle.id, 'producto_id': producto.id if producto else 0,
-                'codigo': (producto.codigo_rapido or str(producto.pk)) if producto else '',
-                'nombre': producto.nombre if producto else 'Producto eliminado',
-                'precio': float(detalle.precio_unitario), 'cantidad': detalle.cantidad,
-                'origen': 'web',
-            })
+        pid_producto = fila['producto_id']
+        salida.append({
+            'mesa': str(int(mesa)), 'pedido_id': fila['pedido_id'],
+            'detalle_id': fila['id'], 'producto_id': pid_producto or 0,
+            'codigo': (fila['producto__codigo_rapido'] or str(pid_producto)) if pid_producto else '',
+            'nombre': fila['producto__nombre'] if pid_producto else 'Producto eliminado',
+            'precio': float(fila['precio_unitario']), 'cantidad': fila['cantidad'],
+            'origen': 'web',
+        })
     return salida
 
 
@@ -1852,6 +1863,29 @@ def salon(request):
 # ===========================================================================
 # COBRO REAL DE MESAS - ENTRA AL CIERRE DE CAJA
 # ===========================================================================
+
+
+# Endpoint de consulta SOLO LECTURA para resolver cobros sin respuesta del navegador.
+# La confirmacion se guarda en la misma transaccion que los pedidos y las ventas.
+@never_cache
+def estado_cobro_salon(request):
+    if not request.session.get('dashboard_auth'):
+        return JsonResponse({'status': 'error', 'mensaje': 'No autorizado'}, status=403)
+    if not obtener_configuracion().salon_habilitado:
+        return JsonResponse({'status': 'error', 'mensaje': 'Salón desactivado'}, status=403)
+    if request.method != 'GET':
+        return JsonResponse({'status': 'error', 'mensaje': 'Método no permitido'}, status=405)
+    operacion_id = str(request.GET.get('operacion_id') or '').strip()
+    if not re.fullmatch(r'[a-zA-Z0-9_-]{12,64}', operacion_id):
+        return JsonResponse({'status': 'error', 'mensaje': 'Identificador inválido'}, status=400)
+    operacion = (OperacionCobroSalon.objects.filter(operacion_id=operacion_id)
+                 .values('respuesta').first())
+    if operacion and operacion['respuesta'] and operacion['respuesta'].get('status') == 'ok':
+        return JsonResponse({'status': 'ok', 'confirmado': True,
+                             'cobro': {**operacion['respuesta'], 'reintento': True}})
+    # No encontrado y aun sin completar se reportan igual: nunca inferir que
+    # el cobro NO ocurrio por una simple ausencia temporal en esta consulta.
+    return JsonResponse({'status': 'ok', 'confirmado': False})
 
 
 def cobrar_mesa_salon(request):

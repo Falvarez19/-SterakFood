@@ -86,6 +86,7 @@ urlpatterns = [
     path('salon/catalogo/<int:producto_id>/editar/', views.editar_producto_salon, name='editar_producto_salon'),
     path('salon/imprimir-ticket/', views.imprimir_ticket_salon, name='imprimir_ticket_salon'),
     path('salon/cobrar-mesa/', views.cobrar_mesa_salon, name='cobrar_mesa_salon'),
+    path('salon/estado-cobro/', views.estado_cobro_salon, name='estado_cobro_salon'),
     # 🔥 NUEVA RUTA PARA DESCARGAR EL BACKUP 🔥
     path('dashboard/backup/', views.descargar_backup_secreto, name='descargar_backup'),
     # ==========================================
