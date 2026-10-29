@@ -77,6 +77,7 @@ urlpatterns = [
     path('dashboard/producto/editar/<int:producto_id>/', views.editar_producto, name='editar_producto'),
     path('cambiar-estado-global/', views.cambiar_estado_global, name='cambiar_estado_global'),
     path('api/resumen-ventas/', views.api_resumen_ventas, name='api_resumen_ventas'),
+    path('salon/cuentas/', views.cuentas_ventana_salon, name='cuentas_ventana_salon'),
     path('salon/', views.salon, name='salon'),
     path('salon/para-llevar/', para_llevar.pedidos_para_llevar, name='pedidos_para_llevar'),
     path('salon/para-llevar/<int:pedido_id>/cobrar/', para_llevar.cobrar_para_llevar, name='cobrar_para_llevar'),

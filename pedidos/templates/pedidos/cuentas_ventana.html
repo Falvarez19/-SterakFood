@@ -1,0 +1,17 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Cuentas | {{ restaurant_name }}</title>
+  <link rel="stylesheet" href="{% static 'css/estilos.css' %}?v=sterak-cuentas-modal-20261029">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="cuentas-ventana-body">
+  <main class="cuentas-ventana-contenedor" role="main">
+    {% include 'pedidos/_cuentas_panel.html' %}
+  </main>
+  <script src="{% static 'script/script.js' %}?v=sterak-cuentas-modal-20261029"></script>
+</body>
+</html>

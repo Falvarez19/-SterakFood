@@ -9,6 +9,19 @@
   const submit = $('pl-enviar'), aviso = $('pl-aviso'), totalElemento = $('pl-total');
   const configurador = $('pl-configurador'), grupos = $('pl-config-grupos');
   const pedidoCeliaco = $('pl-celiaco-pedido');
+  const categorias = $('pl-categorias');
+  let categoriaActual = 'Todas';
+  const vistaNueva = $('pl-contenido-nuevo'), vistaHistorial = $('pl-vista-historial');
+  function cambiarVista(vista) {
+    const historia = vista === 'historial';
+    vistaNueva.hidden = historia;
+    vistaHistorial.hidden = !historia;
+    $('pl-tab-nuevo').classList.toggle('is-active', !historia);
+    $('pl-tab-historial').classList.toggle('is-active', historia);
+    $('pl-tab-nuevo').setAttribute('aria-pressed', String(!historia));
+    $('pl-tab-historial').setAttribute('aria-pressed', String(historia));
+    if (!historia) $('pl-buscar').focus();
+  }
   const csrf = document.querySelector('#salon-csrf-form input[name=csrfmiddlewaretoken]')?.value || '';
   const NOMBRES = [
     ['variante', 'Variante'], ['guarnicion', 'Guarnición'],
@@ -57,25 +70,44 @@
   function tieneOpciones(p) {
     return NOMBRES.some(([clave]) => (p.opciones?.[clave] || []).length);
   }
+  function renderCategorias() {
+    const lista = ['Todas', ...new Set(productos.map(p => p.categoria || 'Menú'))];
+    if (!lista.includes(categoriaActual)) categoriaActual = 'Todas';
+    categorias.replaceChildren();
+    lista.forEach(cat => {
+      const boton = el('button', cat, 'pl-categoria' + (cat===categoriaActual ? ' is-active' : ''));
+      boton.type='button'; boton.setAttribute('aria-pressed', String(cat===categoriaActual));
+      boton.onclick=()=>{categoriaActual=cat;renderCategorias();renderCatalogo();};
+      categorias.append(boton);
+    });
+  }
   function renderCatalogo() {
     const q = lower($('pl-buscar').value.trim());
     catalogo.replaceChildren();
-    const lista = productos.filter(p => !q || [p.nombre,p.codigo,p.categoria].some(x => lower(x).includes(q))).slice(0,100);
+    const lista = productos.filter(p => (categoriaActual==='Todas' || (p.categoria||'Menú')===categoriaActual)
+      && (!q || [p.nombre,p.codigo,p.categoria].some(x => lower(x).includes(q))));
     if (!lista.length) {
-      catalogo.append(el('p','No hay platos disponibles en el menú público.','pl-empty'));
+      catalogo.append(el('p', q ? 'No encontramos ese producto. Probá otro nombre.' : 'No hay productos en esta categoría.', 'pl-empty'));
       return;
     }
-    for (const p of lista) {
+    for (const p of lista.slice(0,200)) {
       const btn = el('button',undefined,'pl-producto'); btn.type = 'button';
       if (p.imagen) {
         const foto = el('img'); foto.src = p.imagen; foto.alt = ''; foto.loading = 'lazy';
         foto.className = 'pl-miniatura'; btn.append(foto);
+      } else {
+        btn.append(el('span','🍽️','pl-miniatura pl-miniatura-vacia'));
       }
       const info = el('span',undefined,'pl-producto-info');
-      info.append(el('strong',p.nombre),el('small',`${p.categoria || 'Menú'}${tieneOpciones(p) ? ' · Elegir opciones' : ''}`));
-      btn.append(info,el('span',money(Number(p.precio)),'pl-precio-producto'));
-      // Todos los platos pueden requerir aviso por celiaquía, incluso sin variantes.
-      btn.onclick = () => mostrarConfigurador(p);
+      info.append(el('strong',p.nombre),el('small',`${p.categoria || 'Menú'} · ${tieneOpciones(p) ? 'Elegir variante' : 'Agregar directo'}`));
+      btn.append(info);
+      const accion=el('span',undefined,'pl-producto-accion');
+      accion.append(el('span',money(Number(p.precio)),'pl-precio-producto'),el('span',tieneOpciones(p)?'Elegir ›':'+ Agregar','pl-boton-sumar'));
+      btn.append(accion);
+      btn.onclick = () => {
+        if (tieneOpciones(p)) mostrarConfigurador(p);
+        else agregarItem(p,Object.fromEntries(NOMBRES.map(([clave])=>[clave, clave==='adicional'?[]:''])),false);
+      };
       catalogo.append(btn);
     }
   }
@@ -122,7 +154,7 @@
       grupos.append(grupo);
     }
     actualizarPrecioConfiguracion();
-    configurador.scrollIntoView({behavior:'smooth',block:'nearest'});
+    $('pl-config-cancelar').focus();
   }
   function agregarItem(producto, opciones, avisoCeliaco=false) {
     // Una misma milanesa puede salir normal y otra con alerta de celiaquía.
@@ -130,7 +162,7 @@
     const item = cart.get(clave) || {producto, opciones, avisoCeliaco, cantidad:0};
     if (item.cantidad >= 99) return notify('Máximo 99 unidades por combinación.',true);
     item.cantidad += 1; cart.set(clave,item);
-    cerrarConfigurador();renderCart();notify('Producto agregado al pedido.');
+    cerrarConfigurador();renderCart();notify('✓ Producto agregado al pedido.');
   }
   function detalles(item) {
     return NOMBRES.flatMap(([clave]) => clave==='adicional' ? (item.opciones[clave]||[]) : (item.opciones[clave] ? [item.opciones[clave]] : []));
@@ -139,15 +171,29 @@
   function tieneAlertaCeliaco(item) {
     return !!(pedidoCeliaco.checked || item.avisoCeliaco);
   }
+  function marcarCeliaco(clave,item) {
+    cart.delete(clave);
+    item.avisoCeliaco = !item.avisoCeliaco;
+    const nuevaClave=JSON.stringify([item.producto.id, NOMBRES.map(([c])=>item.opciones[c] || (c==='adicional'?[]:'')),item.avisoCeliaco]);
+    const existente=cart.get(nuevaClave);
+    if(existente) existente.cantidad=Math.min(99,existente.cantidad+item.cantidad);
+    else cart.set(nuevaClave,item);
+    renderCart();
+  }
   function renderCart() {
-    carrito.replaceChildren();let total=0;
+    carrito.replaceChildren();let total=0, unidades=0;
     for (const [clave,item] of cart) {
       const unitario=precioFinal(item.producto,item.opciones),subtotal=unitario*item.cantidad;
-      total += subtotal;
+      total += subtotal;unidades += item.cantidad;
       const fila=el('div',undefined,'pl-item');
       const info=el('div',undefined,'pl-item-info');info.append(el('strong',item.producto.nombre));
       if (detalles(item).length) info.append(el('small',detalles(item).join(' · '),'pl-item-opciones'));
-      if (tieneAlertaCeliaco(item)) info.append(el('strong','⚠️ CELÍACO · Consultar a cocina','pl-celiaco-chip'));
+      const alertaBtn=el('button',item.avisoCeliaco?'⚠️ Celíaco: sí':'⚠️ Marcar celíaco','pl-alergia-item');
+      alertaBtn.type='button';alertaBtn.setAttribute('aria-pressed',String(!!item.avisoCeliaco));
+      alertaBtn.title='Avisar a cocina solamente para este plato';
+      alertaBtn.onclick=()=>marcarCeliaco(clave,item);
+      info.append(alertaBtn);
+      if (tieneAlertaCeliaco(item)) info.append(el('strong','⚠️ Revisar preparación sin gluten','pl-celiaco-chip'));
       info.append(el('small',`${money(unitario)} c/u · ${money(subtotal)}`));
       const ctr=el('div',undefined,'pl-controles');
       const menos=el('button','−'),cantidad=el('span',item.cantidad),mas=el('button','+'),quitar=el('button','✕');
@@ -157,7 +203,8 @@
       quitar.onclick=()=>{cart.delete(clave);renderCart();};
       ctr.append(menos,cantidad,mas);fila.append(info,ctr,quitar);carrito.append(fila);
     }
-    if (!cart.size) carrito.append(el('p','Elegí productos del menú público.'));
+    if (!cart.size) carrito.append(el('p','Todavía no hay productos. Elegí uno del menú de la izquierda.','pl-empty-cart'));
+    $('pl-contador').textContent=unidades+' '+(unidades===1?'unidad':'unidades');
     totalElemento.textContent=money(total);submit.disabled=busy||cart.size===0;
   }
   async function api(url,payload) {
@@ -172,7 +219,7 @@
       const data=await response.json();
       if (!response.ok || data.status!=='ok') throw new Error(data.mensaje||'No se pudo consultar pedidos.');
       productos=data.catalogo||[];
-      renderCatalogo();
+      renderCategorias();renderCatalogo();
       historial.replaceChildren();
       if (!data.pedidos.length) {historial.append(el('p','Todavía no hay pedidos.'));return;}
       data.pedidos.forEach(p=>{
@@ -205,7 +252,9 @@
       });
     } catch(e) {historial.replaceChildren(el('p',e.message));catalogo.replaceChildren(el('p','No pudimos cargar el menú. Revisá la conexión.'));}
   }
-  function open(){focoAnterior=document.activeElement;panel.hidden=false;panel.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';catalogo.replaceChildren(el('p','Cargando menú…'));renderCart();loadHistory();$('pl-buscar').focus();}
+  function open(){focoAnterior=document.activeElement;panel.hidden=false;panel.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';categoriaActual='Todas';$('pl-buscar').value='';cambiarVista('nuevo');catalogo.replaceChildren(el('p','Cargando menú…'));renderCart();loadHistory();}
+  $('pl-tab-nuevo').addEventListener('click',()=>cambiarVista('nuevo'));
+  $('pl-tab-historial').addEventListener('click',()=>{cambiarVista('historial');loadHistory();});
   function close(){panel.hidden=true;panel.setAttribute('aria-hidden','true');document.body.style.overflow='';cerrarConfigurador();focoAnterior?.focus?.();}
   abrir.addEventListener('click',open);
   panel.querySelectorAll('[data-pl-close]').forEach(b=>b.addEventListener('click',close));
@@ -232,7 +281,7 @@
       const result=await api(panel.dataset.createUrl,data);
       notify(`Pedido #${result.pedido_id} guardado. ${result.duplicado?'Sin duplicar.':'Enviado a la cola de cocina.'}`);
       cart.clear();$('pl-cliente').value='';$('pl-telefono').value='';$('pl-notas').value='';$('pl-pago').value='pendiente';pedidoCeliaco.checked=false;
-      solicitud=nuevaSolicitud();renderCart();await loadHistory();
+      solicitud=nuevaSolicitud();renderCart();await loadHistory();cambiarVista('historial');
     } catch(e){notify(e.message+' Podés reintentar sin duplicar el pedido.',true);}
     finally{busy=false;renderCart();}
   });

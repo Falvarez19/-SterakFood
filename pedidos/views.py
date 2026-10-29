@@ -740,6 +740,18 @@ def panel_control(request):
     })
 
 
+def cuentas_ventana_salon(request):
+    """Cuentas corrientes embebidas en ventana de Salon: no carga el dashboard completo."""
+    if not request.session.get('dashboard_auth'):
+        return redirect('pedidos:login_dashboard')
+    cuentas, total_deuda, total_favor = _preparar_cuentas_corrientes()
+    return render(request, 'pedidos/cuentas_ventana.html', {
+        'cuentas_corrientes': cuentas,
+        'cuentas_total_deuda': total_deuda,
+        'cuentas_total_favor': total_favor,
+    })
+
+
 def crear_cuenta_corriente(request):
     sin_acceso = _acceso_cuentas(request)
     if sin_acceso is not None:

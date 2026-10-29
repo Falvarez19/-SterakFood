@@ -84,9 +84,9 @@
             <a href="#grilla-mesas" class="salon-pos__atajo salon-pos__atajo--mesas">🍽 Mesas</a>
             <button type="button" id="salon-ver-ventas" class="salon-pos__atajo salon-pos__atajo--ventas" title="Ver ventas y mesas pendientes">📊 Ventas</button>
             <button type="button" id="pl-abrir" class="salon-pos__atajo salon-pos__atajo--llevar" aria-haspopup="dialog" aria-controls="pl-dialog">🥡 Para llevar</button>
-            <a href="{% url 'pedidos:panel_control' %}?tab=cuentas#tab-cuentas"
-               class="salon-pos__atajo salon-pos__atajo--cuentas"
-               title="Abrir Cuentas en esta misma pestaña">💳 Cuentas</a>
+            <button type="button" id="salon-abrir-cuentas" class="salon-pos__atajo salon-pos__atajo--cuentas"
+                    aria-haspopup="dialog" aria-controls="salon-cuentas-dialog"
+                    title="Abrir cuentas sin salir del Salón">💳 Cuentas</button>
         </div>
         <details class="salon-pos__menu-herramientas" id="salon-menu-herramientas">
             <summary>⚙ Herramientas <span aria-hidden="true">▾</span></summary>
@@ -129,7 +129,22 @@
             </div>
         </details>
     </nav>
-    <!-- Pedido para llevar: módulo POS, sin consumir una mesa -->
+    <!-- Cuentas dentro de Salon, sin abrir otra pestaña ni cargar todo el dashboard. -->
+    <div id="salon-cuentas-dialog" class="sc-dialog" hidden aria-hidden="true">
+      <button class="sc-dialog__backdrop" type="button" data-sc-cerrar tabindex="-1" aria-label="Cerrar Cuentas"></button>
+      <section class="sc-dialog__window" role="dialog" aria-modal="true" aria-labelledby="sc-dialog-titulo" tabindex="-1">
+        <header class="sc-dialog__header">
+          <div><span class="sc-dialog__kicker">STERAKFOOD · SALÓN POS</span>
+            <h2 id="sc-dialog-titulo">💳 Cuentas corrientes</h2>
+            <p>Administrá saldos, registrá pagos y creá cuentas sin salir de las mesas.</p></div>
+          <button type="button" class="sc-dialog__close" data-sc-cerrar aria-label="Cerrar ventana de Cuentas">✕</button>
+        </header>
+        <iframe class="sc-dialog__frame" id="sc-dialog-frame" title="Administración de cuentas corrientes"
+                data-src="{% url 'pedidos:cuentas_ventana_salon' %}" referrerpolicy="same-origin"></iframe>
+      </section>
+    </div>
+
+    <!-- Para llevar: seleccion a la izquierda, resumen fijo a la derecha. -->
     <div id="pl-dialog" class="pl-overlay" hidden aria-hidden="true"
          data-list-url="{% url 'pedidos:pedidos_para_llevar' %}"
          data-create-url="{% url 'pedidos:pedidos_para_llevar' %}"
@@ -137,60 +152,85 @@
          data-status-template="{% url 'pedidos:estado_para_llevar' 999999 %}">
       <div class="pl-backdrop" data-pl-close></div>
       <section class="pl-window" role="dialog" aria-modal="true" aria-labelledby="pl-title" tabindex="-1">
-        <div class="pl-head">
-          <div><small>STERAKFOOD · POS</small><h2 id="pl-title">🥡 Pedido para llevar</h2><p>Elegí los platos y sus opciones tal como aparecen en el menú público. La comanda va directo a cocina.</p></div>
+        <header class="pl-head">
+          <div class="pl-head-main">
+            <small>STERAKFOOD · POS</small>
+            <h2 id="pl-title">🥡 Para llevar</h2>
+            <p>Seleccioná los platos, personalizalos y mandá la comanda a cocina.</p>
+          </div>
+          <nav class="pl-tabs" aria-label="Vista de pedidos para llevar">
+            <button type="button" id="pl-tab-nuevo" class="pl-tab is-active" aria-pressed="true">✚ Nuevo pedido</button>
+            <button type="button" id="pl-tab-historial" class="pl-tab" aria-pressed="false">☷ Pedidos anteriores</button>
+          </nav>
           <button type="button" class="pl-close" data-pl-close aria-label="Cerrar">✕</button>
-        </div>
-        <div class="pl-content">
-          <div class="pl-editor">
-            <div class="pl-fields">
-              <label>Cliente <input id="pl-cliente" maxlength="100" placeholder="Nombre o referencia (opcional)"></label>
-              <label>Teléfono (opcional) <input id="pl-telefono" maxlength="20" placeholder="Para avisar cuando esté listo"></label>
+        </header>
+        <div class="pl-content" id="pl-contenido-nuevo">
+          <section class="pl-editor" aria-label="Catálogo del menú público">
+            <div class="pl-seccion-titulo">
+              <div><h3>1. Elegí productos</h3><p>El mismo menú que ven tus clientes.</p></div>
             </div>
-            <label class="pl-alerta-alimentos pl-alerta-pedido" for="pl-celiaco-pedido">
-              <input type="checkbox" id="pl-celiaco-pedido">
-              <span><strong>CELÍACO (pedido completo)</strong>
-                <small>Marcá esta casilla si el pedido es para una persona celíaca. Se destacará en TODOS los platos y en la comanda de cocina. Confirmar ingredientes y evitar contaminación cruzada.</small></span>
+            <label class="pl-busqueda" for="pl-buscar">
+              <span aria-hidden="true">⌕</span>
+              <input id="pl-buscar" placeholder="Buscar milanesa, café, código…" autocomplete="off" aria-label="Buscar productos del menú">
             </label>
-            <label class="pl-label">Buscar producto <input id="pl-buscar" placeholder="Escribí nombre o código" autocomplete="off"></label>
-            <div id="pl-catalogo" class="pl-catalogo" aria-label="Productos del menú público"></div>
-            <section id="pl-configurador" class="pl-configurador" hidden aria-label="Personalizar producto">
-              <h3 id="pl-config-titulo">Elegí las opciones</h3>
-              <div id="pl-config-grupos" class="pl-config-grupos"></div>
-              <label class="pl-alerta-alimentos">
-                <input type="checkbox" id="pl-aviso-celiaco">
-                <span><strong>CELÍACO (solo este plato)</strong>
-                  <small>No garantiza que el plato sea libre de gluten. Verificar ingredientes y contaminación cruzada antes de prepararlo.</small></span>
-              </label>
-              <div class="pl-config-footer">
-                <strong id="pl-config-precio"></strong>
-                <button type="button" id="pl-config-cancelar" class="pl-config-cancelar">Cancelar</button>
-                <button type="button" id="pl-config-agregar" class="pl-config-agregar">+ Agregar con estas opciones</button>
-              </div>
-            </section>
-            <h3>Detalle del pedido</h3>
+            <div id="pl-categorias" class="pl-categorias" aria-label="Filtrar productos por categoría"></div>
+            <div id="pl-catalogo" class="pl-catalogo" aria-label="Productos disponibles del menú"></div>
+          </section>
+          <section class="pl-checkout" aria-label="Detalle y envío del pedido">
+            <header class="pl-checkout-head">
+              <div><h3>2. Tu pedido</h3><p>Podés cambiar cantidades antes de enviarlo.</p></div>
+              <span id="pl-contador" class="pl-contador">0 productos</span>
+            </header>
             <div id="pl-carrito" class="pl-carrito"><p>Elegí productos del menú público.</p></div>
-            <label class="pl-label">Observaciones para cocina <textarea id="pl-notas" rows="2" maxlength="350" placeholder="Ej.: sin cebolla, bien cocido..."></textarea></label>
-            <div class="pl-footer-editor">
-              <label>Estado de cobro
+            <div class="pl-datos">
+              <div class="pl-fields">
+                <label>Nombre o referencia <input id="pl-cliente" maxlength="100" placeholder="Ej.: Juan / Pedido 17"></label>
+                <label>Teléfono (opcional) <input id="pl-telefono" maxlength="20" placeholder="Para avisar cuando esté listo"></label>
+              </div>
+              <label class="pl-alerta-alimentos pl-alerta-pedido" for="pl-celiaco-pedido">
+                <input type="checkbox" id="pl-celiaco-pedido">
+                <span><strong>⚠️ CELÍACO — pedido completo</strong>
+                  <small>Se avisa a cocina en todos los platos. Verificar ingredientes y contaminación cruzada.</small></span>
+              </label>
+              <label class="pl-label">Indicaciones para cocina
+                <textarea id="pl-notas" rows="2" maxlength="350" placeholder="Ej.: sin cebolla, retirar en 15 minutos…"></textarea>
+              </label>
+              <label class="pl-label">Cobro
                 <select id="pl-pago">
-                  <option value="pendiente">Pendiente de cobro</option>
+                  <option value="pendiente">Cobrar después</option>
                   <option value="efectivo">Cobrado · Efectivo</option>
                   <option value="debito">Cobrado · Débito</option>
                   <option value="mercadopago">Cobrado · Mercado Pago</option>
                 </select>
               </label>
-              <div class="pl-total"><small>Total</small><strong id="pl-total">$ 0</strong></div>
             </div>
-            <button type="button" id="pl-enviar" class="pl-enviar">🖨 Enviar pedido a cocina</button>
-            <p id="pl-aviso" class="pl-aviso" role="status" aria-live="polite"></p>
-          </div>
-          <aside class="pl-history">
-            <div class="pl-history-head"><h3>Últimos pedidos</h3><button id="pl-actualizar" type="button">Actualizar</button></div>
-            <div id="pl-pedidos">Todavía no hay pedidos.</div>
-            <p class="pl-hint">Se imprimen por la cola habitual. Marcá el cobro cuando recibas el pago; no genera factura ARCA automáticamente.</p>
-          </aside>
+            <footer class="pl-checkout-footer">
+              <div class="pl-total"><span>Total del pedido</span><strong id="pl-total">$ 0</strong></div>
+              <button type="button" id="pl-enviar" class="pl-enviar">🖨 Enviar a cocina</button>
+              <p id="pl-aviso" class="pl-aviso" role="status" aria-live="polite"></p>
+            </footer>
+          </section>
         </div>
+        <aside class="pl-history" id="pl-vista-historial" hidden aria-label="Últimos pedidos para llevar">
+          <div class="pl-history-head"><div><h3>Pedidos para llevar</h3><p>Consultá los pendientes, marcá los listos y registrá cobros.</p></div><button id="pl-actualizar" type="button">↻ Actualizar</button></div>
+          <div id="pl-pedidos">Todavía no hay pedidos.</div>
+          <p class="pl-hint">El cobro no genera una factura ARCA automáticamente. Las comandas se imprimen mediante la cola de cocina.</p>
+        </aside>
+        <section id="pl-configurador" class="pl-configurador" hidden aria-label="Personalizar producto">
+          <div class="pl-config-card" role="group" aria-labelledby="pl-config-titulo">
+            <div class="pl-config-head"><div><small>PERSONALIZAR PLATO</small><h3 id="pl-config-titulo">Elegí las opciones</h3></div><button id="pl-config-cancelar" type="button" class="pl-config-cancelar" aria-label="Volver al menú">✕</button></div>
+            <div id="pl-config-grupos" class="pl-config-grupos"></div>
+            <label class="pl-alerta-alimentos" for="pl-aviso-celiaco">
+              <input type="checkbox" id="pl-aviso-celiaco">
+              <span><strong>⚠️ CELÍACO — solo este plato</strong>
+                <small>Advertir a cocina; no certifica que la preparación sea libre de gluten.</small></span>
+            </label>
+            <div class="pl-config-footer">
+              <strong id="pl-config-precio"></strong>
+              <button type="button" id="pl-config-agregar" class="pl-config-agregar">+ Agregar al pedido</button>
+            </div>
+          </div>
+        </section>
       </section>
     </div>
 
@@ -822,5 +862,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'script/para_llevar_pos.js' %}?v=20261028-celiaco-pedido"></script>
+<script src="{% static 'script/para_llevar_pos.js' %}?v=20261029-ux-takeout-1"></script>
+<script src="{% static 'script/salon_cuentas_modal.js' %}?v=20261029-cuentas-popup-1"></script>
 {% endblock %}
