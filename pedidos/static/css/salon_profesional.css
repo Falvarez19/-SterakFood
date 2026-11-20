@@ -1,0 +1,129 @@
+/* SterakFood | Paso 2A — Salón y Mesas
+   Diseño operativo, responsive y accesible.
+   - Solo afecta a #salon-pos, no al menú público ni al Dashboard.
+   - Respeta la paleta configurada en Mi negocio.
+   - No altera clases de estado, IDs, eventos de cobro ni de impresión.
+   Los estilos van en archivo separado para reducir acoplamiento con estilos.css.
+*/
+#salon-pos.salon-pos--clasico {
+  --sf-pos-acento: var(--naranja-sterak, #ff6600);
+  --sf-pos-borde: var(--borde, #2a2d32);
+  --sf-pos-fondo: var(--card-bg, #16181c);
+  --sf-pos-texto: var(--text-color, #f8f9fa);
+  --sf-pos-muted: var(--texto-mutado, #9ba1a6);
+  width: 100%;
+  max-width: 1720px;
+  margin-inline: auto;
+  padding: 12px clamp(10px, 1.8vw, 26px) 32px !important;
+}
+#salon-pos .salon-pos__header h1 {font-size: 1.14rem; font-weight: 750; letter-spacing: -.015em;}
+#salon-pos .sf-salon-h1-tag {font-size: .68rem; font-weight: 650; color: var(--sf-pos-muted); margin-left: 7px; letter-spacing: .07em;}
+#salon-pos .salon-pos__mesas-panel {border-radius: 5px !important; box-shadow: none !important; padding: 15px !important;}
+#salon-pos .salon-pos__atajo,
+#salon-pos .salon-pos__menu-herramientas > summary {border-radius: 5px !important; font-weight: 650;}
+#salon-pos .salon-pos__mesa-rapida-linea .salon-pos__input {font-size: 1rem; font-weight: 700;}
+
+/* Estado del salón: una sola línea informativa y un grupo de filtros. */
+#salon-pos .sf-salon-mesas-tools {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  gap: 9px 18px; margin: 0 0 13px; padding: 7px 0 11px;
+  border-bottom: 1px solid var(--sf-pos-borde);
+}
+#salon-pos .sf-salon-mesas-stats {display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; color: var(--sf-pos-muted); font-size: .8rem; line-height: 1.45;}
+#salon-pos .sf-salon-mesas-stats strong {font-weight: 750; color: var(--sf-pos-texto); font-variant-numeric: tabular-nums;}
+#salon-pos .sf-salon-separador {opacity: .4;}
+#salon-pos .sf-salon-mesas-filtros {display: inline-flex; flex-wrap: wrap; gap: 4px; align-items: center;}
+#salon-pos .sf-salon-mesas-filtros button {
+  font: inherit; font-weight: 650; font-size: .76rem; color: var(--sf-pos-muted);
+  padding: 6px 11px; min-height: 32px; border-radius: 4px; background: transparent;
+  border: 1px solid transparent; cursor: pointer; line-height: 1.2;
+}
+#salon-pos .sf-salon-mesas-filtros button:hover {color: var(--sf-pos-texto); background: var(--bg-color);}
+#salon-pos .sf-salon-mesas-filtros button[aria-pressed="true"] {
+  color: var(--sf-pos-texto); border-color: var(--sf-pos-acento);
+  background: color-mix(in srgb, var(--sf-pos-acento) 11%, transparent);
+}
+#salon-pos .sf-salon-mesas-filtros button:focus-visible,
+#salon-pos .salon-pos__mesa:focus-visible,
+#salon-pos .salon-pos__atajo:focus-visible {
+  outline: 2px solid var(--sf-pos-acento) !important; outline-offset: 2px;
+}
+#salon-pos .sf-salon-resultado {color: var(--sf-pos-muted); font-size: .74rem; margin: 2px 0 9px; min-height: 1.15em;}
+#salon-pos .sf-salon-sin-resultados {margin: 16px 0; font-size: .86rem; color: var(--sf-pos-muted);}
+#salon-pos .sf-salon-sin-resultados[hidden] {display: none !important;}
+
+/* Grilla que usa el ancho disponible sin imponer un número fijo de columnas.
+   19 pulgadas, notebooks y tablet mantienen tarjetas legibles. */
+#salon-pos .salon-pos__grilla-mesas {
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)) !important;
+  gap: 8px !important;
+}
+#salon-pos .salon-pos__mesa {
+  min-height: 76px !important; height: 76px !important;
+  border-radius: 5px !important; padding: 7px 5px !important;
+  box-shadow: none !important; transition: border-color .13s, background-color .13s !important;
+}
+#salon-pos .salon-pos__mesa:hover {transform: none !important; border-color: var(--sf-pos-acento);}
+#salon-pos .salon-pos__mesa-numero {font-size: 1.25rem !important; font-weight: 750 !important;}
+#salon-pos .salon-pos__mesa-libre,
+#salon-pos .salon-pos__mesa-items,
+#salon-pos .salon-pos__mesa-mozo,
+#salon-pos .salon-pos__mesa-ticket {font-size: .64rem !important; font-weight: 650 !important; line-height: 1.15;}
+#salon-pos .salon-pos__mesa-total {font-size: .74rem !important; font-weight: 750 !important;}
+#salon-pos .salon-pos__mesa.is-ocupada,
+#salon-pos .salon-pos__mesa.mesa-ocupada {border-left: 3px solid var(--sf-pos-acento);}
+#salon-pos .salon-pos__mesa.is-actual,
+#salon-pos .salon-pos__mesa.mesa-seleccionada {
+  border-color: var(--sf-pos-acento) !important;
+  outline: 1px solid var(--sf-pos-acento); outline-offset: -3px;
+}
+#salon-pos .salon-pos__mesa[hidden] {display: none !important;}
+
+/* Comanda: controles claramente agrupados; no cambia el flujo del teclado. */
+#salon-pos #salon-comanda-modal.salon-pos__comanda-modal {
+  border-radius: 6px !important;
+  width: min(1040px, calc(100vw - 24px)) !important;
+  height: min(650px, calc(100dvh - 26px)) !important;
+  max-height: calc(100dvh - 26px) !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__comanda-header--pos {border-bottom-color: var(--sf-pos-borde);}
+#salon-pos #salon-comanda-modal .salon-pos__btn {border-radius: 5px !important; font-weight: 700 !important;}
+#salon-pos #salon-comanda-modal .salon-pos__input {border-radius: 5px;}
+#salon-pos #salon-comanda-modal .salon-pos__input:focus-visible {border-color: var(--sf-pos-acento) !important; outline: 1px solid var(--sf-pos-acento);}
+#salon-pos #salon-comanda-modal .salon-pos__atajos-v115 span {border-radius: 4px;}
+#salon-pos #salon-comanda-modal .salon-pos__actionbar--pos {grid-template-columns: 105px 110px 135px minmax(140px, 1fr) !important;}
+#salon-pos #salon-comanda-modal .salon-pos__btn--principal {background: var(--sf-pos-acento) !important; color: #131313 !important;}
+
+@media (max-width: 1000px) {
+  #salon-pos .salon-pos__grilla-mesas {grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)) !important;}
+  #salon-pos #salon-comanda-modal.salon-pos__comanda-modal {width: calc(100vw - 18px) !important;}
+}
+@media (max-width: 760px) {
+  #salon-pos.salon-pos--clasico {padding: 8px 8px 22px !important;}
+  #salon-pos .salon-pos__mesas-panel {padding: 10px !important;}
+  #salon-pos .salon-pos__header {gap: 8px;}
+  #salon-pos .salon-pos__grilla-mesas {grid-template-columns: repeat(auto-fill, minmax(81px, 1fr)) !important; gap: 6px !important;}
+  #salon-pos .salon-pos__mesa {height: 74px !important; min-height: 74px !important;}
+  #salon-pos #salon-comanda-modal.salon-pos__comanda-modal {
+    height: calc(100dvh - 12px) !important; max-height: calc(100dvh - 12px) !important;
+    width: calc(100vw - 12px) !important;
+  }
+  #salon-pos #salon-comanda-modal .salon-pos__area-comanda:not([hidden]) {min-height: 0 !important; flex: 1 1 auto !important;}
+  #salon-pos #salon-comanda-modal .salon-pos__actionbar--pos {grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 6px !important;}
+  #salon-pos #salon-comanda-modal .salon-pos__actionbar--pos .salon-pos__btn--principal {grid-column: auto !important;}
+}
+@media (max-width: 460px) {
+  #salon-pos .salon-pos__section-header {flex-wrap: wrap;}
+  #salon-pos .salon-pos__section-header p {display: none;}
+  #salon-pos .salon-pos__mesa-rapida {margin-left: auto;}
+  #salon-pos .sf-salon-mesas-tools {gap: 5px;}
+  #salon-pos .sf-salon-mesas-filtros {width: 100%;}
+  #salon-pos .sf-salon-mesas-filtros button {flex: 1 1 0;}
+  #salon-pos .salon-pos__grilla-mesas {grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)) !important;}
+  #salon-pos #salon-comanda-modal .salon-pos__comanda-header--pos {gap: 5px !important;}
+  #salon-pos #salon-comanda-modal .salon-pos__actionbar--pos {padding: 7px !important;}
+  #salon-pos #salon-comanda-modal .salon-pos__atajos-v115 {display: none !important;}
+}
+@media (prefers-reduced-motion: reduce) {
+  #salon-pos .salon-pos__mesa {transition: none !important;}
+}

@@ -13,6 +13,10 @@
 
 {% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/salon_profesional.css' %}?v=sf2a-20261120-v2">
+{% endblock %}
+
 {% block content %}
 
 <section
@@ -410,7 +414,25 @@
 
         </div>
 
-        <div
+        <!-- STERAKFOOD_PASO2A_FILTROS_V2: filtros VISUALES, nunca modifican cuentas. -->
+<div class="sf-salon-mesas-tools" aria-label="Estado y filtros de mesas">
+  <div class="sf-salon-mesas-stats" aria-label="Resumen del salón">
+    <span><strong id="sf-salon-total-mesas">{{ mesas|length }}</strong> mesas</span>
+    <span class="sf-salon-separador" aria-hidden="true">·</span>
+    <span><strong id="sf-salon-mesas-ocupadas">0</strong> ocupadas</span>
+    <span class="sf-salon-separador" aria-hidden="true">·</span>
+    <span><strong id="sf-salon-mesas-libres">{{ mesas|length }}</strong> libres</span>
+  </div>
+  <div class="sf-salon-mesas-filtros" role="group" aria-label="Mostrar mesas">
+    <button type="button" data-sf-filtro-mesa="todas" aria-pressed="true">Todas</button>
+    <button type="button" data-sf-filtro-mesa="ocupadas" aria-pressed="false">Ocupadas</button>
+    <button type="button" data-sf-filtro-mesa="libres" aria-pressed="false">Libres</button>
+  </div>
+</div>
+<p class="sf-salon-resultado" id="sf-salon-mesas-visibles" role="status" aria-live="polite">Mostrando {{ mesas|length }} mesas</p>
+<p class="sf-salon-sin-resultados" id="sf-salon-sin-resultados" hidden>No hay mesas con este estado.</p>
+
+<div
 
             id="grilla-mesas"
 
@@ -867,4 +889,5 @@
 {% block extra_js %}
 <script src="{% static 'script/para_llevar_pos.js' %}?v=20261029-ux-takeout-1"></script>
 <script src="{% static 'script/salon_cuentas_modal.js' %}?v=20261029-cuentas-inline-2"></script>
+<script src="{% static 'script/salon_profesional.js' %}?v=sf2a-20261120-v2"></script>
 {% endblock %}
