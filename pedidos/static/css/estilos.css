@@ -8868,3 +8868,66 @@ body[data-theme="light"] .navbar .logo-light { display: block !important; }
 .sc-dialog__retry{display:block;margin:0 auto 24px;background:#ff6600;color:#111;border:0;
   border-radius:10px;padding:10px 18px;font-weight:800;cursor:pointer}
 @media(max-width:680px){.sc-dialog__content{padding:10px}}
+
+
+/* STERAKFOOD_BRANDING_UI_START: Mi negocio, interfaz administrativa */
+.sf-brand{max-width:1130px;margin:30px auto 55px;padding:0 24px;color:var(--text-color)}
+.sf-brand__header{display:flex;align-items:end;justify-content:space-between;gap:22px;padding-bottom:20px;border-bottom:1px solid var(--borde);margin-bottom:25px}
+.sf-brand__header h1{font-size:1.8rem;letter-spacing:-.025em;line-height:1.25;margin:0 0 3px;font-weight:750}
+.sf-brand__header p{color:var(--texto-mutado);margin:0;font-size:.92rem}
+.sf-brand__owner{font-size:.82rem;color:var(--texto-mutado);white-space:nowrap}
+.sf-brand__layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(265px,.8fr);gap:42px;align-items:start}
+.sf-brand__settings{min-width:0}
+.sf-brand__section{padding:0 0 25px;border-bottom:1px solid var(--borde);margin:0 0 24px}
+.sf-brand__section:last-child{border-bottom:0;margin-bottom:0}
+.sf-brand__section-head{margin:0 0 18px}
+.sf-brand__section h2,.sf-brand__preview-section h2{font-size:1.05rem;line-height:1.3;font-weight:720;margin:0 0 4px}
+.sf-brand__section-head p,.sf-brand__preview-section>p{color:var(--texto-mutado);font-size:.87rem;margin:0}
+.sf-brand__fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.sf-brand__fields label{display:flex;flex-direction:column;gap:6px;font-size:.87rem;font-weight:650;color:var(--text-color)}
+.sf-brand__fields .sf-brand__wide{grid-column:1/-1}
+.sf-brand__fields input{width:100%;background:var(--card-bg);border:1px solid var(--borde);border-radius:6px;color:var(--text-color);font:inherit;font-weight:400;padding:9px 11px;min-height:41px}
+.sf-brand__fields input:focus-visible,.sf-brand__logo-controls input:focus-visible,.sf-brand__restore:focus-visible,.sf-brand__save:focus-visible{outline:2px solid var(--naranja-sterak);outline-offset:2px}
+.sf-brand__logo-row{display:flex;align-items:center;gap:16px;padding:10px 0 16px;min-width:0}
+.sf-brand__logo-row+.sf-brand__logo-row{border-top:1px solid var(--borde);padding-top:17px}
+.sf-brand__logo-frame{width:76px;height:76px;border-radius:7px;display:grid;place-items:center;flex-shrink:0;border:1px solid rgba(255,255,255,.12)}
+.sf-brand__logo-frame img{width:60px;height:60px;object-fit:contain}
+.sf-brand__logo-frame--dark{background:#151619}
+.sf-brand__logo-frame--light{background:#f0f0f0;border-color:#dedede}
+.sf-brand__logo-controls{display:grid;gap:6px;min-width:0;flex:1}
+.sf-brand__logo-controls>label:first-child{font-weight:650;font-size:.88rem}
+.sf-brand__logo-controls input[type=file]{min-width:0;max-width:100%;font:inherit;font-size:.8rem;color:var(--texto-mutado)}
+.sf-brand__logo-controls input[type=file]::file-selector-button{font:inherit;color:var(--text-color);background:var(--card-bg);border:1px solid var(--borde);border-radius:5px;padding:5px 9px;margin-right:9px;cursor:pointer}
+.sf-brand__check{display:flex;align-items:center;gap:6px;color:var(--texto-mutado);font-size:.8rem}
+.sf-brand__check input{accent-color:var(--naranja-sterak)}
+.sf-brand__hint{font-size:.81rem!important;line-height:1.55;color:var(--texto-mutado);margin-top:10px!important}
+.sf-brand__colors{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-bottom:11px}
+.sf-brand__colors label{display:flex;align-items:center;gap:9px;font-size:.85rem;font-weight:600;min-width:0}
+.sf-brand__colors input[type=color]{width:35px;height:35px;cursor:pointer;border:1px solid var(--borde);background:transparent;padding:2px;border-radius:5px;flex-shrink:0}
+.sf-brand__restore{border:0;background:transparent;padding:4px 0;color:var(--naranja-brillo);font:inherit;font-size:.84rem;cursor:pointer;text-align:left;text-decoration:underline;text-underline-offset:3px}
+.sf-brand__preview-column{min-width:0}
+.sf-brand__preview-section{position:sticky;top:95px}
+.sf-brand__preview{border:1px solid #383a3e;border-radius:7px;background:#101114;color:#f4f4f4;overflow:hidden;margin-top:17px;--sf-principal:#ff6600;--sf-secundario:#ff6600;--sf-acento:#ff8533}
+.sf-brand__previewtop{display:flex;align-items:center;gap:10px;background:#1c1e22;padding:11px 12px;border-bottom:2px solid var(--sf-principal)}
+.sf-brand__previewtop img{width:34px;height:34px;object-fit:contain}
+.sf-brand__previewtop strong{min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.94rem}
+.sf-brand__previewtop>span{font-size:.66rem;color:#c5c7ca;letter-spacing:.06em}
+.sf-brand__preview-nav{display:flex;gap:20px;align-items:center;padding:9px 13px;border-bottom:1px solid #2e3034;font-size:.73rem;color:#a8acb5}
+.sf-brand__preview-active{color:var(--sf-acento);font-weight:750}
+.sf-brand__previewbody{padding:18px 14px 15px;display:grid;gap:16px}
+.sf-brand__previewbody>div:first-child{display:grid;gap:3px}
+.sf-brand__previewbody small{color:#9b9da4;font-size:.7rem}
+.sf-brand__previewbody strong{font-size:.94rem}
+.sf-brand__preview-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.sf-brand__preview-tiles span{border:1px solid #484b51;background:#1b1d21;border-radius:4px;padding:12px 0;text-align:center;color:#d6d6d6;font-size:.79rem}
+.sf-brand__preview-tiles span:nth-child(2){border-color:var(--sf-secundario);background:#2b2420}
+.sf-brand__preview-foot{border-top:1px solid #303238;padding-top:11px;color:#b8bbc2;display:flex;gap:7px;align-items:center;font-size:.69rem}
+.sf-brand__preview-foot span{margin-right:auto}.sf-brand__preview-foot i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--sf-acento)}
+.sf-brand__message{border-left:3px solid var(--naranja-sterak);padding:10px 13px;background:var(--card-bg);margin-bottom:15px;font-size:.92rem}
+.sf-brand__footer{border-top:1px solid var(--borde);margin-top:10px;padding-top:18px;display:flex;align-items:center;justify-content:flex-end;gap:25px}
+.sf-brand__footer>span{color:var(--texto-mutado);font-size:.81rem}
+.sf-brand__save{border:0;border-radius:6px;background:var(--naranja-sterak);color:#fff;font:inherit;font-weight:750;padding:11px 19px;cursor:pointer}
+.sf-brand__save:hover{filter:brightness(1.08)}
+@media(max-width:870px){.sf-brand__layout{grid-template-columns:1fr;gap:25px}.sf-brand__preview-section{position:static}.sf-brand__preview-column{max-width:520px}.sf-brand__header{align-items:start}}
+@media(max-width:580px){.sf-brand{padding:0 14px;margin:19px auto 35px}.sf-brand__header{display:block}.sf-brand__owner{display:block;margin-top:9px}.sf-brand__fields{grid-template-columns:1fr}.sf-brand__colors{grid-template-columns:1fr}.sf-brand__logo-row{align-items:start}.sf-brand__footer{flex-direction:column;align-items:stretch;gap:11px}.sf-brand__save{width:100%}}
+/* STERAKFOOD_BRANDING_UI_END */

@@ -23,6 +23,7 @@ from django.views.static import serve
 urlpatterns = [
     path('admin/', admin.site.urls),
     # Tu app de pedidos
+    path('mi-negocio/', include('marca.urls')),
     path('', include('pedidos.urls')), 
 ]
 

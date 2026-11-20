@@ -1,0 +1,39 @@
+STERAKFOOD - CONFIGURACIÓN RÁPIDA DEL NEGOCIO (adaptado a tu -SterakFood(5).zip)
+
+Este UPDATE es para el proyecto SterakFood, que usa SisPedidos/settings.py.
+NO es un update de San Martín; no sobrescribas tu instalación de San Martín.
+
+Qué incorpora:
+* Principal -> Configuración/Herramientas -> Mi negocio
+* Nombre comercial, nombre corto y subtítulo
+* Logo para tema oscuro y logo para tema claro (PNG/JPG/WebP hasta 2 MB)
+* Tres colores personalizables con vista previa
+* Datos guardados en la BD de CADA instalación (sin tocar ventas ni cuentas)
+* Manifest y título adaptados al nombre comercial
+* Los colores negro/naranja originales de SterakFood SE CONSERVAN hasta elegir una nueva paleta.
+
+Para aplicarlo:
+1. Cerrá el servidor de desarrollo si lo usás localmente.
+2. Hacé copia de seguridad del proyecto y de la base de datos por separado.
+3. Descomprimí este ZIP.
+4. Ejecutá ACTUALIZAR_STERAKFOOD.cmd (en Windows) y seleccioná la carpeta
+   original -SterakFood donde se encuentra manage.py.
+   Alternativa: python aplicar_configuracion_sterakfood.py "C:\ruta\-SterakFood"
+5. Ejecutá desde la carpeta del proyecto:
+   python manage.py migrate
+6. Abrí /mi-negocio/ y accedé con un superusuario de Django si te pide login.
+   Si no existe uno: python manage.py createsuperuser
+7. Para Render: subí los cambios de código a GitHub, verificá que el deploy ejecute
+   "python manage.py migrate --noinput" y conservá el DATABASE_URL de tu BD.
+8. Configuración desde el panel: Herramientas -> Mi negocio.
+
+IMPORTANTE:
+* NO subas .env, db.sqlite3, archivos .key, certificados, .venv/venv, backups ni claves a GitHub.
+* El ZIP NO contiene claves, DB, archivos .env ni el entorno virtual del proyecto.
+* Actualiza la identidad de la interfaz y el título de los nuevos pedidos MP;
+  NO modifica los datos fiscales ARCA, facturas, comprobantes históricos ni datos impresos.
+* Logos guardados en la BD para que sobrevivan a redespliegues de Render si usás
+  una base persistente (PostgreSQL). Hacé backups de esa base.
+* No es el instalador de Windows; es la actualización del proyecto Django.
+* Si el código cambió desde el ZIP, el actualizador detiene la operación en vez de pisarlo.
+* CSS existente: pedidos/static/css/estilos.css. No crea un tema distinto.

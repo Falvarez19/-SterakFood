@@ -8,17 +8,18 @@
 
     <link rel="preload" as="image" href="{% static 'img/wok.gif' %}">
     
-    <link rel="icon" href="{% static 'img/logo.png' %}" type="image/png">
+    <link rel="icon" href="{% url 'marca:logo' %}" type="image/png">
     <link rel="stylesheet" href="{% static 'css/estilos.css' %}?v=sterak-restauracion-tema-20261029-cuentas2">
+    <link rel="stylesheet" href="{% url 'marca:tema_css' %}">
     {% block extra_css %}{% endblock %}
 
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="{% url 'marca:manifiesto' %}">
     <meta name="theme-color" content="#0a0b0d">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="{{ restaurant_name }}">
-    <link rel="apple-touch-icon" href="{% static 'img/logo.png' %}">
+    <link rel="apple-touch-icon" href="{% url 'marca:logo' %}">
 
     <script>
         if ('serviceWorker' in navigator) {
@@ -51,8 +52,8 @@
     <nav class="navbar">
         <div class="nav-container">
             <a href="{% url 'pedidos:inicio' %}?puesto={{ request.GET.puesto }}" class="marca">
-                <img src="{% static 'img/logo.png' %}" alt="Logo SterakFood modo oscuro" class="nav-logo logo-dark">
-                <img src="{% static 'img/logo_2.png' %}" alt="Logo SterakFood modo claro" class="nav-logo logo-light">
+                <img src="{% url 'marca:logo' %}" alt="Logo de {{ restaurant_name }}" class="nav-logo logo-dark">
+                <img src="{% url 'marca:logo_claro' %}" alt="" class="nav-logo logo-light">
                 <span class="logo-texto">{{ restaurant_name }}</span>
             </a>
             

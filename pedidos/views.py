@@ -39,6 +39,12 @@ from django.db import IntegrityError
 # CONFIGURACIÓN GLOBAL DEL SISTEMA
 # ==========================================================================
 
+def _nombre_comercial():
+    """Nombre vigente por instalación, para títulos de cobros y mensajes."""
+    from marca.context_processors import datos_marca
+    return datos_marca()['nombre']
+
+
 def obtener_configuracion():
     config, _ = Configuracion.objects.get_or_create(id=1)
     return config
@@ -528,7 +534,7 @@ def procesar_pedido(request):
             }
             payload = {
                 "external_reference": str(pedido.id),
-                "title": f"{settings.RESTAURANT_NAME} - Pedido #{pedido.id}",
+                "title": f"{_nombre_comercial()} - Pedido #{pedido.id}",
                 "total_amount": float(pedido.total),
                 "currency": "ARS",
                 "webhook_url": f"https://{host}/webhook-nave/",
