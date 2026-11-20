@@ -15,6 +15,8 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/salon_profesional.css' %}?v=sf2a-20261120-v2">
+{# STERAKFOOD_PASO_2B_CUENTA_MANUAL_V1: UI manual; no cambia operaciones. #}
+<link rel="stylesheet" href="{% static 'css/salon_comanda_profesional.css' %}?v=sterak-2b-20261120">
 {% endblock %}
 
 {% block content %}
@@ -517,9 +519,7 @@
             <div class="salon-pos__comanda-identidad">
 
                 <span class="salon-pos__eyebrow">
-
-                    COMANDA
-
+                    SALÓN · REGISTRO MANUAL
                 </span>
 
                 <div class="salon-pos__titulo-linea">
@@ -676,7 +676,7 @@
 
                         spellcheck="false"
 
-                        aria-describedby="salon-ayuda-teclado"
+                        aria-describedby="salon-ayuda-rapida"
 
                     >
 
@@ -685,9 +685,7 @@
                 <div class="salon-pos__field salon-pos__field--buscador">
 
                     <label for="buscador">
-
-                        CÓDIGO DEL PRODUCTO
-
+                        CÓDIGO O PRODUCTO
                     </label>
 
                     <input
@@ -718,12 +716,15 @@
 
             </div>
 
-            <div class="salon-pos__atajos-v115" id="salon-ayuda-teclado" aria-label="Atajos en el campo Cantidad"><small>Escribilos en <strong>CANTIDAD</strong> y presioná Enter: </small>
+            <p id="salon-ayuda-rapida" class="sf-cuenta-indicacion">Ingresá la cantidad y pasá al código con <kbd>Enter</kbd>. El Salón registra consumos; las comandas de cocina se manejan en papel.</p>
+<details class="sf-cuenta-atajos"><summary>Ver atajos de teclado (imprimir, cobrar, dividir)</summary>
+<div class="salon-pos__atajos-v115" id="salon-ayuda-teclado" aria-label="Atajos en el campo Cantidad"><small>Escribilos en <strong>CANTIDAD</strong> y presioná Enter: </small>
                 <span><b>..</b> imprimir ticket</span>
                 <span><b>//</b> cobrar</span>
                 <span><b>* / **</b> facturación fiscal manual (requiere habilitación ARCA)</span>
                 <span><b>F2</b> dividir cuenta</span>
             </div>
+</details>
 
             <!-- TABLA -->
 
