@@ -1,4 +1,5 @@
 {% extends 'pedidos/base.html' %}
+{% load static %}
 {% block title %}Panel | {{ restaurant_name }}{% endblock %}
 {% block nav_acciones %}
     <a
@@ -16,92 +17,114 @@
     preload="auto"
 ></audio>
 <div
-    class="container dash-container"
-    style="margin-top: 30px;"
+    class="container dash-container sf-dash-panel"
 >
 
     <h1 class="panel-titulo-principal">
-        Panel {{ restaurant_name }}
+        Panel de control
     </h1>
 
-    <!-- # TABS -->
-    <div class="panel-tabs panel-tabs--moderno">
-        <button class="panel-tab-btn" onclick="abrirTab('inicio', this)" id="btn-tab-inicio">🏠 Inicio</button>
-        <button class="panel-tab-btn" onclick="abrirTab('pedidos', this)" id="btn-tab-pedidos">📝 Pedidos</button>
-        <a
-            href="{% url 'pedidos:salon' %}"
-            class="panel-tab-btn"
-            {% if not salon_habilitado %}hidden{% endif %}
-            style="text-decoration: none; display: inline-flex; align-items: center;"
-        >
-            🧾 Salón POS
-        </a>
-        {% if sm_local_mode %}
-        <button class="panel-tab-btn" onclick="abrirTab('qr', this)" id="btn-tab-qr">📲 Pedidos QR</button>
+    {# Navegación SterakFood. Los IDs siguen iguales: otras pantallas y scripts los usan. #}
+    <nav class="panel-tabs panel-tabs--moderno sf-panel-nav" id="sf-panel-nav" aria-label="Navegación del panel">
+        <button type="button" class="panel-tab-btn" onclick="abrirTab('inicio', this)" id="btn-tab-inicio">Inicio</button>
+        <button type="button" class="panel-tab-btn" onclick="abrirTab('pedidos', this)" id="btn-tab-pedidos">Pedidos{% if pedidos_pendientes_count %}<span class="sf-panel-nav__count" aria-label="{{ pedidos_pendientes_count }} pendientes">{{ pedidos_pendientes_count }}</span>{% endif %}</button>
+        {% if salon_habilitado %}
+        <a href="{% url 'pedidos:salon' %}" class="panel-tab-btn sf-panel-nav__salon">Salón / Para llevar</a>
         {% endif %}
-        <button class="panel-tab-btn" onclick="abrirTab('menu', this)" id="btn-tab-menu">🍔 Menú</button>
-        <button class="panel-tab-btn" onclick="abrirTab('mostradores', this)" id="btn-tab-mostradores">🏪 Mostradores</button>
-        <button class="panel-tab-btn" onclick="abrirTab('opiniones', this)" id="btn-tab-opiniones">
-            💬 Opiniones
-            {% if opiniones_no_leidas %}
-                <span class="opiniones-badge">{{ opiniones_no_leidas }}</span>
-            {% endif %}
-        </button>
-        <button class="panel-tab-btn" onclick="abrirTab('cuentas', this)" id="btn-tab-cuentas">💳 Cuentas</button>
-        <button class="panel-tab-btn" onclick="abrirTab('config', this)" id="btn-tab-config">⚙️ Configuración</button>
-    </div>
+        <button type="button" class="panel-tab-btn" onclick="abrirTab('cuentas', this)" id="btn-tab-cuentas">Cuentas</button>
+        <button type="button" class="panel-tab-btn" onclick="abrirTab('menu', this)" id="btn-tab-menu">Menú</button>
+
+        {# Lo administrativo no desaparece: se agrupa para liberar el acceso diario. #}
+        <div class="sf-panel-nav__more" id="sf-panel-nav-more">
+            <button type="button" class="sf-panel-nav__more-trigger" id="sf-panel-nav-toggle"
+                    aria-haspopup="true" aria-expanded="false" aria-controls="sf-panel-nav-menu">
+                Más opciones <span aria-hidden="true">▾</span>
+                {% if opiniones_no_leidas %}<span class="sf-panel-nav__count" aria-label="{{ opiniones_no_leidas }} opiniones sin leer">{{ opiniones_no_leidas }}</span>{% endif %}
+            </button>
+            <div class="sf-panel-nav__more-menu" id="sf-panel-nav-menu" hidden>
+                <button type="button" class="sf-panel-nav__subitem" id="btn-tab-mostradores" onclick="abrirTab('mostradores', this)">Mostradores</button>
+                <button type="button" class="sf-panel-nav__subitem" id="btn-tab-opiniones" onclick="abrirTab('opiniones', this)">Opiniones{% if opiniones_no_leidas %} ({{ opiniones_no_leidas }}){% endif %}</button>
+                <button type="button" class="sf-panel-nav__subitem" id="btn-tab-config" onclick="abrirTab('config', this)">Herramientas</button>
+                <a class="sf-panel-nav__subitem" href="{% url 'marca:configurar' %}">Mi negocio</a>
+            </div>
+        </div>
+    </nav>
 
     {# Módulo local QR retirado: web exclusivamente en Render. #}
 
-    <!-- # TAB INICIO -->
+    <!-- SterakFood: inicio operativo compacto (solo presentación, sin cambios de lógica). -->
     <div id="tab-inicio" class="tab-content">
-        <section class="panel-inicio-v4 panel-inicio-v4--sm">
-            <div class="panel-inicio-v4__header">
-                <div>
-                    <span class="categoria-kicker">VISTA RÁPIDA</span>
-                    <h2>Panel del día</h2>
-                    <p>Resumen general. Para navegar usá solo las pestañas de abajo.</p>
+        <section class="sf-dash-home" aria-labelledby="sf-dash-titulo">
+            <header class="sf-dash-home__head">
+                <div class="sf-dash-home__heading">
+                    <span class="sf-dash-home__eyebrow">RESUMEN OPERATIVO</span>
+                    <h2 id="sf-dash-titulo">Hoy <small>{% now "d/m/Y" %}</small></h2>
                 </div>
-
                 {% if sm_local_mode %}
-                <div class="panel-inicio-v4__estado">🖥️ POS local · <span id="smqr-home-sync">Pedidos QR: esperando sincronización</span></div>
+                    <div class="sf-dash-home__connection" role="status">POS local <span class="sf-dash-home__connection-detail" id="smqr-home-sync">Pedidos QR: esperando sincronización</span></div>
                 {% else %}
-                <div class="panel-inicio-v4__estado {% if buffet_habilitado %}is-online{% else %}is-offline{% endif %}">
-                    {% if buffet_habilitado %}
-                        🟢 Pedidos online activos
-                    {% else %}
-                        🔴 Pedidos online pausados
+                    <div class="sf-dash-home__connection {% if buffet_habilitado %}is-on{% else %}is-off{% endif %}" role="status">
+                        <span class="sf-dash-home__dot" aria-hidden="true"></span>
+                        {% if buffet_habilitado %}Pedidos web habilitados{% else %}Pedidos web pausados{% endif %}
+                    </div>
+                {% endif %}
+            </header>
+
+            <div class="sf-dash-home__numbers" aria-label="Indicadores del día">
+                <div class="sf-dash-home__metric">
+                    <span>Ventas registradas hoy</span>
+                    <strong>${{ ventas_hoy_total|floatformat:0 }}</strong>
+                </div>
+                <div class="sf-dash-home__metric {% if pedidos_pendientes_count %}has-pending{% endif %}">
+                    <span>Pedidos pendientes</span>
+                    <strong>{{ pedidos_pendientes_count }}</strong>
+                </div>
+                <div class="sf-dash-home__metric">
+                    <span>En preparación</span>
+                    <strong>{{ pedidos_preparacion_count }}</strong>
+                </div>
+                <div class="sf-dash-home__metric">
+                    <span>Productos disponibles</span>
+                    <strong>{{ productos_activos_count }}</strong>
+                    <small>{{ productos_pausados_count }} pausados</small>
+                </div>
+            </div>
+
+            <section class="sf-dash-home__section" aria-labelledby="sf-dash-operacion">
+                <div class="sf-dash-home__section-heading">
+                    <h3 id="sf-dash-operacion">Operación</h3>
+                    <span>Accesos de uso diario</span>
+                </div>
+                <div class="sf-dash-home__shortcuts">
+                    {% if salon_habilitado %}
+                    <a href="{% url 'pedidos:salon' %}" class="sf-dash-home__shortcut sf-dash-home__shortcut--main">
+                        <strong>Salón</strong><span>Mesas, cobros y Para llevar</span><b aria-hidden="true">→</b>
+                    </a>
                     {% endif %}
+                    <button type="button" class="sf-dash-home__shortcut" onclick="abrirTab('pedidos', document.getElementById('btn-tab-pedidos'))">
+                        <strong>Pedidos web y mostradores</strong><span>Revisar y preparar pedidos</span><b aria-hidden="true">→</b>
+                    </button>
+                    <button type="button" class="sf-dash-home__shortcut" onclick="abrirTab('cuentas', document.getElementById('btn-tab-cuentas'))">
+                        <strong>Cuentas corrientes</strong><span>Clientes, saldos y pagos</span><b aria-hidden="true">→</b>
+                    </button>
+                </div>
+                {% if pedidos_pendientes_count %}
+                <div class="sf-dash-home__notice" role="status">
+                    <strong>{{ pedidos_pendientes_count }} pedido{{ pedidos_pendientes_count|pluralize }} sin atender</strong>
+                    <button type="button" onclick="abrirTab('pedidos', document.getElementById('btn-tab-pedidos'))">Ver pedidos</button>
                 </div>
                 {% endif %}
-            </div>
+            </section>
 
-            <div class="panel-inicio-v4__cards">
-                <article>
-                    <small>Ventas de hoy</small>
-                    <strong>${{ ventas_hoy_total|floatformat:0 }}</strong>
-                    <span>Total registrado del día.</span>
-                </article>
-
-                <article>
-                    <small>Pendientes</small>
-                    <strong>{{ pedidos_pendientes_count }}</strong>
-                    <span>Pedidos esperando atención.</span>
-                </article>
-
-                <article>
-                    <small>En preparación</small>
-                    <strong>{{ pedidos_preparacion_count }}</strong>
-                    <span>Pedidos que ya se están haciendo.</span>
-                </article>
-
-                <article>
-                    <small>Productos activos</small>
-                    <strong>{{ productos_activos_count }}</strong>
-                    <span>{{ productos_pausados_count }} pausados.</span>
-                </article>
-            </div>
-
+            <section class="sf-dash-home__section sf-dash-home__section--admin" aria-labelledby="sf-dash-admin">
+                <div class="sf-dash-home__section-heading"><h3 id="sf-dash-admin">Administración</h3></div>
+                <nav class="sf-dash-home__links" aria-label="Accesos administrativos">
+                    <button type="button" onclick="abrirTab('menu', document.getElementById('btn-tab-menu'))">Editar menú</button>
+                    <button type="button" onclick="abrirTab('config', document.getElementById('btn-tab-config'))">Herramientas y ajustes</button>
+                    <a href="{% url 'marca:configurar' %}">Mi negocio</a>
+                    <a href="{% url 'pedidos:inicio' %}">Ver menú público</a>
+                </nav>
+            </section>
         </section>
     </div>
 
@@ -1393,14 +1416,7 @@
                         !==
                         'none'
                         ||
-                        document
-                            .getElementById(
-                                'tab-mesas'
-                            )
-                            .style
-                            .display
-                        !==
-                        'none'
+                        (document.getElementById('tab-mesas') && document.getElementById('tab-mesas').style.display !== 'none')
                     ) {
                         fetch(
                             window.location.href
@@ -1533,14 +1549,7 @@
                                     listaActual.innerHTML =
                                         nuevaLista.innerHTML;
                                     if (
-                                        document
-                                            .getElementById(
-                                                'tab-mesas'
-                                            )
-                                            .style
-                                            .display
-                                        !==
-                                        'none'
+                                        (document.getElementById('tab-mesas') && document.getElementById('tab-mesas').style.display !== 'none')
                                     ) {
                                         if (
                                             typeof renderizarMesas
@@ -1560,4 +1569,9 @@
         }
     );
 </script>
+{% endblock %}
+
+{% block extra_js %}
+{# Lógica de navegación desacoplada del script global del menú público. #}
+<script src="{% static 'script/dashboard_navegacion.js' %}?v=sterak-nav-20261120"></script>
 {% endblock %}

@@ -8931,3 +8931,112 @@ body[data-theme="light"] .navbar .logo-light { display: block !important; }
 @media(max-width:870px){.sf-brand__layout{grid-template-columns:1fr;gap:25px}.sf-brand__preview-section{position:static}.sf-brand__preview-column{max-width:520px}.sf-brand__header{align-items:start}}
 @media(max-width:580px){.sf-brand{padding:0 14px;margin:19px auto 35px}.sf-brand__header{display:block}.sf-brand__owner{display:block;margin-top:9px}.sf-brand__fields{grid-template-columns:1fr}.sf-brand__colors{grid-template-columns:1fr}.sf-brand__logo-row{align-items:start}.sf-brand__footer{flex-direction:column;align-items:stretch;gap:11px}.sf-brand__save{width:100%}}
 /* STERAKFOOD_BRANDING_UI_END */
+
+
+/* STERAKFOOD_DASHBOARD_PASO1_START
+   Inicio operativo. Estilo compacto sin tarjetas decorativas.
+   Solo #tab-inicio / navegación del panel; no altera Salón, Para llevar ni sus diálogos.
+*/
+.sf-dash-panel{max-width:1160px!important;margin:16px auto 40px!important}
+.sf-dash-panel .panel-titulo-principal{font-size:1.58rem!important;letter-spacing:-.02em!important;font-weight:750!important;line-height:1.25!important;margin:0 0 17px!important}
+.sf-dash-panel .panel-tabs--moderno{overflow-x:auto!important;flex-wrap:nowrap!important;gap:22px!important;scrollbar-width:thin!important;padding-bottom:0!important;margin-bottom:17px!important;border-bottom:1px solid var(--borde)!important}
+.sf-dash-panel .panel-tabs--moderno .panel-tab-btn{font-size:.82rem!important;font-weight:650!important;padding:0 0 11px!important;line-height:1.35!important;border-bottom-width:2px!important;white-space:nowrap!important;flex:0 0 auto!important}
+.sf-dash-panel .panel-tabs--moderno .panel-tab-btn.active{color:var(--naranja-sterak)!important;border-bottom-color:var(--naranja-sterak)!important}
+.sf-dash-home{color:var(--text-color);max-width:100%;}
+.sf-dash-home__head{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:4px 0 18px;border-bottom:1px solid var(--borde)}
+.sf-dash-home__eyebrow{display:block;font-size:.67rem;font-weight:750;letter-spacing:.09em;color:var(--texto-mutado)}
+.sf-dash-home__heading h2{display:flex;align-items:baseline;gap:11px;margin:2px 0 0;font-size:1.37rem;line-height:1.3;letter-spacing:-.02em;font-weight:730}
+.sf-dash-home__heading h2 small{font-size:.75rem;font-weight:500;letter-spacing:0;color:var(--texto-mutado)}
+.sf-dash-home__connection{display:flex;align-items:center;gap:8px;border:1px solid var(--borde);padding:7px 11px;border-radius:4px;font-size:.78rem;font-weight:650;background:var(--card-bg)}
+.sf-dash-home__connection-detail{font-size:.72rem;font-weight:400;color:var(--texto-mutado)}
+.sf-dash-home__dot{width:7px;height:7px;flex:0 0 7px;background:#9197a0;border-radius:50%}
+.sf-dash-home__connection.is-on .sf-dash-home__dot{background:#39b57a}
+.sf-dash-home__connection.is-off .sf-dash-home__dot{background:#d48e50}
+.sf-dash-home__numbers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--borde);border-radius:5px;margin:18px 0 25px;background:var(--card-bg);overflow:hidden}
+.sf-dash-home__metric{position:relative;min-height:97px;padding:16px 18px;border-right:1px solid var(--borde);display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:7px}
+.sf-dash-home__metric:last-child{border-right:0}
+.sf-dash-home__metric>span{font-size:.74rem;color:var(--texto-mutado);line-height:1.3;font-weight:550}
+.sf-dash-home__metric strong{font-size:1.82rem;letter-spacing:-.045em;line-height:1.12;font-weight:750;color:var(--text-color);font-variant-numeric:tabular-nums}
+.sf-dash-home__metric.has-pending strong{color:var(--naranja-sterak)}
+.sf-dash-home__metric small{font-size:.69rem;color:var(--texto-mutado);line-height:1}
+.sf-dash-home__section{margin-bottom:28px}
+.sf-dash-home__section-heading{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px}
+.sf-dash-home__section-heading h3{font-size:.95rem;font-weight:750;line-height:1.4;margin:0}
+.sf-dash-home__section-heading>span{font-size:.75rem;color:var(--texto-mutado)}
+.sf-dash-home__shortcuts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.sf-dash-home__shortcut{font-family:inherit;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;column-gap:12px;align-content:center;text-align:left;min-height:84px;border:1px solid var(--borde);border-radius:4px;background:var(--card-bg);padding:13px 14px;color:var(--text-color);text-decoration:none;cursor:pointer;transition:background .12s,border-color .12s}
+.sf-dash-home__shortcut strong{grid-column:1;grid-row:1;font-size:.85rem;line-height:1.3;font-weight:700}
+.sf-dash-home__shortcut span{grid-column:1;grid-row:2;font-size:.71rem;color:var(--texto-mutado);line-height:1.45;margin-top:3px}
+.sf-dash-home__shortcut b{grid-column:2;grid-row:1 / 3;align-self:center;font-size:1rem;color:var(--texto-mutado);font-weight:500}
+.sf-dash-home__shortcut--main{border-left:3px solid var(--naranja-sterak);padding-left:12px}
+.sf-dash-home__shortcut:hover{background:var(--bg-color);border-color:var(--naranja-sterak)}
+.sf-dash-home__shortcut:hover b{color:var(--naranja-sterak)}
+.sf-dash-home__notice{margin-top:10px;padding:10px 13px;border-left:3px solid var(--naranja-sterak);background:var(--card-bg);display:flex;gap:16px;align-items:center;justify-content:space-between}
+.sf-dash-home__notice strong{font-size:.8rem;font-weight:650}
+.sf-dash-home__notice button{font-family:inherit;white-space:nowrap;background:transparent;border:0;color:var(--naranja-sterak);padding:4px;cursor:pointer;font-size:.79rem;font-weight:700}
+.sf-dash-home__section--admin{padding-top:17px;border-top:1px solid var(--borde)}
+.sf-dash-home__links{display:flex;flex-wrap:wrap;gap:8px}
+.sf-dash-home__links a,.sf-dash-home__links button{font-family:inherit;background:var(--card-bg);border:1px solid var(--borde);border-radius:4px;color:var(--text-color);font-weight:650;font-size:.8rem;line-height:1.35;text-decoration:none;padding:9px 13px;cursor:pointer}
+.sf-dash-home__links a:hover,.sf-dash-home__links button:hover{border-color:var(--naranja-sterak);color:var(--naranja-sterak)}
+.sf-dash-home__shortcut:focus-visible,.sf-dash-home__links :focus-visible,.sf-dash-home__notice button:focus-visible{outline:2px solid var(--naranja-sterak);outline-offset:2px}
+@media(max-width:840px){.sf-dash-home__numbers{grid-template-columns:repeat(2,minmax(0,1fr))}.sf-dash-home__metric:nth-child(2){border-right:0}.sf-dash-home__metric:nth-child(-n+2){border-bottom:1px solid var(--borde)}.sf-dash-home__shortcuts{grid-template-columns:1fr 1fr}.sf-dash-panel .panel-tabs--moderno{gap:16px!important}}
+@media(max-width:570px){.sf-dash-panel{margin-top:10px!important}.sf-dash-home__head{align-items:flex-start;flex-direction:column;gap:10px}.sf-dash-home__metric{padding:12px;min-height:86px}.sf-dash-home__metric strong{font-size:1.55rem}.sf-dash-home__shortcuts{grid-template-columns:1fr}.sf-dash-home__shortcut{min-height:70px}.sf-dash-home__section-heading>span{display:none}.sf-dash-home__notice{align-items:flex-start;flex-wrap:wrap;gap:6px}.sf-dash-home__links a,.sf-dash-home__links button{flex:1 1 auto;text-align:center}}
+/* STERAKFOOD_DASHBOARD_PASO1_END */
+
+/* === STERAKFOOD / PASO 1B: NAVEGACIÓN DEL PANEL ===
+   Este bloque solo afecta a .sf-panel-nav. Se conservan las variables de marca
+   del proyecto: al cambiar la paleta desde Mi negocio, la navegación la respeta.
+   No se aplican estilos al Salón, pedidos públicos ni a sus ventanas.
+*/
+.sf-dash-panel .sf-panel-nav{
+  display:flex!important;align-items:stretch;flex-wrap:wrap!important;
+  gap:0 23px!important;overflow:visible!important;
+  position:relative;isolation:isolate;margin-bottom:19px!important;
+}
+.sf-dash-panel .sf-panel-nav .panel-tab-btn{
+  display:inline-flex;align-items:center;gap:7px;min-height:40px;
+  border-bottom:2px solid transparent;box-sizing:border-box;
+  padding:8px 0 9px!important;font-size:.83rem!important;
+}
+.sf-dash-panel .sf-panel-nav .panel-tab-btn.active{
+  border-bottom-color:var(--naranja-sterak)!important;
+}
+.sf-panel-nav__count{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:1px 6px;min-width:20px;min-height:19px;border-radius:3px;
+  color:#fff;background:var(--naranja-sterak);font-size:.68rem;font-weight:700;line-height:1;
+}
+.sf-panel-nav__more{position:relative;display:flex;align-items:stretch;margin-left:auto}
+.sf-panel-nav__more-trigger{
+  font:inherit;font-size:.81rem;font-weight:650;color:var(--texto-mutado);
+  background:transparent;border:0;border-bottom:2px solid transparent;
+  padding:8px 4px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;
+}
+.sf-panel-nav__more-trigger:hover,.sf-panel-nav__more-trigger.is-section-active{
+  color:var(--naranja-sterak);border-bottom-color:var(--naranja-sterak);
+}
+.sf-panel-nav__more-menu{
+  position:absolute;right:0;top:100%;z-index:90;
+  min-width:195px;padding:5px;background:var(--card-bg);
+  border:1px solid var(--borde);border-radius:4px;
+  box-shadow:0 9px 22px rgba(0,0,0,.22);
+}
+.sf-panel-nav__more-menu[hidden]{display:none!important}
+.sf-panel-nav__subitem{
+  width:100%;display:block;text-align:left;box-sizing:border-box;
+  background:transparent;border:0;border-radius:3px;
+  color:var(--text-color);font:inherit;font-size:.81rem;font-weight:550;
+  padding:10px 12px;text-decoration:none;cursor:pointer;
+}
+.sf-panel-nav__subitem:hover,.sf-panel-nav__subitem.active{
+  color:var(--naranja-sterak);background:var(--bg-color);
+}
+.sf-panel-nav button:focus-visible,.sf-panel-nav a:focus-visible{
+  outline:2px solid var(--naranja-sterak);outline-offset:2px;
+}
+@media(max-width:650px){
+  .sf-dash-panel .sf-panel-nav{gap:0 16px!important}
+  .sf-panel-nav__more{margin-left:0}
+  .sf-dash-panel .sf-panel-nav .panel-tab-btn{min-height:38px}
+}
+/* === FIN PASO 1B === */
