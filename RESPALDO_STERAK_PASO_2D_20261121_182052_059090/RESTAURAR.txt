@@ -1,0 +1,3 @@
+Para deshacer el Paso 2D, restaurá los archivos existentes en este respaldo
+a sus mismas rutas en SterakFood. Si el CSS no existía antes, borra
+pedidos/static/css/salon_comanda_compacta.css. No tocar la base de datos.

@@ -2696,6 +2696,7 @@ function eliminarOpinion(opinionId, url) {
     var modalOverlay = document.getElementById("salon-modal-overlay");
     var btnCerrarComanda = document.getElementById("btn-cerrar-comanda");
     var btnCerrarComandaInferior = document.getElementById("btn-cerrar-comanda-inferior");
+    var btnCancelarMesa = document.getElementById("btn-cancelar-mesa");
     reconstruirSelectorMozos();
     function cargarCuentas() {
         var claves = [
@@ -3176,6 +3177,90 @@ function eliminarOpinion(opinionId, url) {
         }
         abrirSelectorMozoMesa(mesaActual, cuenta);
     }
+    // STERAKFOOD_PASO_2D_COMANDA_CANCELACION_V1
+    // PASO 2D: la cancelación es una operación LOCAL de una mesa abierta.
+    // Nunca registrar una venta, borrar pagos confirmados ni eliminar pedidos QR.
+    var cancelandoMesa = false;
+    function bloqueoCobroSinRespuesta(numeroMesa) {
+        // Si Render cobró pero el navegador no recibió la respuesta, bloquear
+        // la cancelación hasta verificar ese cobro. Así no ocultamos la deuda.
+        try {
+            var bruto = localStorage.getItem('sterak_pos_cobro_pendiente_v1');
+            if (!bruto) return false;
+            var pendiente = JSON.parse(bruto);
+            var firma = JSON.parse(pendiente.firma || '{}');
+            return String(firma.mesa || '') === String(numeroMesa);
+        } catch (error) {
+            // Una clave corrupta no debe impedir cancelar otras mesas.
+            return false;
+        }
+    }
+    function cancelarMesaActual() {
+        if (cancelandoMesa || !mesaActual || enviando || respaldoBloqueado ||
+            (respaldoUrl && !respaldoPreparado)) return;
+        var numero = String(mesaActual);
+        var cuenta = cuentaActual();
+        if (!cuenta) return;
+        if (cuenta.items.some(function (item) { return item.origen === 'web'; })) {
+            // Los pedidos QR existen en la base de Render: borrarlos solo del
+            // navegador haría que aparezcan de nuevo al sincronizar.
+            Swal.fire({icon:'info',title:'Mesa con pedido QR',
+                text:'Primero resolvé los pedidos QR pendientes de esta mesa. No se modificó la cuenta.',
+                confirmButtonText:'Entendido',background:'var(--card-bg)',color:'var(--text-color)'});
+            return;
+        }
+        if (bloqueoCobroSinRespuesta(numero)) {
+            Swal.fire({icon:'warning',title:'Cobro pendiente de verificar',
+                text:'Verificá el último cobro de esta mesa antes de cancelarla. No se modificó la cuenta.',
+                confirmButtonText:'Entendido',background:'var(--card-bg)',color:'var(--text-color)'});
+            return;
+        }
+        try {
+            if (localStorage.getItem('sanmartin_borrador_fiscal_mesa_' + numero)) {
+                // Puede existir una factura real asociada a este borrador.
+                Swal.fire({icon:'warning',title:'Mesa con trámite fiscal',
+                    text:'Revisá el borrador o factura de esta mesa antes de cancelarla.',
+                    confirmButtonText:'Entendido',background:'var(--card-bg)',color:'var(--text-color)'});
+                return;
+            }
+        } catch (error) { /* almacenamiento restringido */ }
+        // Guardamos una foto de los consumos para impedir confirmar si otro
+        // evento del POS modificó la cuenta mientras estaba abierto el diálogo.
+        var firmaAntes = JSON.stringify(cuenta.items);
+        cancelandoMesa = true;
+        Swal.fire({
+            icon: 'warning',
+            title: '¿Estás seguro de cancelar esta mesa?',
+            text: 'Se descartarán los consumos pendientes y la mesa quedará libre, sin cobrar.',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, cancelar',
+            cancelButtonText: 'No',
+            confirmButtonColor: '#a93636',
+            reverseButtons: true,
+            focusCancel: true,
+            background: 'var(--card-bg)', color: 'var(--text-color)'
+        }).then(function (resultado) {
+            if (!resultado.isConfirmed) return;
+            if (numero !== String(mesaActual) || enviando || respaldoBloqueado ||
+                (respaldoUrl && !respaldoPreparado)) return;
+            var actual = cuentaActual();
+            if (!actual || JSON.stringify(actual.items) !== firmaAntes ||
+                actual.items.some(function (item) { return item.origen === 'web'; }) ||
+                bloqueoCobroSinRespuesta(numero)) {
+                Swal.fire({icon:'info', title:'La cuenta cambió',
+                    text:'Revisá los consumos antes de volver a cancelar.',
+                    confirmButtonText:'Entendido',background:'var(--card-bg)',color:'var(--text-color)'});
+                return;
+            }
+            // Reutilizar el mismo cierre local que usa el cobro confirmado.
+            // No se llama cobrar_mesa_salon y no se crea ninguna venta.
+            liberarMesaActual();
+        }).catch(function (error) {
+            console.error('Cancelación de mesa:', error);
+        }).finally(function () {
+            cancelandoMesa = false;
+        });
+    }
     function liberarMesaActual() {
         var numeroMesa = mesaActual;
         if (numeroMesa) {
@@ -3498,6 +3583,7 @@ function eliminarOpinion(opinionId, url) {
     }
     function render() {
         var cuenta = cuentaActual();
+        if (modalComanda) modalComanda.classList.toggle("sf-modo-parcial", modoParcial);
         if (!cuenta) {
             return;
         }
@@ -3566,6 +3652,7 @@ function eliminarOpinion(opinionId, url) {
         }
         btnAccion.disabled = !cuenta.items.length || enviando || (modoParcial && resumen.cantidad === 0);
         btnTicket.disabled = !cuenta.items.length || enviando || (modoParcial && resumen.cantidad === 0);
+        if (btnCancelarMesa) btnCancelarMesa.disabled = enviando || respaldoBloqueado;
         btnTicket.textContent = modoParcial ? '🖨 Ticket selección' : '🖨 Ticket mesa';
         guardar();
         actualizarMesas();
@@ -4424,6 +4511,9 @@ function eliminarOpinion(opinionId, url) {
     }
     if (btnCerrarComandaInferior) {
         btnCerrarComandaInferior.addEventListener("click", cerrarComanda);
+    }
+    if (btnCancelarMesa) {
+        btnCancelarMesa.addEventListener("click", cancelarMesaActual);
     }
     if (modalOverlay) {
         modalOverlay.addEventListener("click", cerrarComanda);

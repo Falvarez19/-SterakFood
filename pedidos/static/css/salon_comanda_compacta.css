@@ -1,0 +1,161 @@
+/*
+ * STERAKFOOD / PASO 2D - Comanda de salón compacta
+ * --------------------------------------------------
+ * Da prioridad a los consumos. No altera ventas, impresión, QR ni Para llevar.
+ * Los botones conservan sus IDs: script.js gestiona la cancelación con una
+ * única confirmación; cancelar NO es lo mismo que ocultar/cerrar la ventana.
+ * Cargar esta hoja después de salon_caja_profesional.css.
+ */
+#salon-pos #salon-comanda-modal {
+  /* Usar la altura disponible para mostrar MÁS líneas de productos. */
+  height: min(860px, calc(100dvh - 12px)) !important;
+  max-height: calc(100dvh - 12px) !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__comanda-header--pos {
+  padding: 8px 14px !important;
+  min-height: 64px !important;
+  gap: 12px !important;
+  grid-template-columns: minmax(0, 1fr) max-content 34px !important;
+}
+/* El número de mesa se muestra UNA vez, sin etiqueta ni encabezados extra. */
+#salon-pos #salon-comanda-modal .salon-pos__eyebrow,
+#salon-pos #salon-comanda-modal #estado-mesa {display: none !important;}
+#salon-pos #salon-comanda-modal .salon-pos__titulo-linea {margin:0 !important;}
+#salon-pos #salon-comanda-modal #titulo-mesa {
+  font-size: clamp(1.2rem, 1.8vw, 1.5rem) !important;
+  margin: 0 !important;
+  line-height: 1.13 !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__mozo-asignado {
+  margin-top: 5px !important; gap: 7px !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__mozo-asignado label {
+  font-size: .7rem !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__select-mozo {
+  height: 29px !important; min-height: 29px !important;
+  max-width: 225px !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__resumen-superior {min-width: 125px !important;}
+#salon-pos #salon-comanda-modal .salon-pos__resumen-superior span {font-size:.66rem !important;}
+#salon-pos #salon-comanda-modal .salon-pos__resumen-superior strong {
+  margin-top: 1px !important;
+  font-size: clamp(1.25rem, 2.1vw, 1.6rem) !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__area-comanda:not([hidden]) {
+  padding: 7px 14px 0 !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__carga-rapida--pos {
+  gap: 9px !important;
+  grid-template-columns: 92px minmax(0,1fr) !important;
+  margin-bottom: 0 !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__field label {
+  font-size: .67rem !important; margin-bottom: 3px !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__carga-rapida--pos .salon-pos__input {
+  height: 40px !important; min-height: 40px !important;
+}
+/* Instrucción extensa: sigue disponible para tecnologías de asistencia. */
+#salon-pos #salon-comanda-modal .sf-cuenta-indicacion {
+  position:absolute !important;
+  width:1px !important; height:1px !important;
+  padding:0 !important; margin:-1px !important;
+  overflow:hidden !important; clip:rect(0,0,0,0) !important;
+  white-space:nowrap !important; border:0 !important;
+}
+#salon-pos #salon-comanda-modal .sf-cuenta-atajos {
+  margin: 1px 0 4px !important;
+  padding: 0 !important;
+  font-size: .69rem !important;
+}
+#salon-pos #salon-comanda-modal .sf-cuenta-atajos > summary {
+  color: var(--sf-caja-muted, #aaa) !important;
+  padding: 1px 0 !important;
+}
+/* Toda la altura libre la utiliza el consumo de la mesa. */
+#salon-pos #salon-comanda-modal .salon-pos__tabla-wrap {
+  flex: 1 1 0 !important;
+  min-height: 125px !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__lista-head {
+  min-height: 27px !important; padding: 5px 9px !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__fila-pos {
+  min-height: 43px !important; padding: 4px 9px !important;
+}
+/* Resumen normal: mostrar solo contador; subtotal de selección únicamente al dividir. */
+#salon-pos #salon-comanda-modal .salon-pos__estado-seleccion {
+  padding: 4px 1px !important;
+  min-height: 25px !important;
+  gap: 6px !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__estado-seleccion #resumen-accion,
+#salon-pos #salon-comanda-modal .salon-pos__seleccion-total {display:none !important;}
+#salon-pos #salon-comanda-modal.sf-modo-parcial .salon-pos__seleccion-total,
+#salon-pos #salon-comanda-modal.sf-modo-parcial .salon-pos__estado-seleccion #resumen-accion {
+  display:flex !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__actionbar--pos {
+  grid-template-columns: 84px 131px 155px 129px minmax(190px,1fr) !important;
+  gap: 7px !important;
+  margin: 0 -14px !important;
+  padding: 7px 14px 9px !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__actionbar--pos .salon-pos__btn {
+  min-height: 41px !important;
+  padding: 7px 9px !important;
+  font-size: .78rem !important;
+  white-space: normal;
+}
+#salon-pos #salon-comanda-modal .salon-pos__btn--cancelar {
+  background: transparent !important;
+  color: #e79a9a !important;
+  border: 1px solid #7b4242 !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__btn--cancelar:hover {
+  background: rgba(190, 55, 55, .14) !important;
+  color: #ffd1d1 !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__btn--cancelar:disabled {
+  opacity: .45; cursor: not-allowed;
+}
+@media (max-width: 910px) {
+  #salon-pos #salon-comanda-modal .salon-pos__actionbar--pos {
+    grid-template-columns: 73px 110px 1fr 116px minmax(150px,1.5fr) !important;
+    gap: 5px !important;
+  }
+}
+@media (max-width: 700px) {
+  #salon-pos #salon-comanda-modal .salon-pos__actionbar--pos {
+    grid-template-columns: repeat(4,minmax(0,1fr)) !important;
+  }
+  #salon-pos #salon-comanda-modal .salon-pos__btn--principal {
+    grid-column: 1 / -1 !important;
+  }
+  #salon-pos #salon-comanda-modal .salon-pos__comanda-header--pos {
+    grid-template-columns: minmax(0,1fr) 34px !important;
+  }
+  #salon-pos #salon-comanda-modal .salon-pos__resumen-superior {
+    grid-column:1 / -1 !important; grid-row:2 !important;
+    display:flex !important; justify-content:space-between !important;
+    align-items:center !important; padding-top:3px !important;
+    border-top:1px solid var(--sf-caja-linea) !important;
+  }
+}
+@media (max-width: 450px) {
+  #salon-pos #salon-comanda-modal .salon-pos__actionbar--pos {
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+    gap: 4px !important;
+  }
+  #salon-pos #salon-comanda-modal .salon-pos__btn--principal {
+    grid-column: 1 / -1 !important;
+  }
+  #salon-pos #salon-comanda-modal .salon-pos__carga-rapida--pos {
+    grid-template-columns: 76px minmax(0,1fr) !important;
+  }
+  #salon-pos #salon-comanda-modal .salon-pos__fila-pos {padding:4px 5px !important;}
+  #salon-pos #salon-comanda-modal .salon-pos__comanda-header--pos {padding:6px 9px !important;}
+  #salon-pos #salon-comanda-modal .salon-pos__area-comanda:not([hidden]) {padding:5px 9px 0 !important;}
+  #salon-pos #salon-comanda-modal .salon-pos__actionbar--pos {margin:0 -9px !important;padding:5px 9px !important;}
+}

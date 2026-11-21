@@ -19,6 +19,8 @@
 <link rel="stylesheet" href="{% static 'css/salon_comanda_profesional.css' %}?v=sterak-2b-20261120">
 {# STERAKFOOD_PASO_2C_CAJA_MANUAL_20261120: composición visual, sin cambios en la lógica. #}
 <link rel="stylesheet" href="{% static 'css/salon_caja_profesional.css' %}?v=sterak-paso2c-1">
+{# STERAKFOOD_PASO_2D_COMANDA_CANCELACION_V1: ajustes de tamaño y claridad de mesa; sin órdenes a cocina. #}
+<link rel="stylesheet" href="{% static 'css/salon_comanda_compacta.css' %}?v=sterak-paso2d-1">
 {% endblock %}
 
 {% block content %}
@@ -847,7 +849,14 @@
                     ✂ Dividir cuenta
                 </button>
 
-                <button
+                                <!-- PASO 2D: cancelar una cuenta NO es cobrar ni solamente cerrar el modal. -->
+                <button type="button" id="btn-cancelar-mesa"
+                        class="salon-pos__btn salon-pos__btn--cancelar"
+                        title="Descartar consumos pendientes y liberar la mesa">
+                    Cancelar mesa
+                </button>
+
+<button
 
                     type="button"
 
