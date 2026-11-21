@@ -21,6 +21,9 @@
 <link rel="stylesheet" href="{% static 'css/salon_caja_profesional.css' %}?v=sterak-paso2c-1">
 {# STERAKFOOD_PASO_2D_COMANDA_CANCELACION_V1: ajustes de tamaño y claridad de mesa; sin órdenes a cocina. #}
 <link rel="stylesheet" href="{% static 'css/salon_comanda_compacta.css' %}?v=sterak-paso2d-1">
+{# STERAKFOOD_PASO_2E_3A_TEMPLATE_V1: mozos al abrir y búsqueda de Para llevar. #}
+<link rel="stylesheet" href="{% static 'css/salon_mozo_apertura.css' %}?v=sterak-2e-1">
+<link rel="stylesheet" href="{% static 'css/para_llevar_busqueda_rapida.css' %}?v=sterak-3a-1">
 {% endblock %}
 
 {% block content %}
@@ -184,8 +187,10 @@
             </div>
             <label class="pl-busqueda" for="pl-buscar">
               <span aria-hidden="true">⌕</span>
-              <input id="pl-buscar" placeholder="Buscar milanesa, café, código…" autocomplete="off" aria-label="Buscar productos del menú">
+              <input id="pl-buscar" type="search" placeholder="Buscar milanesa, café, código…" autocomplete="off" aria-label="Buscar productos del menú" aria-describedby="pl-resultados">
+              <button type="button" id="pl-buscar-limpiar" class="pl-buscar-limpiar" aria-label="Limpiar búsqueda" title="Limpiar búsqueda" hidden>×</button>
             </label>
+            <div class="pl-busqueda-meta"><span id="pl-resultados" role="status" aria-live="polite">Cargando productos…</span><span class="pl-atajo-busqueda">/ buscar · Enter elegir si hay uno</span></div>
             <div id="pl-categorias" class="pl-categorias" aria-label="Filtrar productos por categoría"></div>
             <div id="pl-catalogo" class="pl-catalogo" aria-label="Productos disponibles del menú"></div>
           </section>
@@ -899,7 +904,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'script/para_llevar_pos.js' %}?v=20261029-ux-takeout-1"></script>
+<script src="{% static 'script/para_llevar_pos.js' %}?v=sterak-3a-20261121"></script>
 <script src="{% static 'script/salon_cuentas_modal.js' %}?v=20261029-cuentas-inline-2"></script>
 <script src="{% static 'script/salon_profesional.js' %}?v=sf2a-20261120-v2"></script>
 {% endblock %}

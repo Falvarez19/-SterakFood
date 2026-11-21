@@ -10,6 +10,9 @@
   const configurador = $('pl-configurador'), grupos = $('pl-config-grupos');
   const pedidoCeliaco = $('pl-celiaco-pedido');
   const categorias = $('pl-categorias');
+  const buscador = $('pl-buscar');
+  const limpiarBusqueda = $('pl-buscar-limpiar');
+  const contadorBusqueda = $('pl-resultados');
   let categoriaActual = 'Todas';
   const vistaNueva = $('pl-contenido-nuevo'), vistaHistorial = $('pl-vista-historial');
   function cambiarVista(vista) {
@@ -32,7 +35,9 @@
   const cart = new Map();
   let solicitud = nuevaSolicitud();
   const money = (v) => new Intl.NumberFormat('es-AR', {style: 'currency', currency: 'ARS'}).format(v || 0);
-  const lower = (s) => String(s || '').toLocaleLowerCase('es-AR');
+  // STERAKFOOD_PASO_3A_BUSQUEDA_RAPIDA_V1
+  // Ignorar acentos ayuda a encontrar CAFE aunque el producto sea CAFÉ.
+  const lower = (s) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es-AR');
   const el = (tag, text, cls) => {
     const node = document.createElement(tag);
     if (text !== undefined) node.textContent = String(text);
@@ -81,11 +86,18 @@
       categorias.append(boton);
     });
   }
-  function renderCatalogo() {
-    const q = lower($('pl-buscar').value.trim());
-    catalogo.replaceChildren();
-    const lista = productos.filter(p => (categoriaActual==='Todas' || (p.categoria||'Menú')===categoriaActual)
+  function productosFiltrados() {
+    const q = lower(buscador.value.trim());
+    return productos.filter(p => (categoriaActual==='Todas' || (p.categoria||'Menú')===categoriaActual)
       && (!q || [p.nombre,p.codigo,p.categoria].some(x => lower(x).includes(q))));
+  }
+  function renderCatalogo() {
+    const q = lower(buscador.value.trim());
+    const lista = productosFiltrados();
+    catalogo.replaceChildren();
+    if (contadorBusqueda) contadorBusqueda.textContent = lista.length + (lista.length===1 ? ' resultado' : ' resultados')
+      + ' · ' + productos.length + ' productos en el menú' + (lista.length > 200 ? ' · mostrando los primeros 200' : '');
+    if (limpiarBusqueda) limpiarBusqueda.hidden = !buscador.value;
     if (!lista.length) {
       catalogo.append(el('p', q ? 'No encontramos ese producto. Probá otro nombre.' : 'No hay productos en esta categoría.', 'pl-empty'));
       return;
@@ -258,9 +270,40 @@
   function close(){panel.hidden=true;panel.setAttribute('aria-hidden','true');document.body.style.overflow='';cerrarConfigurador();focoAnterior?.focus?.();}
   abrir.addEventListener('click',open);
   panel.querySelectorAll('[data-pl-close]').forEach(b=>b.addEventListener('click',close));
-  document.addEventListener('keydown',e=>{if(!panel.hidden&&e.key==='Escape'){if(!configurador.hidden)cerrarConfigurador();else close();}});
+  document.addEventListener('keydown',e=>{if(!panel.hidden&&e.key==='Escape'){
+    if (!configurador.hidden) cerrarConfigurador();
+    else if (document.activeElement===buscador && buscador.value) {buscador.value='';renderCatalogo();}
+    else close();
+  }});
   pedidoCeliaco.addEventListener('change', renderCart);
-  $('pl-buscar').addEventListener('input',renderCatalogo);
+  // Buscar sin sacar la mano del teclado. No interceptar teclas al cobrar
+  // ni al escribir indicaciones para cocina.
+  buscador.addEventListener('input', () => {
+    if (buscador.value.trim() && categoriaActual !== 'Todas') {
+      categoriaActual = 'Todas'; renderCategorias();
+    }
+    renderCatalogo();
+  });
+  if (limpiarBusqueda) limpiarBusqueda.addEventListener('click', (event) => {
+    event.preventDefault(); buscador.value=''; renderCatalogo(); buscador.focus();
+  });
+  buscador.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' || event.isComposing || !configurador.hidden) return;
+    // Enter agrega directamente solo si no hay ninguna ambigüedad.
+    const coincidencias = productosFiltrados();
+    if (buscador.value.trim() && coincidencias.length === 1) {
+      event.preventDefault();
+      const producto = catalogo.querySelector('button.pl-producto');
+      if (producto) producto.click();
+    }
+  });
+  document.addEventListener('keydown', (event) => {
+    if (panel.hidden || vistaNueva.hidden || !configurador.hidden) return;
+    if (event.key !== '/' && !(event.ctrlKey && event.key.toLowerCase() === 'k')) return;
+    const activo = document.activeElement;
+    if (activo && activo.matches('input, textarea, select, [contenteditable="true"]')) return;
+    event.preventDefault(); buscador.focus(); buscador.select();
+  });
   $('pl-actualizar').addEventListener('click',loadHistory);
   $('pl-config-cancelar').addEventListener('click',cerrarConfigurador);
   $('pl-config-agregar').addEventListener('click',()=>{

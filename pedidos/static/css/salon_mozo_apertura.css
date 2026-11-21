@@ -1,0 +1,9 @@
+/* SterakFood · Paso 2E: asignación de mozo ANTES de abrir una mesa.
+   La selección es solo de interfaz: los cobros, QR y ticket no cambian. */
+.sf-mozo-apertura__popup { width: min(440px,calc(100vw - 30px))!important; border-radius:12px!important; }
+.sf-mozo-apertura { display:grid; gap:10px; text-align:left; padding:5px 0 0; }
+.sf-mozo-apertura label { font-size:.95rem; font-weight:700; color:var(--text-color,#f5f5f5); }
+.sf-mozo-apertura .sf-mozo-apertura__input,
+.sf-mozo-apertura .sf-mozo-apertura__select { box-sizing:border-box; width:100%; max-width:none; margin:0!important; font-size:1rem; border:1px solid var(--borde,#46484d); border-radius:8px; background:var(--bg-color,#0b0c0e); color:var(--text-color,#f5f5f5); padding:12px; }
+.sf-mozo-apertura input:focus-visible,.sf-mozo-apertura select:focus-visible { outline:2px solid var(--naranja-sterak,#ff6600); outline-offset:1px; }
+.sf-mozo-apertura small { font-size:.78rem; line-height:1.4; color:var(--texto-mutado,#b0b0b0); }

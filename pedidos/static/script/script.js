@@ -2951,82 +2951,92 @@ function eliminarOpinion(opinionId, url) {
             selectorMozoMesa.value = actual;
         }
     }
+    // STERAKFOOD_PASO_2E_MOZO_ANTES_DE_ABRIR_V1
+    // A toda mesa sin mozo se le asigna uno ANTES de abrir la comanda.
+    // Se permite el numero o nombre del personal registrado, o un nombre libre
+    // cuando todavia no se cargaron mozos. El nombre libre solo se guarda en
+    // esta cuenta; no crea usuarios ni modifica el catalogo de empleados.
+    function buscarMozoPorNombre(nombre) {
+        var buscado = String(nombre || '').trim().toLocaleLowerCase('es-AR');
+        return mozosNumerados.find(function (mozo) {
+            return mozo.nombre.trim().toLocaleLowerCase('es-AR') === buscado;
+        }) || null;
+    }
     function abrirSelectorMozoMesa(numeroMesa, cuenta) {
-        if (!mozosNumerados.length) {
-            finalizarAperturaMesa(cuenta);
-            return;
-        }
-        var opcionesSelect = ['<option value="">Elegí un mozo...</option>'];
+        var opciones = ['<option value="">Elegir de la lista (opcional)</option>'];
         mozosNumerados.forEach(function (mozo) {
-            opcionesSelect.push('<option value="' + mozo.id + '" data-numero="' + mozo.numero + '">' + escapar(mozo.etiqueta) + '</option>');
+            opciones.push('<option value="' + mozo.id + '">' + escapar(mozo.etiqueta) + '</option>');
         });
         Swal.fire({
-            title: 'Mesa ' + numeroMesa,
+            title: 'Mesa ' + numeroMesa + ' · Mozo',
             html:
-                '<div class="salon-mozo-popup">' +
-                    '<p class="salon-mozo-popup__texto">¿Qué mozo atiende esta mesa?</p>' +
-                    '<div class="salon-mozo-popup__grid">' +
-                        '<div class="salon-mozo-popup__campo">' +
-                            '<label for="swal-mozo-numero">Número de mozo</label>' +
-                            '<input id="swal-mozo-numero" class="swal2-input salon-mozo-popup__input" inputmode="numeric" autocomplete="off" placeholder="Ej: 1">' +
-                        '</div>' +
-                        '<div class="salon-mozo-popup__campo">' +
-                            '<label for="swal-mozo-select">O elegir de la lista</label>' +
-                            '<select id="swal-mozo-select" class="swal2-select salon-mozo-popup__select">' + opcionesSelect.join('') + '</select>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="salon-mozo-popup__ayuda">Podés escribir el número del mozo o elegirlo de la lista.</div>' +
+                '<div class="sf-mozo-apertura">' +
+                    '<label for="swal-mozo-busqueda">¿Qué mozo atiende esta mesa?</label>' +
+                    '<input id="swal-mozo-busqueda" class="swal2-input sf-mozo-apertura__input" ' +
+                        'maxlength="100" autocomplete="off" spellcheck="false" ' +
+                        'placeholder="Nombre o número del mozo" aria-label="Nombre o número del mozo">' +
+                    (mozosNumerados.length ?
+                        '<select id="swal-mozo-select" class="swal2-select sf-mozo-apertura__select" ' +
+                            'aria-label="Seleccionar mozo">' + opciones.join('') + '</select>' : '') +
+                    '<small>' + (mozosNumerados.length ?
+                        'Escribí su número, su nombre o elegilo de la lista.' :
+                        'Escribí el nombre del mozo. Más adelante podés registrarlo en Herramientas.') + '</small>' +
                 '</div>',
             showCancelButton: true,
             confirmButtonText: 'Abrir mesa',
-            cancelButtonText: 'Cancelar',
-            confirmButtonColor: 'var(--verde-sanmartin)',
+            cancelButtonText: 'Volver',
+            focusConfirm: false,
+            confirmButtonColor: 'var(--naranja-sterak, #ff6600)',
             background: 'var(--card-bg)',
             color: 'var(--text-color)',
-            customClass: {
-                popup: 'salon-mozo-popup__swal'
-            },
+            customClass: {popup: 'sf-mozo-apertura__popup'},
             didOpen: function () {
                 var popup = Swal.getPopup();
                 if (!popup) return;
-                var inputNumero = popup.querySelector('#swal-mozo-numero');
-                var selectMozo = popup.querySelector('#swal-mozo-select');
-                if (inputNumero) {
-                    inputNumero.focus();
-                    inputNumero.select();
-                    inputNumero.addEventListener('input', function () {
-                        this.value = this.value.replace(/\D+/g, '');
-                        var encontrado = obtenerMozoPorNumero(this.value);
-                        selectMozo.value = encontrado ? String(encontrado.id) : '';
+                var input = popup.querySelector('#swal-mozo-busqueda');
+                var lista = popup.querySelector('#swal-mozo-select');
+                if (input) {
+                    input.focus();
+                    input.addEventListener('input', function () {
+                        if (!lista) return;
+                        var escrito = input.value.trim();
+                        var encontrado = /^\d+$/.test(escrito)
+                            ? obtenerMozoPorNumero(escrito) : buscarMozoPorNombre(escrito);
+                        lista.value = encontrado ? String(encontrado.id) : '';
                     });
-                    inputNumero.addEventListener('keydown', function (event) {
-                        if (event.key === 'Enter') {
+                    input.addEventListener('keydown', function (event) {
+                        if (event.key === 'Enter' && !event.isComposing) {
                             event.preventDefault();
+                            event.stopPropagation();
                             Swal.clickConfirm();
                         }
                     });
                 }
-                if (selectMozo) {
-                    selectMozo.addEventListener('change', function () {
-                        var elegido = obtenerMozoPorId(this.value);
-                        if (elegido && inputNumero) {
-                            inputNumero.value = String(elegido.numero);
-                        }
-                    });
-                }
+                if (lista) lista.addEventListener('change', function () {
+                    var mozo = obtenerMozoPorId(lista.value);
+                    if (mozo && input) input.value = mozo.nombre;
+                });
             },
             preConfirm: function () {
                 var popup = Swal.getPopup();
-                var inputNumero = popup.querySelector('#swal-mozo-numero');
-                var selectMozo = popup.querySelector('#swal-mozo-select');
-                var numero = (inputNumero && inputNumero.value || '').trim();
-                var idElegido = (selectMozo && selectMozo.value || '').trim();
-                var mozo = numero ? obtenerMozoPorNumero(numero) : obtenerMozoPorId(idElegido);
-                if (!mozo) {
-                    Swal.showValidationMessage('Ingresá un número válido o elegí un mozo de la lista.');
+                var input = popup && popup.querySelector('#swal-mozo-busqueda');
+                var lista = popup && popup.querySelector('#swal-mozo-select');
+                var texto = input ? input.value.trim() : '';
+                var elegido = lista && lista.value ? obtenerMozoPorId(lista.value) : null;
+                var encontrado = /^\d+$/.test(texto)
+                    ? obtenerMozoPorNumero(texto) : buscarMozoPorNombre(texto);
+                if (encontrado) return {id: encontrado.id, nombre: encontrado.nombre};
+                if (elegido && !texto) return {id: elegido.id, nombre: elegido.nombre};
+                if (!texto) {
+                    Swal.showValidationMessage('Ingresá el nombre o número del mozo.');
                     return false;
                 }
-                return mozo.id;
+                if (/^\d+$/.test(texto)) {
+                    Swal.showValidationMessage('Ese número no está registrado. Elegí uno de la lista o escribí el nombre.');
+                    return false;
+                }
+                // Permitir nombres nuevos sin perder tiempo creando un registro.
+                return {id: null, nombre: texto};
             }
         }).then(function (resultado) {
             if (!resultado.isConfirmed) {
@@ -3035,7 +3045,10 @@ function eliminarOpinion(opinionId, url) {
                 enfocarMesaRapida();
                 return;
             }
-            asignarMozoCuenta(cuenta, resultado.value);
+            // No atribuir el mozo a otra mesa si hubo una actualización externa.
+            if (String(mesaActual) !== String(numeroMesa) || cuentas[String(numeroMesa)] !== cuenta) return;
+            cuenta.mozo_id = resultado.value.id;
+            cuenta.mozo_nombre = resultado.value.nombre;
             finalizarAperturaMesa(cuenta);
         });
     }
@@ -3119,9 +3132,21 @@ function eliminarOpinion(opinionId, url) {
         enfocarMesaRapida();
     }
     function actualizarSelectorMozo(cuenta) {
-        if (!selectorMozoMesa)
-            return;
-        selectorMozoMesa.value = cuenta && cuenta.mozo_id ? String(cuenta.mozo_id) : "";
+        if (!selectorMozoMesa) return;
+        // Un nombre ingresado manualmente debe verse tambien en el selector.
+        // No equivale a un empleado del catalogo hasta que se lo registre.
+        var previo = selectorMozoMesa.querySelector('[data-mozo-libre]');
+        if (previo) previo.remove();
+        if (cuenta && cuenta.mozo_nombre && !cuenta.mozo_id) {
+            var temporal = document.createElement('option');
+            temporal.value = '__mozo_libre__';
+            temporal.dataset.mozoLibre = '1';
+            temporal.textContent = cuenta.mozo_nombre + ' (mesa)';
+            selectorMozoMesa.insertBefore(temporal, selectorMozoMesa.options[1] || null);
+            selectorMozoMesa.value = temporal.value;
+        } else {
+            selectorMozoMesa.value = cuenta && cuenta.mozo_id ? String(cuenta.mozo_id) : '';
+        }
     }
     function finalizarAperturaMesa(cuenta) {
         modoParcial = false;
@@ -3170,8 +3195,9 @@ function eliminarOpinion(opinionId, url) {
         }
         mesaActual = String(numeroInt);
         var cuenta = normalizarCuenta(mesaActual);
-        // v121: usar la ventana de mozos numerados (1, 2, 3...) en vez del selector antiguo.
-        if (cuenta.mozo_nombre || !mozosNumerados.length) {
+        // Si ya tiene mozo, entrar directo. En las mesas nuevas solicitarlo
+        // siempre, aunque todavia no exista una lista de empleados registrada.
+        if (cuenta.mozo_nombre) {
             finalizarAperturaMesa(cuenta);
             return;
         }
@@ -4414,8 +4440,7 @@ function eliminarOpinion(opinionId, url) {
     if (selectorMozoMesa) {
         selectorMozoMesa.addEventListener("change", function () {
             var cuenta = cuentaActual();
-            if (!cuenta)
-                return;
+            if (!cuenta || selectorMozoMesa.value === '__mozo_libre__') return;
             asignarMozoCuenta(cuenta, selectorMozoMesa.value);
         });
     }
