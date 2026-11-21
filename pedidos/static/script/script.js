@@ -3205,9 +3205,14 @@ function eliminarOpinion(opinionId, url) {
         }
         mesaActual = String(numeroInt);
         var cuenta = normalizarCuenta(mesaActual);
-        // Si ya tiene mozo, entrar directo. En las mesas nuevas solicitarlo
-        // siempre, aunque todavia no exista una lista de empleados registrada.
-        if (cuenta.mozo_nombre) {
+        // STERAKFOOD_PASO_2G_MOZO_MESA_LIBRE_20261121
+        // La grilla marca LIBRE cuando no hay consumos, aunque localStorage
+        // todavía conserve el mozo anterior. Pedir mozo para cada mesa libre.
+        // Si la mesa ya tiene consumos y mozo, entrar sin interrumpir al cajero.
+        var mesaTieneConsumos = Array.isArray(cuenta.items) && cuenta.items.some(function (item) {
+            return item && Number(item.cantidad || 0) > 0;
+        });
+        if (mesaTieneConsumos && cuenta.mozo_nombre) {
             finalizarAperturaMesa(cuenta);
             return;
         }
