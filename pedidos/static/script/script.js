@@ -2998,7 +2998,12 @@ function eliminarOpinion(opinionId, url) {
             customClass: {popup: 'sf-mozo-apertura__popup'},
             returnFocus: false,
             didClose: function () {
-                window.requestAnimationFrame(enfocarCodigoMesa);
+                // El cierre animado ya terminó. El foco se resolverá ahora.
+                if (focoCodigoInicio.activo) {
+                    window.setTimeout(function () {
+                        comprobarFocoInicialCodigo(focoCodigoInicio.token);
+                    }, 0);
+                }
             },
             didOpen: function () {
                 var popup = Swal.getPopup();
@@ -3095,6 +3100,60 @@ function eliminarOpinion(opinionId, url) {
         buscador.focus({preventScroll: true});
         buscador.select();
     }
+    // STERAKFOOD_PASO_2I_FOCO_CODIGO_ESTABLE_20261121
+    // SweetAlert resuelve la selección del mozo antes de terminar de cerrarse.
+    // Reintentar solo al comienzo de la comanda: de otro modo el navegador puede
+    // restaurar el foco en Cantidad y obligar a otro Enter antes de cada artículo.
+    var focoCodigoInicio = {activo: false, token: 0, intentos: 0, vence: 0, timer: null};
+    function cancelarFocoInicialCodigo() {
+        focoCodigoInicio.activo = false;
+        window.clearTimeout(focoCodigoInicio.timer);
+    }
+    function comprobarFocoInicialCodigo(token) {
+        if (!focoCodigoInicio.activo || token !== focoCodigoInicio.token) return;
+        if (!modalEstaAbierto() || Date.now() > focoCodigoInicio.vence) {
+            cancelarFocoInicialCodigo(); return;
+        }
+        // No competir con el diálogo mientras el mozo lo está cerrando.
+        if (hayAlertaSobreComanda() || !areaComanda || areaComanda.hidden) {
+            focoCodigoInicio.timer = window.setTimeout(function () {
+                comprobarFocoInicialCodigo(token);
+            }, 45);
+            return;
+        }
+        // Corregir restauraciones tardías de foco durante la animación de Swal.
+        enfocarCodigoMesa();
+        focoCodigoInicio.intentos += 1;
+        if (focoCodigoInicio.intentos < 5) {
+            focoCodigoInicio.timer = window.setTimeout(function () {
+                comprobarFocoInicialCodigo(token);
+            }, 75);
+        } else {
+            cancelarFocoInicialCodigo();
+        }
+    }
+    function prepararFocoInicialCodigo() {
+        cancelarFocoInicialCodigo();
+        focoCodigoInicio.activo = true;
+        focoCodigoInicio.token += 1;
+        focoCodigoInicio.intentos = 0;
+        focoCodigoInicio.vence = Date.now() + 1800;
+        var token = focoCodigoInicio.token;
+        focoCodigoInicio.timer = window.setTimeout(function () {
+            comprobarFocoInicialCodigo(token);
+        }, 0);
+    }
+    // Si el operador decide tocar Cantidad o usar el teclado, no robarle el foco.
+    document.addEventListener('pointerdown', function (event) {
+        if (focoCodigoInicio.activo && modalComanda && modalComanda.contains(event.target)) {
+            cancelarFocoInicialCodigo();
+        }
+    }, true);
+    document.addEventListener('keydown', function (event) {
+        if (focoCodigoInicio.activo && modalComanda && modalComanda.contains(event.target)) {
+            cancelarFocoInicialCodigo();
+        }
+    }, true);
     function abrirComanda() {
         if (!modalComanda) return;
         modalComanda.classList.add("is-open");
@@ -3105,10 +3164,9 @@ function eliminarOpinion(opinionId, url) {
         }
         bloquearFondoComanda();
         document.body.style.overflow = "hidden";
-        // El cajero comienza escribiendo el código del producto (cantidad 1).
-        // Recién luego de mostrar el modal: no competir con el foco del mozo.
+        // Al abrir: Cantidad vale 1, pero el campo de trabajo es Código.
         if (inputCant && !String(inputCant.value || '').trim()) inputCant.value = '1';
-        window.requestAnimationFrame(enfocarCodigoMesa);
+        prepararFocoInicialCodigo();
     }
     // Si otro script devuelve accidentalmente el foco al fondo, recuperarlo.
     document.addEventListener('focusin', function (event) {
@@ -3131,6 +3189,7 @@ function eliminarOpinion(opinionId, url) {
         else if (!event.shiftKey && document.activeElement === ultimo) {event.preventDefault(); primero.focus();}
     }, true);
     function cerrarComanda() {
+        cancelarFocoInicialCodigo();
         cerrarSugerencias();
         modoParcial = false;
         filaTeclado = 0;
@@ -3312,6 +3371,7 @@ function eliminarOpinion(opinionId, url) {
         });
     }
     function liberarMesaActual() {
+        cancelarFocoInicialCodigo();
         var numeroMesa = mesaActual;
         if (numeroMesa) {
             // Al completar una venta se libera el UUID del borrador fiscal;
