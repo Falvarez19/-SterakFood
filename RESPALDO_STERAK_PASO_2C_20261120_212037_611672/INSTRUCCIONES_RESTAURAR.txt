@@ -1,0 +1,4 @@
+Si necesitás revertir el Paso 2C, copiá salon.html desde este respaldo a
+pedidos/templates/pedidos/salon.html. Si había un CSS anterior, restauralo
+también. Si no lo había, eliminá pedidos/static/css/salon_caja_profesional.css.
+Reiniciá el servidor y actualizá la caché del navegador.

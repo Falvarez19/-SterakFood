@@ -1,0 +1,331 @@
+/*
+ * STERAKFOOD · Salón / Paso 2C · Caja manual profesional
+ * ======================================================
+ * Solo composición y jerarquía visual del modal de cuenta.
+ * No modifica los manejadores de caja, QR, división, facturas o impresión.
+ * IMPORTANTE: Salón NO envía comandas a cocina; ese envío corresponde
+ * a Para llevar. Los identificadores HTML están acoplados a script.js.
+ *
+ * Mantener aquí las reglas visuales de la comanda. No agregar estilos
+ * de clientes particulares ni duplicar estos selectores en estilos.css.
+ */
+#salon-pos #salon-comanda-modal {
+  --sf-caja-acento: var(--naranja-sterak, #ff6600);
+  --sf-caja-linea: var(--borde, #32353a);
+  --sf-caja-muted: var(--texto-mutado, #b0b4bd);
+  width: min(1120px, calc(100vw - 20px)) !important;
+  max-width: 1120px !important;
+  height: min(740px, calc(100dvh - 20px)) !important;
+  min-height: 0 !important;
+  max-height: calc(100dvh - 20px) !important;
+  border-radius: 9px !important;
+  overflow: hidden !important;
+}
+/* Franja superior: mesa y mozo, total real, cierre. Siempre visible. */
+#salon-pos #salon-comanda-modal .salon-pos__comanda-header--pos {
+  grid-template-columns: minmax(0, 1fr) max-content 38px !important;
+  gap: 14px !important;
+  padding: 12px 16px !important;
+  min-height: 82px !important;
+  border-bottom: 1px solid var(--sf-caja-linea) !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__eyebrow {
+  font-size: .68rem !important;
+  letter-spacing: .06em !important;
+  color: var(--sf-caja-acento) !important;
+}
+#salon-pos #salon-comanda-modal #titulo-mesa {
+  font-size: clamp(1.28rem, 2vw, 1.65rem) !important;
+  font-weight: 800 !important;
+  line-height: 1.2 !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__mozo-asignado {
+  display: flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+  margin-top: 7px !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__mozo-asignado label {
+  font-size: .76rem !important;
+  color: var(--sf-caja-muted) !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__select-mozo {
+  min-width: 135px !important;
+  max-width: 250px !important;
+  height: 33px !important;
+  min-height: 33px !important;
+  border-radius: 5px !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__resumen-superior {
+  text-align: right !important;
+  min-width: 145px;
+}
+#salon-pos #salon-comanda-modal .salon-pos__resumen-superior span {
+  color: var(--sf-caja-muted) !important;
+  font-size: .7rem !important;
+  letter-spacing: .03em;
+}
+#salon-pos #salon-comanda-modal .salon-pos__resumen-superior strong {
+  display: block;
+  margin-top: 3px;
+  font-size: clamp(1.4rem, 2.3vw, 1.85rem) !important;
+  color: var(--sf-caja-acento) !important;
+  font-variant-numeric: tabular-nums;
+}
+#salon-pos #salon-comanda-modal .salon-pos__cerrar-comanda {
+  border-radius: 5px !important;
+}
+/* La altura se distribuye entre carga, tabla y acciones; solo la tabla scrollea. */
+#salon-pos #salon-comanda-modal .salon-pos__area-comanda:not([hidden]) {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: hidden !important;
+  padding: 12px 16px 0 !important;
+}
+/* Los inputs tienen el espacio y tamaño suficientes para uso diario. */
+#salon-pos #salon-comanda-modal .salon-pos__carga-rapida--pos {
+  display: grid !important;
+  grid-template-columns: 112px minmax(0, 1fr) !important;
+  gap: 12px !important;
+  margin-bottom: 5px !important;
+  flex: 0 0 auto !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__field label {
+  margin-bottom: 5px !important;
+  color: var(--sf-caja-muted) !important;
+  font-size: .7rem !important;
+  font-weight: 750 !important;
+  letter-spacing: .035em !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__carga-rapida--pos .salon-pos__input {
+  width: 100% !important;
+  height: 46px !important;
+  min-height: 46px !important;
+  border-radius: 5px !important;
+  padding: 0 12px !important;
+  font-size: 1.05rem !important;
+}
+#salon-pos #salon-comanda-modal #input-cant {
+  font-weight: 800 !important;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+#salon-pos #salon-comanda-modal #buscador {
+  font-weight: 550 !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__carga-rapida--pos .salon-pos__input:focus-visible {
+  outline: 2px solid var(--sf-caja-acento) !important;
+  outline-offset: 1px !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__sugerencias {
+  z-index: 100 !important;
+  max-height: min(300px, 43dvh) !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__sugerencia {
+  min-height: 42px;
+}
+#salon-pos #salon-comanda-modal .sf-cuenta-indicacion {
+  font-size: .73rem !important;
+  margin: 1px 0 4px !important;
+  color: var(--sf-caja-muted) !important;
+}
+#salon-pos #salon-comanda-modal .sf-cuenta-atajos {
+  margin: 0 0 9px !important;
+  padding: 2px 0 4px !important;
+  border-top: 0 !important;
+  font-size: .72rem !important;
+}
+#salon-pos #salon-comanda-modal .sf-cuenta-atajos > summary {
+  padding: 1px 0 !important;
+}
+/* Tabla: cabecera inmóvil y líneas con scroll propio, nunca el total o cobro. */
+#salon-pos #salon-comanda-modal .salon-pos__tabla-wrap {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 0 !important;
+  min-height: 112px !important;
+  max-height: none !important;
+  overflow: hidden !important;
+  border: 1px solid var(--sf-caja-linea) !important;
+  border-radius: 5px !important;
+  background: var(--bg-color, #101114) !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__lista-head {
+  min-height: 32px !important;
+  padding: 7px 10px !important;
+  color: var(--sf-caja-muted) !important;
+  font-size: .7rem !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__tabla-wrap #lista-comanda {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+#salon-pos #salon-comanda-modal .salon-pos__lista-head,
+#salon-pos #salon-comanda-modal .salon-pos__fila-pos {
+  grid-template-columns: 114px 60px minmax(0,1fr) 104px 114px !important;
+  gap: 8px !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__fila-pos {
+  min-height: 47px !important;
+  padding: 6px 10px !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__fila-pos.is-seleccionado {
+  box-shadow: inset 3px 0 var(--sf-caja-acento) !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__fila-descripcion > strong {
+  font-size: .86rem !important;
+  font-weight: 750 !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__fila-unitario,
+#salon-pos #salon-comanda-modal .salon-pos__fila-total {
+  font-variant-numeric: tabular-nums;
+}
+#salon-pos #salon-comanda-modal .salon-pos__fila-total {
+  font-weight: 800 !important;
+}
+/* Resumen y operaciones: nunca debajo del área de desplazamiento. */
+#salon-pos #salon-comanda-modal .salon-pos__estado-seleccion {
+  flex: 0 0 auto !important;
+  min-height: 43px !important;
+  padding: 8px 2px !important;
+}
+#salon-pos #salon-comanda-modal #total-seleccionado {
+  color: var(--sf-caja-acento) !important;
+  font-variant-numeric: tabular-nums;
+}
+#salon-pos #salon-comanda-modal .salon-pos__actionbar--pos {
+  display: grid !important;
+  grid-template-columns: 108px 152px 178px minmax(0, 1fr) !important;
+  flex: 0 0 auto !important;
+  gap: 8px !important;
+  align-items: stretch !important;
+  padding: 10px 16px 12px !important;
+  margin: 0 -16px !important;
+  border-top: 1px solid var(--sf-caja-linea) !important;
+  background: var(--card-bg, #181a1d) !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__actionbar--pos .salon-pos__btn {
+  min-height: 46px !important;
+  padding: 8px 10px !important;
+  border-radius: 5px !important;
+  font-size: .81rem !important;
+  line-height: 1.2 !important;
+  font-weight: 750 !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: background .12s ease, border-color .12s ease !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__actionbar--pos .salon-pos__btn--cerrar {
+  background: transparent !important;
+  border: 1px solid var(--sf-caja-linea) !important;
+  color: var(--sf-caja-muted) !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__actionbar--pos .salon-pos__btn--ticket,
+#salon-pos #salon-comanda-modal .salon-pos__actionbar--pos .salon-pos__btn--dividir {
+  background: var(--bg-color, #111317) !important;
+  color: var(--text-color, #eaeaea) !important;
+  border: 1px solid var(--sf-caja-linea) !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__actionbar--pos .salon-pos__btn--dividir.is-activo {
+  border-color: var(--sf-caja-acento) !important;
+  color: var(--sf-caja-acento) !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__actionbar--pos .salon-pos__btn--principal {
+  background: var(--sf-caja-acento) !important;
+  border: 1px solid var(--sf-caja-acento) !important;
+  color: #151515 !important;
+  font-size: .9rem !important;
+  font-weight: 850 !important;
+}
+#salon-pos #salon-comanda-modal .salon-pos__actionbar--pos .salon-pos__btn:focus-visible {
+  outline: 2px solid var(--sf-caja-acento) !important;
+  outline-offset: 2px !important;
+}
+/* Resoluciones de notebook: conservar campos y botones sin barras horizontales. */
+@media (max-width: 820px) {
+  #salon-pos #salon-comanda-modal {
+    width: calc(100vw - 12px) !important;
+    height: calc(100dvh - 12px) !important;
+    max-height: calc(100dvh - 12px) !important;
+  }
+  #salon-pos #salon-comanda-modal .salon-pos__comanda-header--pos {padding: 9px 12px !important;}
+  #salon-pos #salon-comanda-modal .salon-pos__area-comanda:not([hidden]) {padding: 9px 12px 0 !important;}
+  #salon-pos #salon-comanda-modal .salon-pos__lista-head,
+  #salon-pos #salon-comanda-modal .salon-pos__fila-pos {
+    grid-template-columns: 100px 48px minmax(0, 1fr) 96px !important;
+    gap: 6px !important;
+  }
+  #salon-pos #salon-comanda-modal .salon-pos__fila-unitario,
+  #salon-pos #salon-comanda-modal .salon-pos__lista-head .col-unitario {display:none !important;}
+  #salon-pos #salon-comanda-modal .salon-pos__actionbar--pos {
+    margin: 0 -12px !important;
+    padding: 9px 12px !important;
+    grid-template-columns: 90px 1fr 1fr minmax(150px, 1.4fr) !important;
+  }
+}
+@media (max-width: 560px) {
+  #salon-pos #salon-comanda-modal .salon-pos__comanda-header--pos {
+    grid-template-columns: minmax(0, 1fr) 34px !important;
+    gap: 7px !important;
+    min-height: 0 !important;
+  }
+  #salon-pos #salon-comanda-modal .salon-pos__resumen-superior {
+    grid-column: 1 / -1 !important;
+    grid-row: 2 !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    min-width: 0;
+    padding-top: 5px;
+    border-top: 1px solid var(--sf-caja-linea);
+  }
+  #salon-pos #salon-comanda-modal .salon-pos__resumen-superior strong {margin:0 !important; font-size: 1.35rem !important;}
+  #salon-pos #salon-comanda-modal .salon-pos__select-mozo {max-width: min(50vw, 215px) !important;}
+  #salon-pos #salon-comanda-modal .salon-pos__carga-rapida--pos {grid-template-columns: 84px minmax(0,1fr) !important;gap: 8px !important;}
+  #salon-pos #salon-comanda-modal .salon-pos__carga-rapida--pos .salon-pos__input {height: 42px !important; min-height:42px !important;}
+  #salon-pos #salon-comanda-modal .sf-cuenta-indicacion {font-size: .69rem !important;}
+  #salon-pos #salon-comanda-modal .salon-pos__tabla-wrap {min-height: 90px !important;}
+  #salon-pos #salon-comanda-modal .salon-pos__lista-head {display:none !important;}
+  #salon-pos #salon-comanda-modal .salon-pos__fila-pos {
+    grid-template-columns: 72px 36px minmax(0, 1fr) 78px !important;
+    padding: 7px 6px !important;
+    gap: 4px !important;
+  }
+  #salon-pos #salon-comanda-modal .salon-pos__fila-descripcion > strong {
+    font-size: .76rem !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+  #salon-pos #salon-comanda-modal .salon-pos__fila-cant button {width: 23px !important;height: 27px !important;}
+  #salon-pos #salon-comanda-modal .salon-pos__actionbar--pos {
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 6px !important;
+  }
+  #salon-pos #salon-comanda-modal .salon-pos__actionbar--pos .salon-pos__btn--principal {
+    grid-column: 1 / -1 !important;
+  }
+}
+@media (max-height: 570px) and (min-width: 561px) {
+  /* En notebooks con una ventana baja, minimizar el área decorativa. */
+  #salon-pos #salon-comanda-modal .salon-pos__eyebrow,
+  #salon-pos #salon-comanda-modal .sf-cuenta-indicacion {display:none !important;}
+  #salon-pos #salon-comanda-modal .salon-pos__comanda-header--pos {min-height: 60px !important;padding-block: 6px !important;}
+  #salon-pos #salon-comanda-modal .salon-pos__carga-rapida--pos .salon-pos__input {height:38px !important;min-height:38px !important;}
+}
+@media (max-width: 560px) {
+  #salon-pos #salon-comanda-modal .salon-pos__cerrar-comanda {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    justify-self: end;
+    align-self: start;
+  }
+}
