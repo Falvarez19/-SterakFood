@@ -2996,6 +2996,10 @@ function eliminarOpinion(opinionId, url) {
             background: 'var(--card-bg)',
             color: 'var(--text-color)',
             customClass: {popup: 'sf-mozo-apertura__popup'},
+            returnFocus: false,
+            didClose: function () {
+                window.requestAnimationFrame(enfocarCodigoMesa);
+            },
             didOpen: function () {
                 var popup = Swal.getPopup();
                 if (!popup) return;
@@ -3083,6 +3087,14 @@ function eliminarOpinion(opinionId, url) {
     function hayAlertaSobreComanda() {
         return !!(window.Swal && typeof Swal.isVisible === "function" && Swal.isVisible());
     }
+    // Paso 2H: una única función de foco para cualquier modo de apertura.
+    // No tomar el teclado si otra ventana tiene la atención del operador.
+    function enfocarCodigoMesa() {
+        if (!modalEstaAbierto() || hayAlertaSobreComanda() || !buscador ||
+            !buscador.isConnected || !areaComanda || areaComanda.hidden) return;
+        buscador.focus({preventScroll: true});
+        buscador.select();
+    }
     function abrirComanda() {
         if (!modalComanda) return;
         modalComanda.classList.add("is-open");
@@ -3096,18 +3108,15 @@ function eliminarOpinion(opinionId, url) {
         // El cajero comienza escribiendo el código del producto (cantidad 1).
         // Recién luego de mostrar el modal: no competir con el foco del mozo.
         if (inputCant && !String(inputCant.value || '').trim()) inputCant.value = '1';
-        window.requestAnimationFrame(function () {
-            if (!modalEstaAbierto() || hayAlertaSobreComanda() || !buscador) return;
-            buscador.focus({preventScroll: true});
-            buscador.select();
-        });
+        window.requestAnimationFrame(enfocarCodigoMesa);
     }
     // Si otro script devuelve accidentalmente el foco al fondo, recuperarlo.
     document.addEventListener('focusin', function (event) {
         if (!modalEstaAbierto() || !modalComanda || hayAlertaSobreComanda()) return;
         if (modalComanda.contains(event.target)) return;
-        if (inputCant && !document.activeElement.closest('.swal2-container')) {
-            inputCant.focus({preventScroll: true});
+        var activo = document.activeElement;
+        if (buscador && (!activo || !activo.closest || !activo.closest('.swal2-container'))) {
+            enfocarCodigoMesa();
         }
     });
     // Tab queda en la comanda, no en los botones de mesas del fondo.
@@ -3450,7 +3459,7 @@ function eliminarOpinion(opinionId, url) {
         inputCant.value = 1;
         buscador.value = "";
         cerrarSugerencias();
-        enfocarCantidad();
+        enfocarCodigoMesa();
     }
     function buscarProductos(texto) {
         texto = String(texto || "").trim().toLowerCase();
@@ -4262,9 +4271,16 @@ function eliminarOpinion(opinionId, url) {
             event.altKey || event.ctrlKey || event.metaKey || event.shiftKey ||
             modalEstaAbierto() || enviando ||
             (window.Swal && typeof Swal.isVisible === "function" && Swal.isVisible())) return;
-        if (document.querySelector('#pl-dialog:not([hidden]), #salon-cuentas-dialog:not([hidden]), ' +
-            '[id^="salon-tool-dialog-"]:not([hidden]), ' +
-            '[role="dialog"][aria-modal="true"]:not([hidden])')) return;
+        // STERAKFOOD_PASO_2H_FOCO_REAL_20261121
+        // Un dialogo puede existir en DOM y estar oculto por su contenedor.
+        // Solo un dialogo REALMENTE visible bloquea Enter desde la grilla.
+        var ventanas = document.querySelectorAll('#pl-dialog, #salon-cuentas-dialog, ' +
+            '[id^="salon-tool-dialog-"], [role="dialog"][aria-modal="true"]');
+        var hayVentanaVisible = Array.prototype.some.call(ventanas, function (ventana) {
+            return !ventana.hidden && !ventana.closest('[hidden]') &&
+                !ventana.closest('[aria-hidden="true"]') && ventana.getClientRects().length > 0;
+        });
+        if (hayVentanaVisible) return;
         if (document.body.classList.contains('salon-tools-modal-open')) return;
         var objetivo = event.target && event.target.nodeType === 1 ? event.target : document.activeElement;
         if (objetivo === inputMesaRapida) return; // Este campo abre la mesa al confirmar.
@@ -4301,7 +4317,8 @@ function eliminarOpinion(opinionId, url) {
         selectorMozoMesa.addEventListener('keydown', function (event) {
             if (!modalEstaAbierto() || event.altKey || event.ctrlKey || event.metaKey) return;
             if (event.key === 'ArrowRight' || event.key === 'Enter') {
-                event.preventDefault(); event.stopPropagation(); enfocarCantidad();
+                event.preventDefault(); event.stopPropagation();
+                window.requestAnimationFrame(enfocarCodigoMesa);
             }
         });
     }
@@ -4468,6 +4485,8 @@ function eliminarOpinion(opinionId, url) {
             var cuenta = cuentaActual();
             if (!cuenta || selectorMozoMesa.value === '__mozo_libre__') return;
             asignarMozoCuenta(cuenta, selectorMozoMesa.value);
+            // Al elegir mozo, continuar cargando productos sin usar el mouse.
+            window.requestAnimationFrame(enfocarCodigoMesa);
         });
     }
     function resumenPendienteMesasLocal() {
