@@ -1,0 +1,18 @@
+/* SterakFood · Paso 2F — Salón, accesos superiores y foco.
+   Alcance: solo Salón. El CSS no altera pagos, comanda, QR ni impresión.
+   La barra de accesos (z-index 1001 antiguo) tapaba la navbar (1000)
+   cuando el usuario hacía scroll. La dejamos debajo del encabezado fijo. */
+body:has(#salon-pos.salon-pos--clasico) > .navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1200 !important;
+}
+#salon-pos.salon-pos--clasico .salon-pos__barra-discreta {
+  position: relative;
+  z-index: 3 !important;
+}
+/* Mantener el menú desplegable por delante del resto del contenido de Salón,
+   pero por debajo de la barra principal al desplazarse. */
+#salon-pos.salon-pos--clasico .salon-pos__menu-herramientas .salon-pos__herramientas-grid {
+  z-index: 20;
+}

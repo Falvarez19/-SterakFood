@@ -2917,15 +2917,21 @@ function eliminarOpinion(opinionId, url) {
     function modalEstaAbierto() {
         return Boolean(modalComanda && modalComanda.classList.contains("is-open"));
     }
-    // Nunca devolver el teclado a Mesa rápida mientras la comanda esté abierta.
+    // Nunca devolver el teclado a Mesa rápida si hay una comanda/alerta abierta.
+    // Foco inmediato cuando el cajero pulsa Enter; diferirlo solo si Swal cierra.
     function enfocarMesaRapida() {
-        window.setTimeout(function () {
+        function aplicar() {
             if (!inputMesaRapida || modalEstaAbierto() ||
                 (window.Swal && typeof Swal.isVisible === "function" && Swal.isVisible())) return;
             inputMesaRapida.value = "";
             inputMesaRapida.focus({preventScroll: true});
             inputMesaRapida.select();
-        }, 70);
+        }
+        if (window.Swal && typeof Swal.isVisible === "function" && Swal.isVisible()) {
+            window.setTimeout(aplicar, 100);
+        } else {
+            aplicar();
+        }
     }
     function obtenerMozoPorId(mozoId) {
         var id = Number(mozoId || 0);
@@ -3087,10 +3093,14 @@ function eliminarOpinion(opinionId, url) {
         }
         bloquearFondoComanda();
         document.body.style.overflow = "hidden";
-        // Foco inmediato + otro después de mostrar el modal para evitar que
-        // un botón de la grilla se lo vuelva a llevar al fondo.
-        if (inputCant) inputCant.focus({preventScroll: true});
-        enfocarCantidad();
+        // El cajero comienza escribiendo el código del producto (cantidad 1).
+        // Recién luego de mostrar el modal: no competir con el foco del mozo.
+        if (inputCant && !String(inputCant.value || '').trim()) inputCant.value = '1';
+        window.requestAnimationFrame(function () {
+            if (!modalEstaAbierto() || hayAlertaSobreComanda() || !buscador) return;
+            buscador.focus({preventScroll: true});
+            buscador.select();
+        });
     }
     // Si otro script devuelve accidentalmente el foco al fondo, recuperarlo.
     document.addEventListener('focusin', function (event) {
@@ -4238,22 +4248,33 @@ function eliminarOpinion(opinionId, url) {
             seleccionarMesa(boton.getAttribute("data-mesa"));
         });
     });
-    // v156: estando en la grilla del POS, Enter ubica el cursor en Mesa rápida.
-    // No secuestrar Enter dentro de botones, enlaces, campos o diálogos.
+    // STERAKFOOD_PASO_2F_FOCO_Y_NAV_20261121
+    // Enter en la grilla (incluso si la última mesa quedó enfocada) abre
+    // Mesa rápida. No intervenir dentro de formularios, menús o diálogos.
+    // El modo captura evita que un botón de mesa consuma Enter antes que el atajo.
     document.addEventListener("keydown", function (event) {
-        if (event.key !== "Enter" || event.repeat || event.altKey || event.ctrlKey ||
-            event.metaKey || event.shiftKey || modalEstaAbierto() || enviando ||
+        if (event.key !== "Enter" || event.repeat || event.isComposing ||
+            event.altKey || event.ctrlKey || event.metaKey || event.shiftKey ||
+            modalEstaAbierto() || enviando ||
             (window.Swal && typeof Swal.isVisible === "function" && Swal.isVisible())) return;
-        var objetivo = event.target;
-        if (objetivo === inputMesaRapida) return; // Enter acá abre la mesa elegida.
-        if (objetivo && objetivo.closest && objetivo.closest(
-                'input,textarea,select,button,a,summary,[contenteditable="true"],[role="dialog"]')) return;
-        // Otras ventanas internas también tienen sus propios controles.
-        if (document.querySelector('[role="dialog"][aria-modal="true"]:not([hidden])')) return;
+        if (document.querySelector('#pl-dialog:not([hidden]), #salon-cuentas-dialog:not([hidden]), ' +
+            '[id^="salon-tool-dialog-"]:not([hidden]), ' +
+            '[role="dialog"][aria-modal="true"]:not([hidden])')) return;
+        if (document.body.classList.contains('salon-tools-modal-open')) return;
+        var objetivo = event.target && event.target.nodeType === 1 ? event.target : document.activeElement;
+        if (objetivo === inputMesaRapida) return; // Este campo abre la mesa al confirmar.
+        if (objetivo && objetivo.closest) {
+            if (objetivo.closest('input,textarea,select,[contenteditable="true"], ' +
+                    '[role="textbox"],[role="combobox"],[role="dialog"]')) return;
+            // Enter sigue activando botones administrativos, enlaces y desplegables.
+            // En una tarjeta de mesa, en cambio, permite cambiar de número rápido.
+            if (objetivo.closest('button,a,summary,[role="button"]') &&
+                    !objetivo.closest('.salon-pos__mesa')) return;
+        }
         event.preventDefault();
-        event.stopPropagation();
+        event.stopImmediatePropagation();
         enfocarMesaRapida();
-    });
+    }, true);
     if (inputMesaRapida) {
         inputMesaRapida.addEventListener("keydown", function (event) {
             if (event.key !== "Enter") {
