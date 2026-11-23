@@ -26,6 +26,8 @@
 {# Paso 2F: orden de capas de navbar y atajos del teclado. #}
 <link rel="stylesheet" href="{% static 'css/salon_foco_y_nav.css' %}?v=sterak-2f-20261121">
 <link rel="stylesheet" href="{% static 'css/para_llevar_busqueda_rapida.css' %}?v=sterak-3a-1">
+{# Paso 3B: catálogo y carrito compactos, sin tocar impresión ni cobros. #}
+<link rel="stylesheet" href="{% static 'css/para_llevar_compacto_3b.css' %}?v=sterak-3b-20261123">
 {% endblock %}
 
 {% block content %}
@@ -203,26 +205,33 @@
             </header>
             <div id="pl-carrito" class="pl-carrito"><p>Elegí productos del menú público.</p></div>
             <div class="pl-datos">
+              {# Paso 3B: mantener visibles los datos de uso diario. #}
               <div class="pl-fields">
                 <label>Nombre o referencia <input id="pl-cliente" maxlength="100" placeholder="Ej.: Juan / Pedido 17"></label>
-                <label>Teléfono (opcional) <input id="pl-telefono" maxlength="20" placeholder="Para avisar cuando esté listo"></label>
+                <label>Cobro
+                  <select id="pl-pago">
+                    <option value="pendiente">Cobrar después</option>
+                    <option value="efectivo">Cobrado · Efectivo</option>
+                    <option value="debito">Cobrado · Débito</option>
+                    <option value="mercadopago">Cobrado · Mercado Pago</option>
+                  </select>
+                </label>
               </div>
               <label class="pl-alerta-alimentos pl-alerta-pedido" for="pl-celiaco-pedido">
                 <input type="checkbox" id="pl-celiaco-pedido">
                 <span><strong>⚠️ CELÍACO — pedido completo</strong>
                   <small>Se avisa a cocina en todos los platos. Verificar ingredientes y contaminación cruzada.</small></span>
               </label>
-              <label class="pl-label">Indicaciones para cocina
-                <textarea id="pl-notas" rows="2" maxlength="350" placeholder="Ej.: sin cebolla, retirar en 15 minutos…"></textarea>
-              </label>
-              <label class="pl-label">Cobro
-                <select id="pl-pago">
-                  <option value="pendiente">Cobrar después</option>
-                  <option value="efectivo">Cobrado · Efectivo</option>
-                  <option value="debito">Cobrado · Débito</option>
-                  <option value="mercadopago">Cobrado · Mercado Pago</option>
-                </select>
-              </label>
+              {# Los campos opcionales siguen en el DOM: el JavaScript existente conserva sus IDs. #}
+              <details class="pl-extras" id="pl-datos-adicionales">
+                <summary>Teléfono e indicaciones para cocina (opcionales)</summary>
+                <div class="pl-extras-body">
+                  <label>Teléfono (opcional) <input id="pl-telefono" maxlength="20" placeholder="Para avisar cuando esté listo"></label>
+                  <label class="pl-label">Indicaciones para cocina
+                    <textarea id="pl-notas" rows="2" maxlength="350" placeholder="Ej.: sin cebolla, retirar en 15 minutos…"></textarea>
+                  </label>
+                </div>
+              </details>
             </div>
             <footer class="pl-checkout-footer">
               <div class="pl-total"><span>Total del pedido</span><strong id="pl-total">$ 0</strong></div>
