@@ -2999,9 +2999,9 @@ function eliminarOpinion(opinionId, url) {
             returnFocus: false,
             didClose: function () {
                 // El cierre animado ya terminó. El foco se resolverá ahora.
-                if (focoCodigoInicio.activo) {
+                if (focoCantidadInicio.activo) {
                     window.setTimeout(function () {
-                        comprobarFocoInicialCodigo(focoCodigoInicio.token);
+                        comprobarFocoInicialCantidad(focoCantidadInicio.token);
                     }, 0);
                 }
             },
@@ -3011,7 +3011,13 @@ function eliminarOpinion(opinionId, url) {
                 var input = popup.querySelector('#swal-mozo-busqueda');
                 var lista = popup.querySelector('#swal-mozo-select');
                 if (input) {
-                    input.focus();
+                    input.focus({preventScroll: true});
+                    // En un diálogo recién abierto, conservar foco tras la pintura.
+                    window.requestAnimationFrame(function () {
+                        if (Swal.isVisible() && document.activeElement !== input) {
+                            input.focus({preventScroll: true});
+                        }
+                    });
                     input.addEventListener('input', function () {
                         if (!lista) return;
                         var escrito = input.value.trim();
@@ -3095,63 +3101,71 @@ function eliminarOpinion(opinionId, url) {
     // Paso 2H: una única función de foco para cualquier modo de apertura.
     // No tomar el teclado si otra ventana tiene la atención del operador.
     function enfocarCodigoMesa() {
+        // Después de agregar un artículo, quedar listo para el siguiente código.
         if (!modalEstaAbierto() || hayAlertaSobreComanda() || !buscador ||
             !buscador.isConnected || !areaComanda || areaComanda.hidden) return;
         buscador.focus({preventScroll: true});
         buscador.select();
     }
-    // STERAKFOOD_PASO_2I_FOCO_CODIGO_ESTABLE_20261121
-    // SweetAlert resuelve la selección del mozo antes de terminar de cerrarse.
-    // Reintentar solo al comienzo de la comanda: de otro modo el navegador puede
-    // restaurar el foco en Cantidad y obligar a otro Enter antes de cada artículo.
-    var focoCodigoInicio = {activo: false, token: 0, intentos: 0, vence: 0, timer: null};
-    function cancelarFocoInicialCodigo() {
-        focoCodigoInicio.activo = false;
-        window.clearTimeout(focoCodigoInicio.timer);
+    function enfocarCantidadInicialMesa() {
+        // Primer campo al abrir mesa: permite escribir 2, 3... y Enter → Código.
+        if (!modalEstaAbierto() || hayAlertaSobreComanda() || !inputCant ||
+            !inputCant.isConnected || !areaComanda || areaComanda.hidden) return;
+        inputCant.focus({preventScroll: true});
+        inputCant.select();
     }
-    function comprobarFocoInicialCodigo(token) {
-        if (!focoCodigoInicio.activo || token !== focoCodigoInicio.token) return;
-        if (!modalEstaAbierto() || Date.now() > focoCodigoInicio.vence) {
-            cancelarFocoInicialCodigo(); return;
+    // STERAKFOOD_PASO_2I_FOCO_CODIGO_ESTABLE_20261121
+    // STERAKFOOD_PASO_2J_TECLADO_FLUIDO_20261121
+    // Al abrir mesa, cantidad es el primer campo; Enter pasa al código.
+    // Esperar el cierre del selector de mozo para que no robe el teclado.
+    var focoCantidadInicio = {activo: false, token: 0, intentos: 0, vence: 0, timer: null};
+    function cancelarFocoInicialCantidad() {
+        focoCantidadInicio.activo = false;
+        window.clearTimeout(focoCantidadInicio.timer);
+    }
+    function comprobarFocoInicialCantidad(token) {
+        if (!focoCantidadInicio.activo || token !== focoCantidadInicio.token) return;
+        if (!modalEstaAbierto() || Date.now() > focoCantidadInicio.vence) {
+            cancelarFocoInicialCantidad(); return;
         }
         // No competir con el diálogo mientras el mozo lo está cerrando.
         if (hayAlertaSobreComanda() || !areaComanda || areaComanda.hidden) {
-            focoCodigoInicio.timer = window.setTimeout(function () {
-                comprobarFocoInicialCodigo(token);
+            focoCantidadInicio.timer = window.setTimeout(function () {
+                comprobarFocoInicialCantidad(token);
             }, 45);
             return;
         }
         // Corregir restauraciones tardías de foco durante la animación de Swal.
-        enfocarCodigoMesa();
-        focoCodigoInicio.intentos += 1;
-        if (focoCodigoInicio.intentos < 5) {
-            focoCodigoInicio.timer = window.setTimeout(function () {
-                comprobarFocoInicialCodigo(token);
+        enfocarCantidadInicialMesa();
+        focoCantidadInicio.intentos += 1;
+        if (focoCantidadInicio.intentos < 5) {
+            focoCantidadInicio.timer = window.setTimeout(function () {
+                comprobarFocoInicialCantidad(token);
             }, 75);
         } else {
-            cancelarFocoInicialCodigo();
+            cancelarFocoInicialCantidad();
         }
     }
-    function prepararFocoInicialCodigo() {
-        cancelarFocoInicialCodigo();
-        focoCodigoInicio.activo = true;
-        focoCodigoInicio.token += 1;
-        focoCodigoInicio.intentos = 0;
-        focoCodigoInicio.vence = Date.now() + 1800;
-        var token = focoCodigoInicio.token;
-        focoCodigoInicio.timer = window.setTimeout(function () {
-            comprobarFocoInicialCodigo(token);
+    function prepararFocoInicialCantidad() {
+        cancelarFocoInicialCantidad();
+        focoCantidadInicio.activo = true;
+        focoCantidadInicio.token += 1;
+        focoCantidadInicio.intentos = 0;
+        focoCantidadInicio.vence = Date.now() + 1800;
+        var token = focoCantidadInicio.token;
+        focoCantidadInicio.timer = window.setTimeout(function () {
+            comprobarFocoInicialCantidad(token);
         }, 0);
     }
     // Si el operador decide tocar Cantidad o usar el teclado, no robarle el foco.
     document.addEventListener('pointerdown', function (event) {
-        if (focoCodigoInicio.activo && modalComanda && modalComanda.contains(event.target)) {
-            cancelarFocoInicialCodigo();
+        if (focoCantidadInicio.activo && modalComanda && modalComanda.contains(event.target)) {
+            cancelarFocoInicialCantidad();
         }
     }, true);
     document.addEventListener('keydown', function (event) {
-        if (focoCodigoInicio.activo && modalComanda && modalComanda.contains(event.target)) {
-            cancelarFocoInicialCodigo();
+        if (focoCantidadInicio.activo && modalComanda && modalComanda.contains(event.target)) {
+            cancelarFocoInicialCantidad();
         }
     }, true);
     function abrirComanda() {
@@ -3164,17 +3178,17 @@ function eliminarOpinion(opinionId, url) {
         }
         bloquearFondoComanda();
         document.body.style.overflow = "hidden";
-        // Al abrir: Cantidad vale 1, pero el campo de trabajo es Código.
-        if (inputCant && !String(inputCant.value || '').trim()) inputCant.value = '1';
-        prepararFocoInicialCodigo();
+        // Al abrir: iniciar en Cantidad; Enter pasa a Código.
+        if (inputCant) inputCant.value = '1';
+        prepararFocoInicialCantidad();
     }
     // Si otro script devuelve accidentalmente el foco al fondo, recuperarlo.
     document.addEventListener('focusin', function (event) {
         if (!modalEstaAbierto() || !modalComanda || hayAlertaSobreComanda()) return;
         if (modalComanda.contains(event.target)) return;
         var activo = document.activeElement;
-        if (buscador && (!activo || !activo.closest || !activo.closest('.swal2-container'))) {
-            enfocarCodigoMesa();
+        if (inputCant && (!activo || !activo.closest || !activo.closest('.swal2-container'))) {
+            enfocarCantidadInicialMesa();
         }
     });
     // Tab queda en la comanda, no en los botones de mesas del fondo.
@@ -3189,7 +3203,7 @@ function eliminarOpinion(opinionId, url) {
         else if (!event.shiftKey && document.activeElement === ultimo) {event.preventDefault(); primero.focus();}
     }, true);
     function cerrarComanda() {
-        cancelarFocoInicialCodigo();
+        cancelarFocoInicialCantidad();
         cerrarSugerencias();
         modoParcial = false;
         filaTeclado = 0;
@@ -3371,7 +3385,7 @@ function eliminarOpinion(opinionId, url) {
         });
     }
     function liberarMesaActual() {
-        cancelarFocoInicialCodigo();
+        cancelarFocoInicialCantidad();
         var numeroMesa = mesaActual;
         if (numeroMesa) {
             // Al completar una venta se libera el UUID del borrador fiscal;
@@ -4323,35 +4337,31 @@ function eliminarOpinion(opinionId, url) {
         });
     });
     // STERAKFOOD_PASO_2F_FOCO_Y_NAV_20261121
-    // Enter en la grilla (incluso si la última mesa quedó enfocada) abre
-    // Mesa rápida. No intervenir dentro de formularios, menús o diálogos.
-    // El modo captura evita que un botón de mesa consuma Enter antes que el atajo.
-    document.addEventListener("keydown", function (event) {
+    // Paso 2J: Enter desde la grilla lleva siempre a Mesa rápida.
+    // Captura desde window: la pulsación no se pierde si una tarjeta tenía foco.
+    window.addEventListener("keydown", function (event) {
         if (event.key !== "Enter" || event.repeat || event.isComposing ||
             event.altKey || event.ctrlKey || event.metaKey || event.shiftKey ||
             modalEstaAbierto() || enviando ||
             (window.Swal && typeof Swal.isVisible === "function" && Swal.isVisible())) return;
-        // STERAKFOOD_PASO_2H_FOCO_REAL_20261121
-        // Un dialogo puede existir en DOM y estar oculto por su contenedor.
-        // Solo un dialogo REALMENTE visible bloquea Enter desde la grilla.
-        var ventanas = document.querySelectorAll('#pl-dialog, #salon-cuentas-dialog, ' +
-            '[id^="salon-tool-dialog-"], [role="dialog"][aria-modal="true"]');
-        var hayVentanaVisible = Array.prototype.some.call(ventanas, function (ventana) {
-            return !ventana.hidden && !ventana.closest('[hidden]') &&
-                !ventana.closest('[aria-hidden="true"]') && ventana.getClientRects().length > 0;
-        });
-        if (hayVentanaVisible) return;
+
+        // Nunca desviar el teclado desde otras ventanas de trabajo abiertas.
         if (document.body.classList.contains('salon-tools-modal-open')) return;
-        var objetivo = event.target && event.target.nodeType === 1 ? event.target : document.activeElement;
-        if (objetivo === inputMesaRapida) return; // Este campo abre la mesa al confirmar.
+        if (document.querySelector('[data-salon-tool-dialog][aria-hidden="false"]:not([hidden]), ' +
+            '#pl-dialog[aria-hidden="false"]:not([hidden]), ' +
+            '#salon-cuentas-dialog[aria-hidden="false"]:not([hidden])')) return;
+
+        var objetivo = event.target && event.target.nodeType === 1
+            ? event.target : document.activeElement;
+        if (objetivo === inputMesaRapida) return; // Su propio Enter abre la mesa.
         if (objetivo && objetivo.closest) {
             if (objetivo.closest('input,textarea,select,[contenteditable="true"], ' +
                     '[role="textbox"],[role="combobox"],[role="dialog"]')) return;
-            // Enter sigue activando botones administrativos, enlaces y desplegables.
-            // En una tarjeta de mesa, en cambio, permite cambiar de número rápido.
+            // Un botón administrativo debe mantener su comportamiento normal.
             if (objetivo.closest('button,a,summary,[role="button"]') &&
                     !objetivo.closest('.salon-pos__mesa')) return;
         }
+        if (!inputMesaRapida || !inputMesaRapida.isConnected) return;
         event.preventDefault();
         event.stopImmediatePropagation();
         enfocarMesaRapida();
@@ -4378,7 +4388,7 @@ function eliminarOpinion(opinionId, url) {
             if (!modalEstaAbierto() || event.altKey || event.ctrlKey || event.metaKey) return;
             if (event.key === 'ArrowRight' || event.key === 'Enter') {
                 event.preventDefault(); event.stopPropagation();
-                window.requestAnimationFrame(enfocarCodigoMesa);
+                window.requestAnimationFrame(enfocarCantidadInicialMesa);
             }
         });
     }
@@ -4545,8 +4555,8 @@ function eliminarOpinion(opinionId, url) {
             var cuenta = cuentaActual();
             if (!cuenta || selectorMozoMesa.value === '__mozo_libre__') return;
             asignarMozoCuenta(cuenta, selectorMozoMesa.value);
-            // Al elegir mozo, continuar cargando productos sin usar el mouse.
-            window.requestAnimationFrame(enfocarCodigoMesa);
+            // Volver a cantidad al cambiar el mozo de esta mesa.
+            window.requestAnimationFrame(enfocarCantidadInicialMesa);
         });
     }
     function resumenPendienteMesasLocal() {
@@ -6287,8 +6297,22 @@ document.addEventListener('DOMContentLoaded', function () {
             document.body.classList.add('salon-tools-modal-open');
             var bloque = modal.querySelector('details.salon-pos__tool');
             if (bloque) bloque.open = true; // El editor AJAX escucha este 'toggle'.
-            var foco = modal.querySelector('input[type="text"],input[type="search"],input[type="file"],.salon-pos__tool-cerrar');
-            if (foco) foco.focus({preventScroll: true});
+            var foco = tipo === 'mozos'
+                ? modal.querySelector('#salon-form-agregar-mozo input[name="nombre"]')
+                : modal.querySelector('input[type="text"],input[type="search"],input[type="file"],.salon-pos__tool-cerrar');
+            if (foco) {
+                foco.focus({preventScroll: true});
+                // <details> recién expandido puede requerir un frame para ser visible.
+                window.requestAnimationFrame(function () {
+                    if (modalActual !== modal || modal.hidden) return;
+                    // No molestar si el usuario ya cambió el foco manualmente.
+                    if (document.activeElement === foco ||
+                        !modal.contains(document.activeElement)) {
+                        foco.focus({preventScroll: true});
+                        if (tipo === 'mozos' && foco.select) foco.select();
+                    }
+                });
+            }
         }
         salon.addEventListener('click', function (event) {
             var abrirBoton = event.target.closest('[data-salon-tool-open]');
