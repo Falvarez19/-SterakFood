@@ -1,0 +1,14 @@
+{
+  "marca/models.py": true,
+  "marca/views.py": true,
+  "marca/urls.py": true,
+  "marca/arca_diagnostico_4f.py": true,
+  "marca/templates/marca/arca_propietario.html": true,
+  "pedidos/static/css/arca_propietario.css": true,
+  "pedidos/arca_wsfe.py": true,
+  "pedidos/fiscal_views.py": true,
+  "marca/arca_vault_5a.py": false,
+  "marca/arca_autogestion_5a.py": false,
+  "marca/tests_arca_autogestion_5a.py": false,
+  "marca/migrations/0002_arca_autogestion_5a.py": false
+}

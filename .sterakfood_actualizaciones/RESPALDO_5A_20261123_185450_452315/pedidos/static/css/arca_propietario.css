@@ -1,0 +1,44 @@
+/* SterakFood 4E: configuración fiscal exclusiva del propietario.
+   No contiene claves ni utiliza estilos embebidos; conserva el tema del negocio. */
+.sf-arca {max-width:1250px;margin:32px auto;padding:0 22px 36px;color:var(--text-color);}
+.sf-arca__header {display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:22px;}
+.sf-arca__eyebrow {color:var(--naranja-sterak);font-size:.8rem;font-weight:700;letter-spacing:.04em;}
+.sf-arca__header h1 {margin:6px 0;font-size:clamp(1.5rem,2.5vw,2.1rem)}
+.sf-arca__header p,.sf-arca__hint {color:var(--texto-mutado);font-size:.9rem;line-height:1.5;}
+.sf-arca__back {border:1px solid var(--borde);border-radius:5px;padding:10px 13px;white-space:nowrap;color:var(--text-color);text-decoration:none;}
+.sf-arca__layout {display:grid;grid-template-columns:minmax(0,1.25fr) minmax(280px,.75fr);gap:16px;align-items:start;}
+.sf-arca__section {background:var(--card-bg);border:1px solid var(--borde);border-radius:8px;padding:22px;min-width:0;}
+.sf-arca__section h2 {font-size:1.15rem;margin:0 0 10px;}
+.sf-arca__form {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:20px;}
+.sf-arca__form label {display:flex;flex-direction:column;gap:6px;font-size:.87rem;font-weight:600;min-width:0;}
+.sf-arca__form input,.sf-arca__form select {color:var(--text-color);background:var(--bg-color);border:1px solid var(--borde);border-radius:5px;padding:10px 12px;width:100%;min-height:43px;font:inherit;}
+.sf-arca__wide,.sf-arca__actions {grid-column:1/-1;}
+.sf-arca__actions {display:flex;justify-content:flex-end;}
+.sf-arca__actions button {background:var(--naranja-sterak);color:#111;border:0;border-radius:5px;padding:10px 16px;min-height:44px;font-weight:750;cursor:pointer;}
+.sf-arca__status {margin:12px 0 20px;}
+.sf-arca__status>div {display:flex;justify-content:space-between;gap:15px;padding:11px 0;border-bottom:1px solid var(--borde);}
+.sf-arca__status dt {color:var(--texto-mutado);}.sf-arca__status dd {margin:0;text-align:right;font-weight:600;}
+.sf-arca__warning {border-left:3px solid var(--naranja-sterak);padding:10px 12px;background:var(--bg-color);line-height:1.55;font-size:.88rem;}
+.sf-arca__message {color:var(--naranja-sterak);font-weight:600;}
+.sf-arca a:focus-visible,.sf-arca button:focus-visible,.sf-arca input:focus-visible,.sf-arca select:focus-visible {outline:2px solid var(--naranja-sterak);outline-offset:2px;}
+.sf-brand__fiscal-link {display:inline-block;margin:0 0 16px;padding:10px 14px;border-radius:5px;border:1px solid var(--borde);color:var(--text-color);text-decoration:none;}
+.sf-brand__fiscal-link:hover {border-color:var(--naranja-sterak);color:var(--naranja-sterak);}
+@media(max-width:820px){.sf-arca__layout{grid-template-columns:1fr}.sf-arca__header{align-items:flex-start;flex-wrap:wrap}.sf-arca__form{grid-template-columns:1fr}}
+
+
+/* STERAKFOOD_4F_DIAGNOSTICO_CSS */
+.sf-arca__diag{border-top:1px solid var(--borde);padding-top:18px;margin:20px 0 18px;}
+.sf-arca__diag h3{font-size:1.02rem;margin:0 0 9px;color:var(--text-color);}
+.sf-arca__diag-boton{width:100%;min-height:44px;padding:10px 14px;background:var(--naranja-sterak);color:#101010;border:0;border-radius:6px;font-weight:750;cursor:pointer;margin:6px 0 14px;}
+.sf-arca__diag-boton:disabled{opacity:.65;cursor:wait;}
+.sf-arca__diag-pasos>div{padding:10px 0;border-bottom:1px solid var(--borde);display:grid;grid-template-columns:1fr auto;gap:3px 8px;align-items:center;}
+.sf-arca__diag-pasos strong{font-size:.9rem;font-weight:600;color:var(--text-color);}
+.sf-arca__diag-pasos b{font-size:.82rem;white-space:nowrap;color:var(--texto-mutado);}
+.sf-arca__diag-pasos b[data-estado=ok]{color:#1fba81;}
+.sf-arca__diag-pasos b[data-estado=aviso]{color:var(--naranja-sterak);}
+.sf-arca__diag-pasos b[data-estado=error]{color:#f17878;}
+.sf-arca__diag-pasos small{grid-column:1/-1;color:var(--texto-mutado);line-height:1.4;overflow-wrap:anywhere;}
+.sf-arca__diag-resumen{font-size:.88rem;line-height:1.5;margin:13px 0;padding:10px 12px;background:var(--bg-color);border-left:3px solid var(--borde);}
+.sf-arca__diag-resumen[data-estado=ok]{border-left-color:#1fba81;}
+.sf-arca__diag-resumen[data-estado=error]{border-left-color:#f17878;}
+.sf-arca__diag-resumen[data-estado=parcial]{border-left-color:var(--naranja-sterak);}

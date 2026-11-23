@@ -80,6 +80,11 @@ def _soap_post(url, action, body_element):
 
 
 def _environment():
+    # STERAKFOOD_5A_BRIDGE_WSFE
+    from marca.arca_vault_5a import runtime_emision
+    _runtime_5a = runtime_emision()
+    if _runtime_5a is not None:
+        return _runtime_5a.entorno
     env = os.environ.get('ARCA_ENV', 'homologacion').strip().lower()
     if env not in URLS:
         raise ArcaError('ARCA_ENV debe ser homologacion o produccion.')
@@ -96,6 +101,10 @@ def _environment():
 
 
 def _credentials():
+    from marca.arca_vault_5a import runtime_emision
+    _runtime_5a = runtime_emision()
+    if _runtime_5a is not None:
+        return _runtime_5a.clave_privada, _runtime_5a.certificado
     raw = os.environ.get('ARCA_P12_BASE64','').strip()
     pwd = os.environ.get('ARCA_P12_PASSWORD','')
     if not raw:
@@ -115,6 +124,12 @@ def _credentials():
 
 
 def _get_token(env):
+    from marca.arca_vault_5a import runtime_emision, token_runtime_emision
+    _runtime_5a = runtime_emision()
+    if _runtime_5a is not None:
+        if _runtime_5a.entorno != env:
+            raise ArcaError('El entorno fiscal no coincide con la credencial activa.')
+        return token_runtime_emision(_runtime_5a)
     # No almacenar claves privadas ni certificados en DB o logs.
     wsaa_url, _ = URLS[env]
     cuit = os.environ.get('ARCA_CUIT','').strip()

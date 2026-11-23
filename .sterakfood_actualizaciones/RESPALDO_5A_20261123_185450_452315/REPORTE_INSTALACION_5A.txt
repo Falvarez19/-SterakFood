@@ -1,0 +1,6 @@
+PASO 5A INSTALADO CORRECTAMENTE
+Proyecto: C:\Users\FerchoNB\Desktop\Python Cositas\-SterakFood
+Respaldo: C:\Users\FerchoNB\Desktop\Python Cositas\-SterakFood\.sterakfood_actualizaciones\RESPALDO_5A_20261123_185450_452315
+Migracion: marca/migrations/0002_arca_autogestion_5a.py
+No se habilito ninguna facturacion ni se subieron certificados.
+Proximo: configurar clave STERAK_ARCA_VAULT_KEY persistente y revisar Mi negocio.

@@ -9,6 +9,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_POST
 
+from .arca_certificado_4g import inspeccionar_certificado  # STERAKFOOD_4G_CERTIFICADO_INTEGRADO
 from .views import autorizado
 
 
@@ -102,8 +103,14 @@ def diagnosticar_arca(request):
     if not autorizado(request):
         return JsonResponse({'error': 'Acceso exclusivo del propietario.'}, status=403)
 
+    # STERAKFOOD_5A_DIAGNOSTICO: preferir credencial subida desde Mi negocio.
+    from .arca_vault_5a import diagnostico_autogestion_5a
+    respuesta_5a = diagnostico_autogestion_5a()
+    if respuesta_5a is not None:
+        return JsonResponse(respuesta_5a)
     env = os.environ.get('ARCA_ENV', 'homologacion').strip().lower()
     pasos = {
+        'certificado': _paso('Certificado digital P12', 'pendiente', 'Todavía no se comprobó.'),
         'servidores': _paso('Servidores ARCA', 'pendiente', 'Todavía no se comprobaron.'),
         'wsaa': _paso('Autenticación WSAA', 'pendiente', 'Requiere certificado y CUIT.'),
         'wsfe': _paso('Consulta WSFEv1', 'pendiente', 'Requiere autenticación.'),
@@ -124,6 +131,8 @@ def diagnosticar_arca(request):
         # No publicar respuestas SOAP internas ni secretos en JSON.
         pasos['servidores'] = _paso('Servidores ARCA', 'error', 'No respondió el servicio FEDummy; reintentá más tarde.')
 
+    estado_cert = inspeccionar_certificado()
+    pasos['certificado'] = _paso('Certificado digital P12', estado_cert['estado'], estado_cert['detalle'])
     cuit = os.environ.get('ARCA_CUIT', '').strip()
     cert = bool(os.environ.get('ARCA_P12_BASE64', '').strip())
     pv_raw = os.environ.get('ARCA_PUNTO_VENTA', '').strip()

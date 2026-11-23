@@ -226,12 +226,19 @@ def arca_propietario(request):
         elif pv_raw and (not pv_raw.isascii() or not pv_raw.isdigit() or not 1 <= int(pv_raw) <= 99999):
             mensajes.error(request, 'El punto de venta debe estar entre 1 y 99999.')
         else:
+            # STERAKFOOD_5A_VISTA_INTEGRADA
+            _cambio_fiscal_5a = (fiscal.cuit != cuit or fiscal.condicion_iva != condicion
+                or fiscal.punto_venta_referencia != (int(pv_raw) if pv_raw else None)
+                or fiscal.razon_social != razon or fiscal.domicilio_fiscal != domicilio)
             fiscal.razon_social = razon
             fiscal.cuit = cuit
             fiscal.condicion_iva = condicion
             fiscal.domicilio_fiscal = domicilio
             fiscal.punto_venta_referencia = int(pv_raw) if pv_raw else None
             fiscal.save()
+            if _cambio_fiscal_5a:
+                from .arca_vault_5a import invalidar_por_cambio_fiscal
+                invalidar_por_cambio_fiscal()
             mensajes.success(request, 'Datos fiscales guardados. La emision sigue su configuracion independiente.')
             return redirect('marca:arca_propietario')
     # SOLO indicadores booleanos, nunca P12, contrasenas, token o clave privada.
@@ -241,7 +248,20 @@ def arca_propietario(request):
         'certificado_configurado': bool(os.environ.get('ARCA_P12_BASE64', '').strip()),
         'punto_venta_configurado': bool(os.environ.get('ARCA_PUNTO_VENTA', '').strip()),
     }
+    from .models import ArcaCredencial
+    try:
+        _estado_5a = ArcaCredencial.objects.filter(activa=True).first()
+        if ArcaCredencial.objects.exists():
+            estado['emision_habilitada'] = bool(_estado_5a)
+            estado['certificado_configurado'] = True
+            estado['punto_venta_configurado'] = True
+            estado['entorno'] = _estado_5a.entorno if _estado_5a else 'pendiente de activar'
+    except (OperationalError, ProgrammingError):
+        pass
+    from .arca_vault_5a import boveda_disponible, estado_lectura_5a
     return render(request, 'marca/arca_propietario.html', {
+        'boveda_5a': boveda_disponible(),
+        'arca_credenciales_5a': estado_lectura_5a(),
         'fiscal': fiscal,
         'condiciones_iva': ConfiguracionFiscal.CONDICIONES_IVA,
         'estado': estado,

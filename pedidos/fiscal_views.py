@@ -74,6 +74,11 @@ def emitir_manual(request):
         env=_environment()
         cuit=os.environ.get('ARCA_CUIT','').strip()
         pv=int(os.environ.get('ARCA_PUNTO_VENTA','0'))
+        # STERAKFOOD_5A_BRIDGE_FISCAL
+        from marca.arca_vault_5a import emisor_operativo
+        _emisor_5a = emisor_operativo()
+        if _emisor_5a is not None:
+            cuit, pv = _emisor_5a
         if len(cuit)!=11 or not cuit.isdigit() or not 1<=pv<=99999:
             raise ArcaError('Configurar CUIT y punto de venta autorizados en Render.')
         bid=int(data.get('borrador_id') or 0)
@@ -147,7 +152,10 @@ def consultar_incierta(request, factura_id):
             if fac.estado=='autorizada': return JsonResponse(_serialize(fac))
             if not fac.numero:
                 return JsonResponse({'status':'aviso','mensaje':'No se asignó número. Revisar antes de reintentar.'},status=409)
-            if _environment()!=fac.entorno or os.environ.get('ARCA_CUIT','')!=fac.cuit_emisor:
+            from marca.arca_vault_5a import emisor_operativo
+            _emisor_5a = emisor_operativo()
+            _cuit_5a = _emisor_5a[0] if _emisor_5a else os.environ.get('ARCA_CUIT','')
+            if _environment()!=fac.entorno or _cuit_5a!=fac.cuit_emisor:
                 raise ArcaError('No coincide el entorno o CUIT de la factura original.')
             resultado=consultar(fac.punto_venta,6,fac.numero)
             if not resultado:
@@ -166,6 +174,12 @@ def consultar_incierta(request, factura_id):
         return JsonResponse({'status':'error','mensaje':str(exc)},status=409)
 
 
+def _dato_ticket_5a(nombre, heredado):
+    from marca.arca_vault_5a import metadatos_ticket_5a
+    actual = metadatos_ticket_5a()
+    return actual.get(nombre, heredado) if actual is not None else heredado
+
+
 def _authorized_printer(request):
     expected=os.environ.get('TICKETERA_PRINT_TOKEN','').strip()
     received=request.headers.get('X-Ticketera-Token','')
@@ -180,11 +194,11 @@ def tickets_fiscales_pendientes(request):
     qs=FacturaFiscal.objects.select_related('borrador').filter(estado='autorizada',impresion_confirmada=False).order_by('creado')[:30]
     return JsonResponse({'status':'ok','tickets':[
         {'id':f.id,'entorno':f.entorno,'cuit':f.cuit_emisor,
-         'razon_social':os.environ.get('ARCA_RAZON_SOCIAL', settings.RESTAURANT_NAME),
-         'domicilio':os.environ.get('ARCA_DOMICILIO',''),
-         'condicion_iva_emisor':os.environ.get('ARCA_CONDICION_IVA',''),
-         'ingresos_brutos':os.environ.get('ARCA_INGRESOS_BRUTOS',''),
-         'inicio_actividades':os.environ.get('ARCA_INICIO_ACTIVIDADES',''),
+         'razon_social':_dato_ticket_5a('razon_social', os.environ.get('ARCA_RAZON_SOCIAL', settings.RESTAURANT_NAME)),
+         'domicilio':_dato_ticket_5a('domicilio', os.environ.get('ARCA_DOMICILIO','')),
+         'condicion_iva_emisor':_dato_ticket_5a('condicion_iva_emisor', os.environ.get('ARCA_CONDICION_IVA','')),
+         'ingresos_brutos':_dato_ticket_5a('ingresos_brutos', os.environ.get('ARCA_INGRESOS_BRUTOS','')),
+         'inicio_actividades':_dato_ticket_5a('inicio_actividades', os.environ.get('ARCA_INICIO_ACTIVIDADES','')),
          'mesa':f.borrador.mesa,'mozo':f.borrador.mozo,
          'items':f.borrador.items,'total':str(f.total),
          'numero':f'{f.punto_venta:05d}-{f.numero:08d}',

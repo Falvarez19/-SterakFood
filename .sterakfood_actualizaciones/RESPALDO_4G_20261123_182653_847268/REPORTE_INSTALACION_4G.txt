@@ -1,0 +1,11 @@
+STERAKFOOD ACTUALIZACION 4G: INSTALADA
+Proyecto: C:\Users\FerchoNB\Desktop\Python Cositas\-SterakFood
+Respaldo: C:\Users\FerchoNB\Desktop\Python Cositas\-SterakFood\.sterakfood_actualizaciones\RESPALDO_4G_20261123_182653_847268
+Archivos modificados:
+- marca/arca_diagnostico_4f.py
+- marca/templates/marca/arca_propietario.html
+- marca/arca_certificado_4g.py
+- marca/tests_arca_certificado_4g.py
+No se emitieron facturas.
+No se modificaron .env, claves, DB, certificados ni emisión.
+Prueba Django: OK
