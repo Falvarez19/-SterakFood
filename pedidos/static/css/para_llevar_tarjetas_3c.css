@@ -1,0 +1,163 @@
+/*
+ * SterakFood · Paso 3C — catálogo legible en Para llevar.
+ * Objetivo: mostrar foto, nombre, variantes, precio y acción SIN cortes.
+ * Depende de la distribución compacta 3B y se carga DESPUÉS de ese CSS.
+ * Alcance deliberadamente visual: no altera el carrito, los pedidos, las
+ * variantes, la impresión ni las funciones de búsqueda y cobro.
+ */
+
+/* La grilla usa tres tarjetas legibles, no cuatro tarjetas estrechas.
+   En anchos reducidos bajamos a dos o una para mantener los botones completos. */
+#pl-dialog .pl-catalogo {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: max-content;
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+  padding: 2px 5px 14px 1px;
+}
+
+/* Al usar filas automáticas, las descripciones de dos o tres líneas no
+   se superponen al pie de la tarjeta. El navegador calcula su altura real. */
+#pl-dialog .pl-producto {
+  box-sizing: border-box;
+  width: 100%;
+  height: auto;
+  min-width: 0;
+  min-height: 126px;
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-content: space-between;
+  align-items: start;
+  gap: 9px 10px;
+  overflow: visible;
+  padding: 11px;
+  border-radius: 8px;
+  text-align: left;
+}
+
+#pl-dialog .pl-miniatura {
+  width: 50px;
+  height: 50px;
+  max-width: 100%;
+  flex-shrink: 0;
+  border-radius: 7px;
+}
+#pl-dialog .pl-producto-info {
+  min-width: 0;
+  overflow: visible;
+}
+#pl-dialog .pl-producto-info strong {
+  display: block;
+  color: var(--text-color, #f5f5f5);
+  font-size: .82rem;
+  line-height: 1.24;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+#pl-dialog .pl-producto-info small {
+  display: block;
+  font-size: .7rem;
+  line-height: 1.3;
+  margin-top: 4px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Pie completo: precio a la izquierda y botón a la derecha. Si el usuario
+   aumenta el zoom y no alcanza el ancho, se acomodan uno debajo del otro. */
+#pl-dialog .pl-producto-accion {
+  box-sizing: border-box;
+  grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 8px;
+  margin-top: 0;
+}
+#pl-dialog .pl-precio-producto {
+  flex: 0 0 auto;
+  font-size: .88rem;
+  line-height: 1.25;
+  font-weight: 800;
+  white-space: nowrap;
+}
+#pl-dialog .pl-boton-sumar {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 6px 9px;
+  font-size: .73rem;
+  line-height: 1.15;
+  font-weight: 750;
+  white-space: nowrap;
+  border-radius: 6px;
+}
+
+/* Categorías de nombres largos: conservamos sus nombres originales,
+   pero facilitamos encontrar cada una sin robar altura al catálogo. */
+#pl-dialog .pl-categoria {
+  font-size: .72rem;
+  line-height: 1.2;
+  padding: 7px 10px;
+  border-radius: 6px;
+}
+
+/* Contraste en modo claro: el naranja original queda como acento, con un
+   naranja más oscuro solo para textos pequeños sobre fondo blanco. */
+body[data-theme="light"] #pl-dialog .pl-precio-producto,
+body[data-theme="light"] #pl-dialog .pl-boton-sumar {
+  color: #a84000;
+}
+body[data-theme="light"] #pl-dialog .pl-producto {
+  background: var(--card-bg, #fff);
+  border-color: var(--borde, #d6d9df);
+}
+body[data-theme="light"] #pl-dialog .pl-producto:hover {
+  border-color: #d65e15;
+  background: #fff8f3;
+}
+body[data-theme="light"] #pl-dialog .pl-producto-accion {
+  border-top-color: var(--borde, #d6d9df);
+}
+body[data-theme="light"] #pl-dialog .pl-boton-sumar {
+  background: #fff0e5;
+}
+
+/* 1024 px: el panel del catálogo se hace demasiado estrecho para tres. */
+@media (max-width: 1120px) {
+  #pl-dialog .pl-catalogo {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+/* El layout móvil del paso 3B muestra el catálogo encima del carrito. */
+@media (max-width: 760px) {
+  #pl-dialog .pl-catalogo {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  #pl-dialog .pl-producto {
+    min-height: 118px;
+    padding: 9px;
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+  #pl-dialog .pl-miniatura { width: 44px; height: 44px; }
+}
+@media (max-width: 530px) {
+  #pl-dialog .pl-catalogo { grid-template-columns: 1fr; }
+  #pl-dialog .pl-producto {
+    grid-template-columns: 50px minmax(0, 1fr);
+    min-height: 103px;
+  }
+  #pl-dialog .pl-miniatura { width: 50px; height: 50px; }
+}
