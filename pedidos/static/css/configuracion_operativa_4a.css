@@ -35,3 +35,13 @@
 .sf-op__hidden{display:none}
 @media(max-width:850px){.sf-op__columnas{grid-template-columns:1fr}}
 @media(max-width:600px){.sf-op{width:calc(100% - 22px);margin-top:15px}.sf-op__cabecera{flex-direction:column}.sf-op__seccion{padding:15px}.sf-op__impresoras-grid{grid-template-columns:1fr}.sf-op__impresoras-acciones{grid-column:1}}
+
+/* STERAKFOOD_PASO_4C_MESAS_ALTURA_INDEPENDIENTE
+   La grilla agrupa Mesas y Mozos en dos columnas, pero cada panel debe
+   medir solo lo que necesita su propio contenido. Sin esto, CSS Grid
+   estira ambos paneles hasta la altura del mas largo (normalmente Mozos).
+   Esta regla tambien respeta la vista responsive de una sola columna.
+*/
+.sf-op__columnas {
+  align-items: start;
+}
