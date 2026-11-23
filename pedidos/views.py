@@ -1874,8 +1874,10 @@ def salon(request):
             .annotate(saldo_pos=Sum('movimientos__monto'))
             .order_by('nombre', 'id')
     ]
+    # Paso 4A: solo cambia la cantidad de botones, no los datos de las cuentas.
+    numero_mesas_visibles = max(1, min(100, int(getattr(obtener_configuracion(), 'numero_mesas_visibles', 100))))
     return render(request, 'pedidos/salon.html', {
-        'mesas': range(1,101), 'productos': productos_js,
+        'mesas': range(1, numero_mesas_visibles + 1), 'productos': productos_js,
         'mozos': mozos_js, 'pedidos_web_salon': _salon_items_pedidos_web(),
         'cuentas_corrientes_pos': cuentas_credito_js,
         'fiscal_emision_activa': os.environ.get('ARCA_FISCAL_ENABLED')=='1' and (os.environ.get('ARCA_ENV','homologacion')!='produccion' or os.environ.get('ARCA_PRODUCCION_CONFIRMADA')=='SI'),

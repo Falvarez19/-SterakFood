@@ -1,0 +1,91 @@
+{% extends 'pedidos/base.html' %}
+{% load static %}
+{% block title %}Configuración operativa | {{ restaurant_name }}{% endblock %}
+{% block nav_acciones %}
+  <a class="btn-nav-ghost" href="{% url 'pedidos:panel_control' %}">Volver al panel</a>
+{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/configuracion_operativa_4a.css' %}?v=4a-1">
+{% endblock %}
+{% block content %}
+<div class="sf-op" id="sf-operacion"
+  data-mesas-url="{% url 'pedidos:guardar_mesas_visibles' %}"
+  data-mozos-agregar="{% url 'pedidos:agregar_mozo' %}"
+  data-mozos-eliminar-patron="{% url 'pedidos:eliminar_mozo' 999999 %}"
+  data-impresoras-get="{% url 'pedidos:impresoras_obtener' %}"
+  data-impresoras-post="{% url 'pedidos:impresoras_guardar' %}"
+  data-impresoras-vincular="{% url 'pedidos:impresoras_vincular' %}">
+  <header class="sf-op__cabecera">
+    <div>
+      <span class="sf-op__kicker">STERAKFOOD · CONFIGURACIÓN</span>
+      <h1>Operación del restaurante</h1>
+      <p>Mesas, personal e impresoras. Estos ajustes pertenecen solamente a esta instalación.</p>
+    </div>
+    <nav class="sf-op__nav" aria-label="Accesos rápidos">
+      <a href="{% url 'pedidos:salon' %}">Ir a Salón</a>
+      <a href="{% url 'marca:configurar' %}">Mi negocio</a>
+    </nav>
+  </header>
+  <form class="sf-op__hidden" id="sf-op-csrf">{% csrf_token %}</form>
+  <div class="sf-op__columnas">
+    <section class="sf-op__seccion" aria-labelledby="op-mesas-titulo">
+      <div class="sf-op__titulo"><h2 id="op-mesas-titulo">Mesas</h2><span>1—100</span></div>
+      <p>Elegí cuántas mesas aparecen en la grilla de Salón.</p>
+      <form id="op-mesas-form" class="sf-op__form-inline">
+        <label for="op-cantidad-mesas">Mesas visibles
+          <input id="op-cantidad-mesas" name="numero_mesas_visibles" type="number" min="1" max="100" step="1" value="{{ cantidad_mesas_visibles }}" required>
+        </label>
+        <button type="submit" class="sf-op__btn sf-op__btn--principal">Guardar</button>
+      </form>
+      <p class="sf-op__nota">No se borra ninguna cuenta al reducirlas. Las mesas anteriores fuera de la grilla siguen accesibles por <strong>Mesa rápida</strong>. Comprobá las mesas ocupadas antes de cambiar este valor.</p>
+      <p class="sf-op__respuesta" id="op-mesas-estado" aria-live="polite"></p>
+    </section>
+
+    <section class="sf-op__seccion" aria-labelledby="op-mozos-titulo">
+      <div class="sf-op__titulo"><h2 id="op-mozos-titulo">Mozos</h2><span id="op-mozos-total">{{ mozos_operativos|length }} registrados</span></div>
+      <p>El número es el identificador con el que podés seleccionarlo al abrir una mesa.</p>
+      <form id="op-mozos-form" class="sf-op__form-inline">
+        <label for="op-mozo-nombre">Nombre del mozo
+          <input type="text" id="op-mozo-nombre" name="nombre" maxlength="100" required autocomplete="off" placeholder="Ej.: Marcelo">
+        </label>
+        <button type="submit" class="sf-op__btn sf-op__btn--principal">Agregar</button>
+      </form>
+      <ul id="op-mozos-lista" class="sf-op__lista">
+        {% for mozo in mozos_operativos %}
+        <li data-mozo-id="{{ mozo.pk }}"><span><b>{{ mozo.pk }}.</b> {{ mozo.nombre }}</span><button type="button" class="sf-op__btn sf-op__btn--discreto" data-mozo-eliminar="{{ mozo.pk }}">Quitar</button></li>
+        {% endfor %}
+      </ul>
+      <p class="sf-op__nota">Quitar un mozo de la lista no cambia las ventas anteriores. Si está asignado a una mesa abierta, verificá esa mesa antes de quitarlo.</p>
+      <p class="sf-op__respuesta" id="op-mozos-estado" aria-live="polite"></p>
+    </section>
+  </div>
+
+  <section class="sf-op__seccion sf-op__impresoras" aria-labelledby="op-impresoras-titulo">
+    <div class="sf-op__titulo"><h2 id="op-impresoras-titulo">Impresoras del negocio</h2><span id="op-impresoras-conexion">Consultando...</span></div>
+    <p>Elegí los destinos de caja, cocina y barra. La impresión ocurre desde la PC o el agente del restaurante, nunca directamente desde Render.</p>
+    <form id="op-impresoras-form" class="sf-op__impresoras-grid">
+      <label>Impresora de caja (nombre en Windows)
+        <input name="caja_windows" maxlength="120" autocomplete="off" required placeholder="FACTURA_PYTHON">
+      </label>
+      <label>Ancho del ticket
+        <select name="ancho_ticket"><option value="32">32 caracteres</option><option value="42">42 caracteres</option><option value="48">48 caracteres</option></select>
+      </label>
+      <label>IP de cocina
+        <input name="ip_cocina" autocomplete="off" required placeholder="192.168.1.100">
+      </label>
+      <label>IP de barra
+        <input name="ip_barra" autocomplete="off" required placeholder="192.168.1.101">
+      </label>
+      <div class="sf-op__impresoras-acciones">
+        <button type="submit" class="sf-op__btn sf-op__btn--principal">Guardar impresoras</button>
+        <button type="button" id="op-descargar-vinculo" class="sf-op__btn">Descargar vinculación para esta PC</button>
+      </div>
+    </form>
+    <p class="sf-op__nota">Se admiten direcciones IPv4 privadas. Si cambiás la vinculación, el agente anterior deja de estar autorizado; hacelo solamente cuando necesites volver a vincular la PC. El archivo descargado es privado.</p>
+    <p class="sf-op__respuesta" id="op-impresoras-estado" aria-live="polite"></p>
+  </section>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'script/configuracion_operativa_4a.js' %}?v=4a-1" defer></script>
+{% endblock %}

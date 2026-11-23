@@ -139,6 +139,11 @@
                     <span class="salon-pos__herramienta-icono" aria-hidden="true">🖨</span>
                     <span class="salon-pos__herramienta-textos"><strong>Impresoras</strong><small>Caja, cocina y barra.</small></span>
                 </a>
+                {# Paso 4A: configuración operativa en una sola pantalla. #}
+                <a href="{% url 'pedidos:configuracion_operativa' %}" class="salon-pos__herramienta-boton">
+                    <span class="salon-pos__herramienta-icono" aria-hidden="true">⚙</span>
+                    <span class="salon-pos__herramienta-textos"><strong>Configurar restaurante</strong><small>Mesas, mozos e impresoras</small></span>
+                </a>
                 <a href="{% url 'pedidos:fiscal_preparacion' %}"
                    class="salon-pos__herramienta-boton" title="Facturación ARCA: habilitación y datos fiscales">
                     <span class="salon-pos__herramienta-icono" aria-hidden="true">🧾</span>

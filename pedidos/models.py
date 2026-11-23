@@ -144,6 +144,8 @@ class Configuracion(models.Model):
     mostrar_opiniones = models.BooleanField(default=True, verbose_name="Mostrar opiniones")
     mostrar_google_reviews = models.BooleanField(default=True, verbose_name="Mostrar Google Reviews")
     mostrar_bienvenida = models.BooleanField(default=False, verbose_name="Mostrar bienvenida")
+    # Paso 4A: limita solo la grilla visible. Nunca elimina cuentas de mesas.
+    numero_mesas_visibles = models.PositiveSmallIntegerField(default=100, verbose_name="Mesas visibles en Salón")
     salon_habilitado = models.BooleanField(default=True, verbose_name="Módulo Salón / Mesas")
 
     def __str__(self):

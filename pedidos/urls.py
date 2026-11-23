@@ -2,7 +2,7 @@
 from django.views.generic import TemplateView
 from django.contrib import admin
 from django.urls import path
-from . import views, impresoras_views, fiscal_views, para_llevar
+from . import views, impresoras_views, fiscal_views, para_llevar, configuracion_operativa
 app_name = 'pedidos'
 urlpatterns = [
     path('salon/fiscal/emitir-manual/', fiscal_views.emitir_manual, name='fiscal_emitir_manual'),
@@ -54,6 +54,9 @@ urlpatterns = [
     # ==========================================
     # 4. RUTAS DEL DASHBOARD (PANEL DE CONTROL)
     # ==========================================
+    # Paso 4A: ajustes por negocio sin repetir los modelos de mozos/impresoras.
+    path('dashboard/configuracion-operativa/', configuracion_operativa.configuracion_operativa, name='configuracion_operativa'),
+    path('dashboard/configuracion-operativa/mesas/', configuracion_operativa.guardar_mesas_visibles, name='guardar_mesas_visibles'),
     path('dashboard/', views.panel_control, name='panel_control'),
     path('dashboard/configuracion/actualizar/', views.actualizar_configuracion, name='actualizar_configuracion'),
     path('dashboard/popup-bienvenida/subir/', views.subir_popup_bienvenida, name='subir_popup_bienvenida'),

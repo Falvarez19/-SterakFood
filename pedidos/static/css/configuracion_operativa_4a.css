@@ -1,0 +1,37 @@
+/* Configuracion operativa v4A. Aislamiento: solo afecta a la pantalla .sf-op.
+   Los colores heredan el tema de SterakFood; nada de CSS embebido. */
+.sf-op{width:min(1180px,calc(100% - 36px));margin:22px auto 60px;color:var(--text-color);font:inherit}
+.sf-op__cabecera,.sf-op__titulo,.sf-op__form-inline,.sf-op__nav,.sf-op__impresoras-acciones{display:flex;gap:12px;align-items:center;justify-content:space-between}
+.sf-op__cabecera{align-items:flex-start;margin-bottom:22px;gap:20px}
+.sf-op__cabecera h1{font-size:clamp(1.5rem,2vw,2rem);line-height:1.15;margin:4px 0 6px}
+.sf-op__cabecera p,.sf-op__seccion>p{color:var(--texto-mutado);font-size:.88rem;line-height:1.45}
+.sf-op__kicker{color:var(--naranja-sterak);font-size:.73rem;font-weight:750;letter-spacing:.07em}
+.sf-op__nav{justify-content:flex-end;flex-wrap:wrap}
+.sf-op__nav a{color:var(--text-color);text-decoration:none;font-size:.86rem;font-weight:650;border:1px solid var(--borde);border-radius:5px;padding:9px 12px}
+.sf-op__nav a:hover{border-color:var(--naranja-sterak)}
+.sf-op__columnas{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-bottom:14px}
+.sf-op__seccion{background:var(--card-bg);border:1px solid var(--borde);border-radius:7px;padding:22px;min-width:0}
+.sf-op__titulo{border-bottom:1px solid var(--borde);padding-bottom:12px;margin-bottom:15px}
+.sf-op__titulo h2{font-size:1.09rem;margin:0}
+.sf-op__titulo span{font-size:.8rem;color:var(--texto-mutado)}
+.sf-op__form-inline{justify-content:flex-start;align-items:end;margin:15px 0;flex-wrap:wrap}
+.sf-op label{font-size:.78rem;font-weight:650;display:flex;flex-direction:column;gap:5px;min-width:0;flex:1}
+.sf-op input,.sf-op select{width:100%;min-width:0;min-height:41px;padding:9px 11px;border:1px solid var(--borde);border-radius:5px;background:var(--bg-color);color:var(--text-color);font:inherit;font-size:.91rem}
+.sf-op input:focus-visible,.sf-op select:focus-visible,.sf-op button:focus-visible{outline:2px solid var(--naranja-sterak);outline-offset:2px}
+.sf-op__form-inline label{flex:1;min-width:150px}
+.sf-op__btn{padding:10px 14px;border:1px solid var(--borde);background:var(--bg-color);color:var(--text-color);border-radius:5px;font-weight:700;cursor:pointer;white-space:normal;font-size:.82rem}
+.sf-op__btn--principal{background:var(--naranja-sterak);border-color:var(--naranja-sterak);color:#151515}
+.sf-op__btn:hover{filter:brightness(1.09)}
+.sf-op__btn:disabled{opacity:.55;cursor:wait}
+.sf-op__nota{font-size:.78rem!important;line-height:1.5!important;margin-top:10px!important}
+.sf-op__respuesta{min-height:1.25rem;margin-top:10px;color:var(--naranja-sterak)!important;font-weight:600}
+.sf-op__respuesta[data-error="1"]{color:#ed6e6e!important}
+.sf-op__lista{list-style:none;padding:0;margin:16px 0 4px;max-height:250px;overflow:auto}
+.sf-op__lista li{border-bottom:1px solid var(--borde);padding:7px 0;display:flex;gap:12px;align-items:center;justify-content:space-between;font-size:.9rem}
+.sf-op__lista b{color:var(--naranja-sterak)}
+.sf-op__btn--discreto{padding:7px 10px}
+.sf-op__impresoras-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:18px}
+.sf-op__impresoras-acciones{grid-column:1/-1;justify-content:flex-start;flex-wrap:wrap}
+.sf-op__hidden{display:none}
+@media(max-width:850px){.sf-op__columnas{grid-template-columns:1fr}}
+@media(max-width:600px){.sf-op{width:calc(100% - 22px);margin-top:15px}.sf-op__cabecera{flex-direction:column}.sf-op__seccion{padding:15px}.sf-op__impresoras-grid{grid-template-columns:1fr}.sf-op__impresoras-acciones{grid-column:1}}
