@@ -9040,3 +9040,87 @@ body[data-theme="light"] .navbar .logo-light { display: block !important; }
   .sf-dash-panel .sf-panel-nav .panel-tab-btn{min-height:38px}
 }
 /* === FIN PASO 1B === */
+
+/* STERAKFOOD_4B_CORRECCION_CONTRASTE_START
+   Las tarjetas usan --bg-color: --input-bg no existe en SterakFood.
+   Mantener contraste real entre modos claro y oscuro, sin colores rígidos.
+*/
+.sm-herramientas-central__grid > button,
+.sm-herramientas-central__grid > a {
+    background: var(--bg-color) !important;
+    color: var(--text-color) !important;
+    border-color: var(--borde) !important;
+}
+.sm-herramientas-central__grid > button b,
+.sm-herramientas-central__grid > a b {
+    color: inherit !important;
+}
+.sm-herramientas-central__grid > button small,
+.sm-herramientas-central__grid > a small {
+    color: var(--texto-mutado) !important;
+    opacity: 1;
+}
+.sm-herramientas-central__grid > button:hover,
+.sm-herramientas-central__grid > a:hover,
+.sm-herramientas-central__grid > button:focus-visible,
+.sm-herramientas-central__grid > a:focus-visible {
+    background: var(--card-bg) !important;
+    border-color: var(--naranja-sterak) !important;
+}
+/* Salón: el antiguo selector dejaba texto #111 sobre fondo oscuro. */
+body:has(#salon-pos.salon-pos--clasico) .navbar .btn-instalar-app {
+    color: var(--text-color) !important;
+    border-color: var(--borde) !important;
+}
+body:has(#salon-pos.salon-pos--clasico) .navbar .btn-instalar-app:hover {
+    color: var(--naranja-sterak) !important;
+}
+/* Inicio de sesión propio; el restaurante nunca necesita abrir Django Admin. */
+.sf-owner-login {
+    width: min(440px, calc(100% - 32px));
+    margin: clamp(32px, 7vh, 72px) auto;
+    padding: clamp(22px, 3vw, 30px);
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text-color);
+}
+.sf-owner-login__eyebrow {
+    font-size: .75rem;
+    font-weight: 750;
+    letter-spacing: .05em;
+    color: var(--naranja-sterak);
+}
+.sf-owner-login h1 {font-size: 1.6rem; line-height: 1.3; margin: 6px 0 8px;}
+.sf-owner-login__intro,.sf-owner-login__foot {
+    color: var(--texto-mutado);
+    font-size: .86rem;
+    line-height: 1.5;
+}
+.sf-owner-login form {display: grid; gap: 9px; margin-top: 22px;}
+.sf-owner-login label {font-weight: 650; font-size: .87rem;}
+.sf-owner-login input {
+    width: 100%; min-height: 43px; margin: 0 0 8px;
+    border: 1px solid var(--borde);
+    border-radius: 5px;
+    padding: 9px 12px;
+    color: var(--text-color);
+    background: var(--bg-color);
+    font: inherit;
+}
+.sf-owner-login input:focus-visible,.sf-owner-login button:focus-visible {
+    outline: 2px solid var(--naranja-sterak); outline-offset: 2px;
+}
+.sf-owner-login form button {
+    margin-top: 7px; min-height: 44px; padding: 10px 14px;
+    border: 0; border-radius: 5px; cursor: pointer;
+    background: var(--naranja-sterak); color: #121212;
+    font-weight: 750; font: inherit;
+}
+.sf-owner-login__error {
+    padding: 9px 11px; margin: 8px 0;
+    color: #b72525; background: #fff0ef; border-left: 3px solid #d53c38;
+    font-size: .83rem;
+}
+.sf-owner-login__foot {margin-top: 18px;}
+/* STERAKFOOD_4B_CORRECCION_CONTRASTE_END */

@@ -1,0 +1,25 @@
+{% extends 'pedidos/base.html' %}
+{% block title %}Acceso de propietario | {{ restaurant_name }}{% endblock %}
+{% block nav_acciones %}<a href="{% url 'pedidos:panel_control' %}" class="btn-nav-ghost">Volver al panel</a>{% endblock %}
+{% block content %}
+{# El acceso a la personalización requiere propietario, no el PIN operativo del cajero. #}
+<section class="sf-owner-login" aria-labelledby="sf-owner-login-title">
+  <p class="sf-owner-login__eyebrow">STERAKFOOD · CONFIGURACIÓN</p>
+  <h1 id="sf-owner-login-title">Acceso de propietario</h1>
+  <p class="sf-owner-login__intro">Ingresá con tu cuenta de propietario para cambiar el nombre, los logos y los colores del restaurante.</p>
+  {% if form.non_field_errors %}
+    <div class="sf-owner-login__error" role="alert">{% for error in form.non_field_errors %}{{ error }}{% endfor %}</div>
+  {% endif %}
+  <form method="post" action="{% url 'marca:acceso' %}" autocomplete="on">
+    {% csrf_token %}
+    <label for="id_username">Usuario</label>
+    {{ form.username }}
+    {% if form.username.errors %}<div class="sf-owner-login__error">{{ form.username.errors }}</div>{% endif %}
+    <label for="id_password">Contraseña</label>
+    {{ form.password }}
+    {% if form.password.errors %}<div class="sf-owner-login__error">{{ form.password.errors }}</div>{% endif %}
+    <button type="submit">Entrar a Mi negocio</button>
+  </form>
+  <p class="sf-owner-login__foot">El PIN de caja es para operar el POS; la personalización está reservada a la cuenta propietaria.</p>
+</section>
+{% endblock %}

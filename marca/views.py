@@ -65,7 +65,7 @@ def configurar(request):
     if not autorizado(request):
         if getattr(settings, 'SM_LOCAL_MODE', False):
             return redirect('pedidos:login_dashboard')
-        return redirect(f'{reverse("admin:login")}?next={reverse("marca:configurar")}')
+        return redirect('marca:acceso')
     registro, _ = MarcaNegocio.objects.get_or_create(pk=1)
     if request.method == 'POST':
         try:
@@ -169,3 +169,30 @@ def manifiesto(request):
     })
     response['Cache-Control'] = 'no-store'
     return response
+
+
+# STERAKFOOD_4B_ACCESO_PROPIETARIO_START
+@never_cache
+@require_http_methods(['GET', 'POST'])
+def acceso(request):
+    """Autenticación dentro de SterakFood, sin enviar al Django Admin.
+
+    NO sustituir por el PIN del cajero: identidad visual y logos son ajustes
+    de propietario. La sesión utiliza autenticación Django estándar + CSRF.
+    """
+    from django.contrib.auth import login as iniciar_sesion
+    from django.contrib.auth.forms import AuthenticationForm
+
+    if autorizado(request):
+        return redirect('marca:configurar')
+    if getattr(settings, 'SM_LOCAL_MODE', False):
+        return redirect('pedidos:login_dashboard')
+    form = AuthenticationForm(request=request, data=request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        usuario = form.get_user()
+        if usuario.is_superuser and usuario.is_active:
+            iniciar_sesion(request, usuario)
+            return redirect('marca:configurar')
+        form.add_error(None, 'Esta cuenta no tiene permiso para administrar la identidad del negocio.')
+    return render(request, 'marca/acceso.html', {'form': form})
+# STERAKFOOD_4B_ACCESO_PROPIETARIO_END

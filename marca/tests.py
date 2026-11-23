@@ -12,7 +12,7 @@ class MarcaTests(TestCase):
     def test_solo_administrador_puede_cambiar_identidad(self):
         resp = self.cliente.get(reverse('marca:configurar'))
         self.assertEqual(resp.status_code, 302)
-        self.assertIn('admin/login', resp.url)
+        self.assertIn('/mi-negocio/acceso/', resp.url)
 
     def test_superusuario_guarda_identidad_y_colores(self):
         self.cliente.force_login(self.owner)
