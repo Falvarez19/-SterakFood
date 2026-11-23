@@ -2507,8 +2507,9 @@ def _cuit_valido(cuit):
 
 # fiscal_preparacion
 def fiscal_preparacion(request):
-    if not request.session.get('dashboard_auth'):
-        return redirect('pedidos:login_dashboard')
+    from marca.views import autorizado
+    if not autorizado(request):
+        return redirect('marca:acceso')
     config, _ = ConfiguracionFiscal.objects.get_or_create(pk=1)
     if request.method == 'POST':
         razon = (request.POST.get('razon_social') or '').strip()[:180]
@@ -2601,8 +2602,9 @@ def fiscal_guardar_borrador(request):
 
 # fiscal_probar_conexion_arca
 def fiscal_probar_conexion_arca(request):
-    if not request.session.get('dashboard_auth'):
-        return JsonResponse({'status': 'error', 'mensaje': 'No autorizado.'}, status=403)
+    from marca.views import autorizado
+    if not autorizado(request):
+        return JsonResponse({'status': 'error', 'mensaje': 'Solo propietario.'}, status=403)
     if request.method != 'POST':
         return JsonResponse({'status': 'error', 'mensaje': 'Método no permitido.'}, status=405)
     from .arca_homologacion import ArcaDiagnosticoError, fedummy_homologacion

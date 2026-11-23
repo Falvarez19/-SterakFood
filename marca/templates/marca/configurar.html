@@ -12,6 +12,8 @@
     <span class="sf-brand__owner">Configuración del propietario</span>
   </header>
   {% for message in messages %}<p class="sf-brand__message" role="status">{{ message }}</p>{% endfor %}
+  <link rel="stylesheet" href="{% static 'css/arca_propietario.css' %}">
+  <a class="sf-brand__fiscal-link" href="{% url 'marca:arca_propietario' %}">Configuración fiscal (ARCA) · solo propietario</a>
   <form method="post" enctype="multipart/form-data" id="sf-marca-form">
     {% csrf_token %}
     <div class="sf-brand__layout">

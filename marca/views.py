@@ -196,3 +196,53 @@ def acceso(request):
         form.add_error(None, 'Esta cuenta no tiene permiso para administrar la identidad del negocio.')
     return render(request, 'marca/acceso.html', {'form': form})
 # STERAKFOOD_4B_ACCESO_PROPIETARIO_END
+
+# STERAKFOOD_PASO_4E_ARCA_SOLO_PROPIETARIO
+# Credenciales ARCA NUNCA se transmiten desde esta pagina ni se registran.
+@never_cache
+@require_http_methods(['GET', 'POST'])
+def arca_propietario(request):
+    """Administracion fiscal. No admite el PIN del cajero como autorizacion."""
+    import os
+    from django.contrib import messages as mensajes
+    from pedidos.models import ConfiguracionFiscal
+
+    if not autorizado(request):
+        return redirect('marca:acceso')
+    fiscal, _ = ConfiguracionFiscal.objects.get_or_create(pk=1)
+    if request.method == 'POST':
+        from pedidos.views import _cuit_valido
+        razon = (request.POST.get('razon_social') or '').strip()
+        cuit = (request.POST.get('cuit') or '').replace(' ', '').replace('-', '')
+        condicion = (request.POST.get('condicion_iva') or '').strip()
+        domicilio = (request.POST.get('domicilio_fiscal') or '').strip()
+        pv_raw = (request.POST.get('punto_venta_referencia') or '').strip()
+        if len(razon) > 180 or len(domicilio) > 220:
+            mensajes.error(request, 'Los datos fiscales superan la longitud permitida.')
+        elif cuit and not _cuit_valido(cuit):
+            mensajes.error(request, 'El CUIT no es valido.')
+        elif condicion not in dict(ConfiguracionFiscal.CONDICIONES_IVA):
+            mensajes.error(request, 'Condicion impositiva no valida.')
+        elif pv_raw and (not pv_raw.isascii() or not pv_raw.isdigit() or not 1 <= int(pv_raw) <= 99999):
+            mensajes.error(request, 'El punto de venta debe estar entre 1 y 99999.')
+        else:
+            fiscal.razon_social = razon
+            fiscal.cuit = cuit
+            fiscal.condicion_iva = condicion
+            fiscal.domicilio_fiscal = domicilio
+            fiscal.punto_venta_referencia = int(pv_raw) if pv_raw else None
+            fiscal.save()
+            mensajes.success(request, 'Datos fiscales guardados. La emision sigue su configuracion independiente.')
+            return redirect('marca:arca_propietario')
+    # SOLO indicadores booleanos, nunca P12, contrasenas, token o clave privada.
+    estado = {
+        'entorno': os.environ.get('ARCA_ENV', 'homologacion'),
+        'emision_habilitada': os.environ.get('ARCA_FISCAL_ENABLED') == '1',
+        'certificado_configurado': bool(os.environ.get('ARCA_P12_BASE64', '').strip()),
+        'punto_venta_configurado': bool(os.environ.get('ARCA_PUNTO_VENTA', '').strip()),
+    }
+    return render(request, 'marca/arca_propietario.html', {
+        'fiscal': fiscal,
+        'condiciones_iva': ConfiguracionFiscal.CONDICIONES_IVA,
+        'estado': estado,
+    })

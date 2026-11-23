@@ -3,6 +3,7 @@ from . import views
 
 app_name = 'marca'
 urlpatterns = [
+    path('arca/', views.arca_propietario, name='arca_propietario'),
     path('acceso/', views.acceso, name='acceso'),
     path('', views.configurar, name='configurar'),
     path('tema.css', views.tema_css, name='tema_css'),
