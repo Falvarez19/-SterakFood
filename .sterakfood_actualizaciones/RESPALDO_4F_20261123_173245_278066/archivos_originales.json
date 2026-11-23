@@ -1,0 +1,8 @@
+{
+  "marca/urls.py": true,
+  "marca/templates/marca/arca_propietario.html": true,
+  "pedidos/static/css/arca_propietario.css": true,
+  "marca/arca_diagnostico_4f.py": false,
+  "marca/tests_arca_diagnostico_4f.py": false,
+  "pedidos/static/script/arca_diagnostico_4f.js": false
+}

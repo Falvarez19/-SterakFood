@@ -24,3 +24,21 @@
 .sf-brand__fiscal-link {display:inline-block;margin:0 0 16px;padding:10px 14px;border-radius:5px;border:1px solid var(--borde);color:var(--text-color);text-decoration:none;}
 .sf-brand__fiscal-link:hover {border-color:var(--naranja-sterak);color:var(--naranja-sterak);}
 @media(max-width:820px){.sf-arca__layout{grid-template-columns:1fr}.sf-arca__header{align-items:flex-start;flex-wrap:wrap}.sf-arca__form{grid-template-columns:1fr}}
+
+
+/* STERAKFOOD_4F_DIAGNOSTICO_CSS */
+.sf-arca__diag{border-top:1px solid var(--borde);padding-top:18px;margin:20px 0 18px;}
+.sf-arca__diag h3{font-size:1.02rem;margin:0 0 9px;color:var(--text-color);}
+.sf-arca__diag-boton{width:100%;min-height:44px;padding:10px 14px;background:var(--naranja-sterak);color:#101010;border:0;border-radius:6px;font-weight:750;cursor:pointer;margin:6px 0 14px;}
+.sf-arca__diag-boton:disabled{opacity:.65;cursor:wait;}
+.sf-arca__diag-pasos>div{padding:10px 0;border-bottom:1px solid var(--borde);display:grid;grid-template-columns:1fr auto;gap:3px 8px;align-items:center;}
+.sf-arca__diag-pasos strong{font-size:.9rem;font-weight:600;color:var(--text-color);}
+.sf-arca__diag-pasos b{font-size:.82rem;white-space:nowrap;color:var(--texto-mutado);}
+.sf-arca__diag-pasos b[data-estado=ok]{color:#1fba81;}
+.sf-arca__diag-pasos b[data-estado=aviso]{color:var(--naranja-sterak);}
+.sf-arca__diag-pasos b[data-estado=error]{color:#f17878;}
+.sf-arca__diag-pasos small{grid-column:1/-1;color:var(--texto-mutado);line-height:1.4;overflow-wrap:anywhere;}
+.sf-arca__diag-resumen{font-size:.88rem;line-height:1.5;margin:13px 0;padding:10px 12px;background:var(--bg-color);border-left:3px solid var(--borde);}
+.sf-arca__diag-resumen[data-estado=ok]{border-left-color:#1fba81;}
+.sf-arca__diag-resumen[data-estado=error]{border-left-color:#f17878;}
+.sf-arca__diag-resumen[data-estado=parcial]{border-left-color:var(--naranja-sterak);}

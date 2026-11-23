@@ -38,6 +38,27 @@
         <div><dt>Certificado P12</dt><dd>{% if estado.certificado_configurado %}Configurado en servidor{% else %}No configurado{% endif %}</dd></div>
         <div><dt>Punto de venta de emisión</dt><dd>{% if estado.punto_venta_configurado %}Configurado en servidor{% else %}No configurado{% endif %}</dd></div>
       </dl>
+
+      <!-- STERAKFOOD_4F_DIAGNOSTICO_INICIO -->
+      <section class="sf-arca__diag" aria-labelledby="sf-arca-diagnostico-titulo">
+        <h3 id="sf-arca-diagnostico-titulo">Diagnóstico de conexión ARCA</h3>
+        <p class="sf-arca__hint">Comprobá el estado del servicio, la autenticación y el punto de venta. No se emiten facturas.</p>
+        <form id="sf-arca-diagnostico-form" method="post" action="{% url 'marca:arca_diagnosticar' %}">
+          {% csrf_token %}
+          <button id="sf-arca-diagnostico-boton" class="sf-arca__diag-boton" type="submit">Comprobar conexión con ARCA</button>
+        </form>
+        <div class="sf-arca__diag-pasos">
+          <div data-arca-paso="servidores"><strong>Servidores ARCA</strong> <b data-estado="pendiente">Sin comprobar</b><small data-detalle></small></div>
+          <div data-arca-paso="wsaa"><strong>Autenticación WSAA</strong> <b data-estado="pendiente">Sin comprobar</b><small data-detalle></small></div>
+          <div data-arca-paso="wsfe"><strong>Comunicación WSFEv1</strong> <b data-estado="pendiente">Sin comprobar</b><small data-detalle></small></div>
+          <div data-arca-paso="punto"><strong>Punto de venta</strong> <b data-estado="pendiente">Sin comprobar</b><small data-detalle></small></div>
+        </div>
+        <p id="sf-arca-diagnostico-resumen" class="sf-arca__diag-resumen" role="status" aria-live="polite">Todavía no se realizó ninguna comprobación.</p>
+        <p class="sf-arca__hint">La prueba de servidores puede funcionar sin certificado. WSAA, WSFEv1 y el punto de venta requieren credenciales configuradas en el servidor.</p>
+      </section>
+      <!-- STERAKFOOD_4F_DIAGNOSTICO_FIN -->
+      <script src="{% static 'script/arca_diagnostico_4f.js' %}" defer></script>
+
       <p class="sf-arca__warning"><strong>Protección de credenciales.</strong> Los certificados y contraseñas no se muestran ni se cargan desde esta pantalla. Hasta implementar una bóveda cifrada con clave independiente y respaldo persistente, administralos únicamente mediante secretos del servidor.</p>
       <p class="sf-arca__hint">La facturación real permanece sujeta a la validación técnica y fiscal del negocio. Guardar estos datos no solicita CAE.</p>
     </aside>

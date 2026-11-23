@@ -1,0 +1,8 @@
+STERAKFOOD PASO 4F - ACTUALIZACION INSTALADA
+Ruta: C:\Users\FerchoNB\Desktop\Python Cositas\-SterakFood
+Respaldo: C:\Users\FerchoNB\Desktop\Python Cositas\-SterakFood\.sterakfood_actualizaciones\RESPALDO_4F_20261123_173245_278066
+Sin cambios de DB, .env, certificados, emisión ni configuración fiscal.
+Verificación de sintaxis Python: OK
+Comprobación Django: OK
+Entrá a Mi negocio > Configuración fiscal > Comprobar conexión con ARCA.
+La emisión sigue gobernada por las variables del servidor.

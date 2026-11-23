@@ -1,0 +1,46 @@
+{% extends 'pedidos/base.html' %}
+{% load static %}
+{% block title %}Configuración fiscal | SterakFood{% endblock %}
+{% block nav_acciones %}<a class="btn-nav-ghost" href="{% url 'marca:configurar' %}">← Mi negocio</a>{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/arca_propietario.css' %}">
+<main class="sf-arca">
+  <header class="sf-arca__header">
+    <div>
+      <span class="sf-arca__eyebrow">STERAKFOOD · SOLO PROPIETARIO</span>
+      <h1>Configuración fiscal (ARCA)</h1>
+      <p>Datos del restaurante y estado de conexión. Este panel no emite facturas ni habilita producción.</p>
+    </div>
+    <a class="sf-arca__back" href="{% url 'marca:configurar' %}">Volver a Mi negocio</a>
+  </header>
+  {% for message in messages %}<p class="sf-arca__message" role="status">{{ message }}</p>{% endfor %}
+  <div class="sf-arca__layout">
+    <section class="sf-arca__section">
+      <h2>Datos fiscales del restaurante</h2>
+      <p class="sf-arca__hint">Solo son datos de preparación. El CUIT y punto de venta deben coincidir con los autorizados en ARCA.</p>
+      <form action="{% url 'marca:arca_propietario' %}" method="post" class="sf-arca__form">
+        {% csrf_token %}
+        <label>Razón social <input name="razon_social" maxlength="180" value="{{ fiscal.razon_social }}" autocomplete="organization"></label>
+        <label>CUIT (11 números) <input name="cuit" inputmode="numeric" maxlength="11" value="{{ fiscal.cuit }}" autocomplete="off"></label>
+        <label>Condición frente al IVA <select name="condicion_iva">
+          {% for value, title in condiciones_iva %}<option value="{{ value }}" {% if fiscal.condicion_iva == value %}selected{% endif %}>{{ title }}</option>{% endfor %}
+        </select></label>
+        <label>Punto de venta (referencia, no habilita emisión) <input name="punto_venta_referencia" type="number" min="1" max="99999" value="{{ fiscal.punto_venta_referencia|default_if_none:'' }}"></label>
+        <label class="sf-arca__wide">Domicilio fiscal <input name="domicilio_fiscal" maxlength="220" value="{{ fiscal.domicilio_fiscal }}"></label>
+        <div class="sf-arca__actions"><button type="submit">Guardar datos fiscales</button></div>
+      </form>
+    </section>
+    <aside class="sf-arca__section">
+      <h2>Estado de integración</h2>
+      <dl class="sf-arca__status">
+        <div><dt>Entorno configurado</dt><dd>{{ estado.entorno }}</dd></div>
+        <div><dt>Emisión por el POS</dt><dd>{% if estado.emision_habilitada %}Habilitada en servidor{% else %}Deshabilitada{% endif %}</dd></div>
+        <div><dt>Certificado P12</dt><dd>{% if estado.certificado_configurado %}Configurado en servidor{% else %}No configurado{% endif %}</dd></div>
+        <div><dt>Punto de venta de emisión</dt><dd>{% if estado.punto_venta_configurado %}Configurado en servidor{% else %}No configurado{% endif %}</dd></div>
+      </dl>
+      <p class="sf-arca__warning"><strong>Protección de credenciales.</strong> Los certificados y contraseñas no se muestran ni se cargan desde esta pantalla. Hasta implementar una bóveda cifrada con clave independiente y respaldo persistente, administralos únicamente mediante secretos del servidor.</p>
+      <p class="sf-arca__hint">La facturación real permanece sujeta a la validación técnica y fiscal del negocio. Guardar estos datos no solicita CAE.</p>
+    </aside>
+  </div>
+</main>
+{% endblock %}
