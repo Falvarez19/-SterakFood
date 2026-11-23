@@ -3530,10 +3530,13 @@ function eliminarOpinion(opinionId, url) {
         guardar();
         actualizarMesas();
         render();
-        inputCant.value = 1;
+        // STERAKFOOD_PASO_2K_CODIGO_A_CANTIDAD_20261123
+        // Tras sumar un producto, reiniciar en Cantidad (1): Enter pasa a Código.
+        // Evita clics cuando el próximo producto lleva varias unidades.
+        inputCant.value = '1';
         buscador.value = "";
         cerrarSugerencias();
-        enfocarCodigoMesa();
+        enfocarCantidadInicialMesa();
     }
     function buscarProductos(texto) {
         texto = String(texto || "").trim().toLowerCase();
