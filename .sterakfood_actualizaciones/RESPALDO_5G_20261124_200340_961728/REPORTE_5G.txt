@@ -1,0 +1,4 @@
+PASO 5G INSTALADO CORRECTAMENTE
+Factura C: consulta autenticada de SOLO LECTURA en homologación.
+No emite, no solicita CAE, no cambia numeración, no modifica modelos ni BD.
+Respaldo: C:\Users\FerchoNB\Desktop\Python Cositas\-SterakFood\.sterakfood_actualizaciones\RESPALDO_5G_20261124_200340_961728

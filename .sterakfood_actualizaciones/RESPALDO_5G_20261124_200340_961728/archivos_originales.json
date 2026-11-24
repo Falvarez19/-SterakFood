@@ -1,0 +1,7 @@
+{
+  "marca/urls.py": true,
+  "marca/templates/marca/arca_propietario.html": true,
+  "marca/arca_preflight_c_5g.py": false,
+  "pedidos/arca_c_consulta_5g.py": false,
+  "pedidos/tests_preflight_c_5g.py": false
+}

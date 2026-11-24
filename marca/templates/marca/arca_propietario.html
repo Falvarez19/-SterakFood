@@ -92,6 +92,16 @@
     </form>
     <p class="sf-arca__hint" id="sf-arca-5d-ayuda">Usa un punto de venta y número ficticios. La prueba no valida los requisitos del receptor ni habilita emitir.</p>
     <p class="sf-arca__warning"><strong>Factura C sigue bloqueada para emitir.</strong> Faltan las pruebas de homologación con certificado autorizado, manejo de receptor, recuperación ante fallos, QR e impresión fiscal.</p>
+    <!-- STERAKFOOD_5G_PREFLIGHT_C -->
+    <div class="sf-arca__entorno" aria-labelledby="sf5g-titulo">
+      <h3 id="sf5g-titulo">Factura C · comprobar homologación</h3>
+      <p class="sf-arca__hint">Consulta si el certificado de homologación puede consultar el punto de venta y la numeración del comprobante C (tipo 11). Exclusivo para monotributistas, sin emitir ni solicitar CAE.</p>
+      <form action="{% url 'marca:arca_preflight_c_5g' %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="sf-arca__btn-outline">Comprobar Factura C con ARCA (sin emitir)</button>
+      </form>
+      <p class="sf-arca__hint">Para ejecutar la prueba autenticada hace falta cargar el certificado de <strong>homologación</strong> en Certificados y tener el CUIT y punto de venta correctos en Datos fiscales. No requiere activar la emisión.</p>
+    </div>
   </section>
   <!-- STERAKFOOD_5A_PANEL_ARCA_AUTOGESTION -->
   <section class="sf-arca__section sf-arca__selfservice" aria-labelledby="sf-arca-5a-titulo">
