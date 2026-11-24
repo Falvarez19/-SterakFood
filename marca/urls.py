@@ -12,6 +12,8 @@ from .visual_6a import menu_fondo, menu_portada, menu_tema_css
 
 from .arca_preflight_c_5g import preflight_factura_c_5g  # STERAKFOOD_5G_PREFLIGHT_C
 
+from .arca_ensayo_c_5h import emitir_ensayo_c_5h, recuperar_ensayo_c_5h, resultado_ensayo_c_5h  # STERAKFOOD_5H_EMISION_HOMOLOGACION
+
 app_name = 'marca'
 urlpatterns = [
     path('menu-fondo-6a.webp', menu_fondo, name='menu_fondo_6a'),
@@ -20,6 +22,9 @@ urlpatterns = [
     path('arca/diagnosticar/', diagnosticar_arca, name='arca_diagnosticar'),
     path('arca/simular-factura-c/', simular_factura_c_5d, name='arca_simular_c_5d'),
     path('arca/preflight-c-homologacion/', preflight_factura_c_5g, name='arca_preflight_c_5g'),
+    path('arca/ensayo-c/emitir/', emitir_ensayo_c_5h, name='arca_emitir_ensayo_c_5h'),
+    path('arca/ensayo-c/recuperar/', recuperar_ensayo_c_5h, name='arca_recuperar_ensayo_c_5h'),
+    path('arca/ensayo-c/resultado/', resultado_ensayo_c_5h, name='arca_resultado_5h'),
     path('arca/certificado/', cargar_certificado_5a, name='arca_cargar_certificado_5a'),
     path('arca/verificar/', verificar_arca_5a, name='arca_verificar_5a'),
     path('arca/activar/', activar_arca_5a, name='arca_activar_5a'),

@@ -6,12 +6,13 @@
 <link rel="stylesheet" href="{% static 'css/arca_propietario.css' %}">
 <!-- STERAKFOOD_5E_TABS_FISCALES -->
 <link rel="stylesheet" href="{% static 'css/arca_panel_5e.css' %}">
+<link rel="stylesheet" href="{% static 'css/arca_ensayo_5h.css' %}">
 <main class="sf-arca sf-arca--5e" data-condicion-iva="{{ fiscal.condicion_iva }}">
   <header class="sf-arca__header">
     <div>
       <span class="sf-arca__eyebrow">STERAKFOOD · SOLO PROPIETARIO</span>
       <h1>Configuración fiscal (ARCA)</h1>
-      <p>Configuración fiscal y activación desde Mi negocio. Las comprobaciones no emiten facturas.</p>
+      <p>Configuración fiscal desde Mi negocio. Las comprobaciones son de lectura; el ensayo 5H puede solicitar CAE únicamente de HOMOLOGACIÓN.</p>
     </div>
     <a class="sf-arca__back" href="{% url 'marca:configurar' %}">Volver a Mi negocio</a>
   </header>
@@ -77,7 +78,7 @@
       <div><dt>Estado del motor</dt><dd>{{ compatibilidad_5c.estado }}</dd></div>
     </dl>
     <p class="sf-arca__hint">{{ compatibilidad_5c.detalle }}</p>
-    <p class="sf-arca__warning"><strong>Importante:</strong> Factura C todavía no está implementada para emitir. Las facturas reales requieren pruebas de homologación y autorización fiscal.</p>
+    <p class="sf-arca__warning"><strong>Importante:</strong> La Factura C todavía NO está habilitada para emitir desde el POS. Las facturas reales requieren pruebas de homologación y autorización fiscal.</p>
   </section>
   <!-- STERAKFOOD_5D_SIMULACION_C -->
   <section class="sf-arca__section" aria-labelledby="sf-arca-5d-titulo">
@@ -101,6 +102,29 @@
         <button type="submit" class="sf-arca__btn-outline">Comprobar Factura C con ARCA (sin emitir)</button>
       </form>
       <p class="sf-arca__hint">Para ejecutar la prueba autenticada hace falta cargar el certificado de <strong>homologación</strong> en Certificados y tener el CUIT y punto de venta correctos en Datos fiscales. No requiere activar la emisión.</p>
+    </div>
+    <!-- STERAKFOOD_5H_EMISION_HOMOLOGACION -->
+    <div class="sf-arca__entorno sf5h-box" aria-labelledby="sf5h-titulo">
+      <h3 id="sf5h-titulo">Factura C · CAE de prueba (homologación)</h3>
+      <p class="sf-arca__hint">Solo para un negocio configurado como monotributista y con P12 de homologación autorizado. Una solicitud aprobada consume numeración <strong>de pruebas</strong>; no es válida fiscalmente y no activa el POS.</p>
+      <p class="sf5h-hint">En caso de corte de conexión no se vuelve a enviar el comprobante automáticamente. Consultá el número reservado primero.</p>
+      {% if fiscal.condicion_iva == 'monotributo' %}
+      <form action="{% url 'marca:arca_emitir_ensayo_c_5h' %}" method="post">
+        {% csrf_token %}
+        <div class="sf5h-form">
+          <label>Importe de ensayo (ARS, $1 a $1.000)
+            <input class="sf5h-input" name="importe" type="text" inputmode="decimal" value="100.00" maxlength="7" required autocomplete="off">
+          </label>
+        </div>
+        <label class="sf5h-checkbox"><input type="checkbox" name="confirmacion" value="ACEPTO_CAE_PRUEBA_5H" required> Entiendo que este botón solicita un CAE real del <strong>entorno de homologación</strong> y reserva un número de ensayo.</label>
+        <label class="sf5h-checkbox"><input type="checkbox" name="confirmo_otra_vez" value="SI" required> Confirmo que NO voy a usar este comprobante como factura válida ni como venta.</label>
+        <button class="sf5h-btn" type="submit">Solicitar CAE de PRUEBA</button>
+      </form>
+      <p class="sf-arca__hint">El formulario de homologación está aislado del módulo de ventas, no imprime ni habilita emisión comercial.</p>
+      {% else %}
+        <p class="sf-arca__warning">Esta prueba está disponible solamente para emisores configurados como <strong>monotributistas</strong>. No cambies la condición fiscal solo para probar.</p>
+      {% endif %}
+      <a class="sf5h-btn" href="{% url 'marca:arca_resultado_5h' %}">Ver último ensayo / recuperar resultado</a>
     </div>
   </section>
   <!-- STERAKFOOD_5A_PANEL_ARCA_AUTOGESTION -->

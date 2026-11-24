@@ -1,0 +1,18 @@
+/* SterakFood 5H: prueba controlada de Factura C y botón 5G compacto. */
+.sf-arca .sf5h-box {margin-top:12px; padding:18px;}
+.sf-arca .sf5h-box h3 {margin:0 0 8px;font-size:1.05rem;}
+.sf-arca .sf5h-box .sf-arca__hint {margin:0 0 12px;}
+.sf-arca .sf5h-btn, .sf-arca .sf-arca__btn-outline {display:inline-flex;justify-content:center;align-items:center;min-height:42px;padding:10px 16px;background:var(--naranja-sterak,#ff6b00);border:1px solid var(--naranja-sterak,#ff6b00);border-radius:9px;color:#111;font:inherit;font-weight:750;cursor:pointer;text-decoration:none;}
+.sf-arca .sf5h-btn:hover, .sf-arca .sf-arca__btn-outline:hover {filter:brightness(1.07);}
+.sf-arca .sf5h-btn:focus-visible {outline:3px solid var(--naranja-sterak,#ff6b00);outline-offset:3px;}
+.sf-arca .sf5h-checkbox {display:flex;align-items:flex-start;gap:8px;font-size:.89rem;line-height:1.45;font-weight:500;margin-bottom:10px;}
+.sf-arca .sf5h-checkbox input {margin-top:4px;flex:none;}
+.sf-arca .sf5h-input {max-width:210px;min-height:43px;border:1px solid var(--borde,#565656);border-radius:7px;padding:10px 12px;background:var(--bg-color,#121212);color:var(--text-color,#fff);font:inherit;}
+.sf-arca .sf5h-form {display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;}
+.sf-arca .sf5h-form label {display:flex;flex-direction:column;gap:5px;font-weight:600;}
+.sf-arca .sf5h-hint {border-left:3px solid var(--naranja-sterak,#ff6b00);padding:9px 12px;margin:10px 0 15px;background:var(--card-bg,#141414);}
+.sf-arca .sf5h-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0;}
+.sf-arca .sf5h-grid>div {padding:12px;border:1px solid var(--borde,#444);border-radius:8px;overflow-wrap:anywhere;}
+.sf-arca .sf5h-grid small {display:block;color:var(--texto-mutado,#aaa);margin-bottom:5px;}
+.sf-arca .sf5h-grid strong {display:block;}
+@media(max-width:640px){.sf-arca .sf5h-grid {grid-template-columns:1fr}.sf-arca .sf5h-form {display:block}.sf-arca .sf5h-form .sf5h-btn{margin:12px 0;width:100%}}

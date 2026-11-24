@@ -1,0 +1,45 @@
+{% extends 'pedidos/base.html' %}
+{% load static %}
+{% block title %}Ensayo Factura C | SterakFood{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/arca_ensayo_5h.css' %}">
+<main class="sf-arca sf5h-resultado">
+  <header class="sf-arca__header">
+    <div>
+      <span class="sf-arca__eyebrow">STERAKFOOD · SOLO PROPIETARIO</span>
+      <h1>Ensayo Factura C · HOMOLOGACIÓN</h1>
+      <p>Entorno de pruebas. No representa una factura fiscal válida ni activa el POS.</p>
+    </div>
+    <a class="sf-arca__back" href="{% url 'marca:arca_propietario' %}">Volver a Configuración fiscal</a>
+  </header>
+  {% for message in messages %}<p class="sf-arca__message" role="status">{{ message }}</p>{% endfor %}
+  <section class="sf-arca__section sf5h-box">
+    <h2>Último ensayo registrado</h2>
+    {% if ensayo %}
+      <div class="sf5h-grid">
+        <div><small>Estado</small><strong>{{ ensayo.get_estado_display }}</strong></div>
+        <div><small>Entorno</small><strong>HOMOLOGACIÓN</strong></div>
+        <div><small>Comprobante</small><strong>Factura C (11)</strong></div>
+        <div><small>Número de prueba</small><strong>{{ ensayo.punto_venta|stringformat:'05d' }}-{{ ensayo.numero|stringformat:'08d' }}</strong></div>
+        <div><small>Importe de prueba</small><strong>$ {{ ensayo.total }}</strong></div>
+        <div><small>CAE de homologación</small><strong>{{ ensayo.cae|default:'Pendiente / no confirmado' }}</strong></div>
+        <div><small>Vencimiento CAE</small><strong>{{ ensayo.vence_cae|default:'--' }}</strong></div>
+        <div><small>Fecha de creación</small><strong>{{ ensayo.creado|date:'d/m/Y H:i' }}</strong></div>
+      </div>
+      <p class="sf-arca__hint">{{ ensayo.detalle_publico }}</p>
+      {% if ensayo.estado == 'incierto' or ensayo.estado == 'rechazada' %}
+        <form method="post" action="{% url 'marca:arca_recuperar_ensayo_c_5h' %}">
+          {% csrf_token %}
+          <button class="sf5h-btn" type="submit">Consultar este número en ARCA (sin reenviar)</button>
+        </form>
+      {% endif %}
+      {% if ensayo.cae %}
+        <p class="sf-arca__warning"><strong>Solo ensayo:</strong> el CAE pertenece al entorno de homologación. No entregar a clientes ni registrar como venta.</p>
+        {% if ensayo.url_qr %}<p class="sf-arca__hint">Enlace de estructura QR generado para revisión técnica: <a href="{{ ensayo.url_qr }}" target="_blank" rel="noopener noreferrer">Ver datos del comprobante de ensayo</a>. No garantiza validación pública.</p>{% endif %}
+      {% endif %}
+    {% else %}
+      <p class="sf-arca__hint">Todavía no hay ensayos registrados. No se emitió ningún comprobante de prueba.</p>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

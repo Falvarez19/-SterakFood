@@ -73,3 +73,36 @@ class ArcaCredencial(models.Model):
     def __str__(self):
         return f'ARCA {self.entorno} - {self.cuit[:2]}*******{self.cuit[-2:]}'
 
+
+# STERAKFOOD_5H_MODELO_ENSAYO_C
+import uuid
+
+class ArcaEnsayoFacturaC(models.Model):
+    """Pruebas de homologación aisladas del POS y de FacturaFiscal."""
+    operacion_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    entorno = models.CharField(max_length=15, default='homologacion', editable=False)
+    cuit_emisor = models.CharField(max_length=11)
+    punto_venta = models.PositiveIntegerField()
+    numero = models.PositiveIntegerField()
+    total = models.DecimalField(max_digits=9, decimal_places=2)
+    fecha_comprobante = models.CharField(max_length=8)
+    estado = models.CharField(max_length=15, choices=[
+        ('incierto', 'Verificar en ARCA antes de reintentar'),
+        ('autorizada', 'CAE homologación recibido'),
+        ('rechazada', 'Rechazada: requiere revisión'),
+    ], default='incierto')
+    cae = models.CharField(max_length=20, blank=True, default='')
+    vence_cae = models.CharField(max_length=8, blank=True, default='')
+    url_qr = models.TextField(blank=True, default='')
+    detalle_publico = models.CharField(max_length=240, blank=True, default='')
+    creado = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Ensayo de Factura C (SIN valor fiscal)'
+        verbose_name_plural = 'Ensayos de Factura C (SIN valor fiscal)'
+        constraints = [
+            models.UniqueConstraint(fields=['entorno', 'cuit_emisor', 'punto_venta', 'numero'],
+                                    name='sterak_5h_numero_c_unico'),
+        ]
+

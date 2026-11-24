@@ -1,0 +1,4 @@
+PASO 5H INSTALADO CORRECTAMENTE
+Crea tabla de ensayos separados de las ventas del POS.
+No hace llamadas a ARCA durante instalación ni habilita producción.
+Antes de publicar en Render: respaldo completo de PostgreSQL, luego migración.

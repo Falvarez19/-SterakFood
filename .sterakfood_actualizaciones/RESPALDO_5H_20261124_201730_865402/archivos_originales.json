@@ -1,0 +1,10 @@
+{
+  "marca/urls.py": true,
+  "marca/templates/marca/arca_propietario.html": true,
+  "marca/models.py": true,
+  "marca/migrations/0004_ensayo_factura_c_5h.py": false,
+  "marca/arca_ensayo_c_5h.py": false,
+  "marca/templates/marca/ensayo_c_5h.html": false,
+  "pedidos/arca_c_emision_5h.py": false,
+  "pedidos/static/css/arca_ensayo_5h.css": false
+}
