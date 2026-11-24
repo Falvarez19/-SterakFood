@@ -77,6 +77,20 @@
     <p class="sf-arca__hint">{{ compatibilidad_5c.detalle }}</p>
     <p class="sf-arca__warning"><strong>Importante:</strong> Factura C todavía no está implementada para emitir. Las facturas reales requieren pruebas de homologación y autorización fiscal.</p>
   </section>
+  <!-- STERAKFOOD_5D_SIMULACION_C -->
+  <section class="sf-arca__section" aria-labelledby="sf-arca-5d-titulo">
+    <h2 id="sf-arca-5d-titulo">Simulación técnica de Factura C</h2>
+    <p class="sf-arca__hint">Comprobá el cálculo y la estructura del comprobante C (código 11) para consumidor final. Es una simulación sin certificado, sin CAE y sin envío a ARCA.</p>
+    <form action="{% url 'marca:arca_simular_c_5d' %}" method="post" class="sf-arca__form">
+      {% csrf_token %}
+      <label>Importe de prueba (ARS)
+        <input type="text" name="importe" value="1000.00" inputmode="decimal" maxlength="12" required autocomplete="off" aria-describedby="sf-arca-5d-ayuda">
+      </label>
+      <div class="sf-arca__actions"><button type="submit">Simular Factura C (sin emitir)</button></div>
+    </form>
+    <p class="sf-arca__hint" id="sf-arca-5d-ayuda">Usa un punto de venta y número ficticios. La prueba no valida los requisitos del receptor ni habilita emitir.</p>
+    <p class="sf-arca__warning"><strong>Factura C sigue bloqueada para emitir.</strong> Faltan las pruebas de homologación con certificado autorizado, manejo de receptor, recuperación ante fallos, QR e impresión fiscal.</p>
+  </section>
   <!-- STERAKFOOD_5A_PANEL_ARCA_AUTOGESTION -->
   <section class="sf-arca__section sf-arca__selfservice" aria-labelledby="sf-arca-5a-titulo">
     <h2 id="sf-arca-5a-titulo">Alta de facturación desde Mi negocio</h2>

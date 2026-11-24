@@ -18,8 +18,8 @@ def resumen_fiscal_5c(condicion):
         return {
             'regimen': 'Monotributista',
             'comprobante': 'Factura C (código ARCA 11)',
-            'estado': 'Pendiente de desarrollar',
-            'detalle': 'Factura C requiere una solicitud fiscal distinta y validaciones de receptor. No está habilitada aún para emitir.',
+            'estado': 'Simulador técnico 5D disponible',  # STERAKFOOD_5D_COMPATIBILIDAD_C
+            'detalle': 'Simulación de Factura C sin IVA discriminado. No conecta con ARCA ni permite emitir hasta completar homologación y validaciones de receptor.',
             'soportado': False,
         }
     if condicion == 'exento':

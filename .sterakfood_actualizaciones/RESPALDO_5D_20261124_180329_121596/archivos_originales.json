@@ -1,0 +1,8 @@
+{
+  "marca/urls.py": true,
+  "marca/templates/marca/arca_propietario.html": true,
+  "marca/arca_compatibilidad_5c.py": true,
+  "pedidos/arca_factura_c_5d.py": false,
+  "marca/arca_simulador_c_5d.py": false,
+  "pedidos/tests_factura_c_5d.py": false
+}

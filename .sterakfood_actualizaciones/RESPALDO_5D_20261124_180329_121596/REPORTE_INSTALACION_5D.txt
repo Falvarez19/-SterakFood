@@ -1,0 +1,4 @@
+PASO 5D INSTALADO CORRECTAMENTE
+Simulación Factura C preparada, sin emitir comprobantes.
+No se modificaron base de datos, certificados, ventas ni impresión.
+Respaldo: C:\Users\FerchoNB\Desktop\Python Cositas\-SterakFood\.sterakfood_actualizaciones\RESPALDO_5D_20261124_180329_121596
