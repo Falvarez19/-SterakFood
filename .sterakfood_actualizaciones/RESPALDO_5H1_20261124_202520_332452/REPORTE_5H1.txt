@@ -1,0 +1,4 @@
+PASO 5H.1 INSTALADO CORRECTAMENTE
+SOLO PRESENTACION: panel Pruebas en 3 tarjetas y detalles plegables.
+No modifica rutas fiscales, modelos, migraciones, BD, facturacion ni POS.
+Render debe volver a desplegar los archivos para mostrarlo.
