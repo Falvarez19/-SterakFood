@@ -1,0 +1,7 @@
+{
+  "marca/arca_diagnostico_4f.py": true,
+  "marca/views.py": true,
+  "marca/templates/marca/arca_propietario.html": true,
+  "marca/arca_compatibilidad_5c.py": false,
+  "marca/tests_fiscal_comercial_5c.py": false
+}

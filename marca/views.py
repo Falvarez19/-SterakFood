@@ -242,11 +242,13 @@ def arca_propietario(request):
             mensajes.success(request, 'Datos fiscales guardados. La emision sigue su configuracion independiente.')
             return redirect('marca:arca_propietario')
     # SOLO indicadores booleanos, nunca P12, contrasenas, token o clave privada.
+    # STERAKFOOD_5C_RESUMEN_FISCAL
+    # Reflejar únicamente las credenciales de Mi negocio, no variables legadas.
     estado = {
-        'entorno': os.environ.get('ARCA_ENV', 'homologacion'),
-        'emision_habilitada': os.environ.get('ARCA_FISCAL_ENABLED') == '1',
-        'certificado_configurado': bool(os.environ.get('ARCA_P12_BASE64', '').strip()),
-        'punto_venta_configurado': bool(os.environ.get('ARCA_PUNTO_VENTA', '').strip()),
+        'entorno': 'homologacion',
+        'emision_habilitada': False,
+        'certificado_configurado': False,
+        'punto_venta_configurado': False,
     }
     from .models import ArcaCredencial
     try:
@@ -258,8 +260,10 @@ def arca_propietario(request):
             estado['entorno'] = _estado_5a.entorno if _estado_5a else 'pendiente de activar'
     except (OperationalError, ProgrammingError):
         pass
+    from .arca_compatibilidad_5c import resumen_fiscal_5c
     from .arca_vault_5a import boveda_disponible, estado_lectura_5a
     return render(request, 'marca/arca_propietario.html', {
+        'compatibilidad_5c': resumen_fiscal_5c(fiscal.condicion_iva),
         'boveda_5a': boveda_disponible(),
         'arca_credenciales_5a': estado_lectura_5a(),
         'fiscal': fiscal,

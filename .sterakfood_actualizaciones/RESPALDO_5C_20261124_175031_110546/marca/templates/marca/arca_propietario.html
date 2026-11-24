@@ -1,0 +1,151 @@
+{% extends 'pedidos/base.html' %}
+{% load static %}
+{% block title %}Configuración fiscal | SterakFood{% endblock %}
+{% block nav_acciones %}<a class="btn-nav-ghost" href="{% url 'marca:configurar' %}">← Mi negocio</a>{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/arca_propietario.css' %}">
+<main class="sf-arca">
+  <header class="sf-arca__header">
+    <div>
+      <span class="sf-arca__eyebrow">STERAKFOOD · SOLO PROPIETARIO</span>
+      <h1>Configuración fiscal (ARCA)</h1>
+      <p>Configuración fiscal y activación desde Mi negocio. Las comprobaciones no emiten facturas.</p>
+    </div>
+    <a class="sf-arca__back" href="{% url 'marca:configurar' %}">Volver a Mi negocio</a>
+  </header>
+  {% for message in messages %}<p class="sf-arca__message" role="status">{{ message }}</p>{% endfor %}
+  <div class="sf-arca__layout">
+    <section class="sf-arca__section">
+      <h2>Datos fiscales del restaurante</h2>
+      <p class="sf-arca__hint">Solo son datos de preparación. El CUIT y punto de venta deben coincidir con los autorizados en ARCA.</p>
+      <form action="{% url 'marca:arca_propietario' %}" method="post" class="sf-arca__form">
+        {% csrf_token %}
+        <label>Razón social <input name="razon_social" maxlength="180" value="{{ fiscal.razon_social }}" autocomplete="organization"></label>
+        <label>CUIT (11 números) <input name="cuit" inputmode="numeric" maxlength="11" value="{{ fiscal.cuit }}" autocomplete="off"></label>
+        <label>Condición frente al IVA <select name="condicion_iva">
+          {% for value, title in condiciones_iva %}<option value="{{ value }}" {% if fiscal.condicion_iva == value %}selected{% endif %}>{{ title }}</option>{% endfor %}
+        </select></label>
+        <label>Punto de venta (referencia, no habilita emisión) <input name="punto_venta_referencia" type="number" min="1" max="99999" value="{{ fiscal.punto_venta_referencia|default_if_none:'' }}"></label>
+        <label class="sf-arca__wide">Domicilio fiscal <input name="domicilio_fiscal" maxlength="220" value="{{ fiscal.domicilio_fiscal }}"></label>
+        <div class="sf-arca__actions"><button type="submit">Guardar datos fiscales</button></div>
+      </form>
+    </section>
+    <aside class="sf-arca__section">
+      <h2>Estado de integración</h2>
+      <dl class="sf-arca__status">
+        <div><dt>Entorno configurado</dt><dd>{{ estado.entorno }}</dd></div>
+        <div><dt>Emisión por el POS</dt><dd>{% if estado.emision_habilitada %}Habilitada en servidor{% else %}Deshabilitada{% endif %}</dd></div>
+        <div><dt>Certificado P12</dt><dd>{% if estado.certificado_configurado %}Configurado en servidor{% else %}No configurado{% endif %}</dd></div>
+        <div><dt>Punto de venta de emisión</dt><dd>{% if estado.punto_venta_configurado %}Configurado en servidor{% else %}No configurado{% endif %}</dd></div>
+      </dl>
+
+      <!-- STERAKFOOD_4F_DIAGNOSTICO_INICIO -->
+      <section class="sf-arca__diag" aria-labelledby="sf-arca-diagnostico-titulo">
+        <h3 id="sf-arca-diagnostico-titulo">Diagnóstico de conexión ARCA</h3>
+        <p class="sf-arca__hint">Comprobá el estado del servicio, la autenticación y el punto de venta. No se emiten facturas.</p>
+        <form id="sf-arca-diagnostico-form" method="post" action="{% url 'marca:arca_diagnosticar' %}">
+          {% csrf_token %}
+          <button id="sf-arca-diagnostico-boton" class="sf-arca__diag-boton" type="submit">Comprobar conexión con ARCA</button>
+        </form>
+        <div class="sf-arca__diag-pasos">
+          <div data-arca-paso="servidores"><strong>Servidores ARCA</strong> <b data-estado="pendiente">Sin comprobar</b><small data-detalle></small></div>
+          <!-- STERAKFOOD_4G_CERTIFICADO_INTEGRADO -->
+          <div data-arca-paso="certificado"><strong>Certificado digital P12</strong> <b data-estado="pendiente">Sin comprobar</b><small data-detalle></small></div>
+          <div data-arca-paso="wsaa"><strong>Autenticación WSAA</strong> <b data-estado="pendiente">Sin comprobar</b><small data-detalle></small></div>
+          <div data-arca-paso="wsfe"><strong>Comunicación WSFEv1</strong> <b data-estado="pendiente">Sin comprobar</b><small data-detalle></small></div>
+          <div data-arca-paso="punto"><strong>Punto de venta</strong> <b data-estado="pendiente">Sin comprobar</b><small data-detalle></small></div>
+        </div>
+        <p id="sf-arca-diagnostico-resumen" class="sf-arca__diag-resumen" role="status" aria-live="polite">Todavía no se realizó ninguna comprobación.</p>
+        <p class="sf-arca__hint">La prueba de servidores funciona sin certificado; WSAA, WSFEv1 y el punto de venta requieren credenciales autorizadas.</p>
+      </section>
+      <!-- STERAKFOOD_4F_DIAGNOSTICO_FIN -->
+      <script src="{% static 'script/arca_diagnostico_4f.js' %}" defer></script>
+
+      <p class="sf-arca__warning"><strong>Protección de credenciales.</strong> Los certificados y contraseñas nunca se muestran en pantalla. El alta fiscal 5A permite cargarlos cifrados si el servidor tiene una clave de bóveda persistente y respaldada.</p>
+      <p class="sf-arca__hint">La facturación real permanece sujeta a la validación técnica y fiscal del negocio. Guardar estos datos no solicita CAE.</p>
+    </aside>
+  </div>
+  <!-- STERAKFOOD_5A_PANEL_ARCA_AUTOGESTION -->
+  <section class="sf-arca__section sf-arca__selfservice" aria-labelledby="sf-arca-5a-titulo">
+    <h2 id="sf-arca-5a-titulo">Alta de facturación desde Mi negocio</h2>
+    <p class="sf-arca__hint">Solo el propietario puede cargar certificados. Primero autorizá el punto de venta y el certificado en ARCA. Después, cargalos y comprobá aquí, sin CMD.</p>
+    {% if not boveda_5a %}
+      <p class="sf-arca__warning"><strong>Bóveda sin configurar.</strong> El administrador de la instalación debe definir una sola vez la clave persistente <code>STERAK_ARCA_VAULT_KEY</code> en el servidor. Hasta entonces la carga se mantiene deshabilitada. No compartas esa clave por el chat.</p>
+    {% endif %}
+    {% if fiscal.condicion_iva != 'ri' %}
+      <p class="sf-arca__warning"><strong>Emisión restringida.</strong> El facturador actual está preparado únicamente para Factura B de responsable inscripto con ítems al 21%. Para otros regímenes se necesita ampliar el motor fiscal antes de activar.</p>
+    {% endif %}
+    <!-- STERAKFOOD_5B_BOVEDA_PROBAR -->
+    {% if boveda_5a %}
+      <div class="sf-arca__entorno">
+        <p class="sf-arca__hint"><strong>Bóveda configurada.</strong> Antes de subir certificados, comprobá el cifrado y la tabla segura. Esta prueba no usa datos fiscales ni emite comprobantes.</p>
+        <form method="post" action="{% url 'marca:arca_comprobar_boveda_5b' %}">
+          {% csrf_token %}
+          <button type="submit" class="sf-arca__btn-outline">Comprobar bóveda (sin certificado)</button>
+        </form>
+      </div>
+    {% endif %}
+    <form class="sf-arca__selfservice-form" action="{% url 'marca:arca_cargar_certificado_5a' %}" method="post" enctype="multipart/form-data" autocomplete="off">
+      {% csrf_token %}
+      <label>Entorno ARCA
+        <select name="entorno" required>
+          <option value="homologacion">Homologación (pruebas)</option>
+          <option value="produccion">Producción (facturas reales)</option>
+        </select>
+      </label>
+      <label>Certificado digital (.p12 o .pfx, hasta 256 KB)
+        <input name="certificado_p12" type="file" accept=".p12,.pfx" required {% if not boveda_5a %}disabled{% endif %}>
+      </label>
+      <label>Contraseña del certificado
+        <input name="password_p12" type="password" maxlength="250" autocomplete="new-password" {% if not boveda_5a %}disabled{% endif %}>
+      </label>
+      <label>Ingresos Brutos
+        <input name="ingresos_brutos" maxlength="60" placeholder="Número / convenio" required>
+      </label>
+      <label>Inicio de actividades
+        <input name="inicio_actividades" type="date" required>
+      </label>
+      <div class="sf-arca__actions"><button type="submit" {% if not boveda_5a %}disabled{% endif %}>Guardar certificado cifrado</button></div>
+    </form>
+    <p class="sf-arca__hint">El archivo no se conserva en la carpeta pública del proyecto ni se ofrece para descargar. Su contenido y contraseña se cifran en la base de datos con una clave separada. Guardá una copia segura del P12 original y de la clave de la bóveda.</p>
+    <div class="sf-arca__entornos">
+      {% for cred in arca_credenciales_5a %}
+        <article class="sf-arca__entorno">
+          <div class="sf-arca__entorno-top"><h3>{{ cred.entorno|capfirst }}</h3>
+            {% if cred.activa %}<strong class="sf-arca__activo">Facturación activada</strong>
+            {% elif cred.verificada %}<strong>Verificada, sin activar</strong>
+            {% else %}<strong>Sin verificar</strong>{% endif %}
+          </div>
+          <p>CUIT: {{ cred.cuit }} · PV: {{ cred.punto_venta|stringformat:"05d" }} · P12: {{ cred.archivo }}</p>
+          <p>Vence: {{ cred.vence|date:"d/m/Y" }} · Última comprobación: {{ cred.ultimo_chequeo|date:"d/m/Y H:i"|default:"Pendiente" }}</p>
+          <div class="sf-arca__entorno-actions">
+            <form method="post" action="{% url 'marca:arca_verificar_5a' %}">{% csrf_token %}
+              <input type="hidden" name="entorno" value="{{ cred.entorno }}">
+              <button type="submit" class="sf-arca__btn-outline">Comprobar autorización ARCA</button>
+            </form>
+            {% if not cred.activa and fiscal.condicion_iva == 'ri' %}
+            <form method="post" action="{% url 'marca:arca_activar_5a' %}">{% csrf_token %}
+              <input type="hidden" name="entorno" value="{{ cred.entorno }}">
+              <label class="sf-arca__confirmar"><input type="checkbox" name="confirmo" value="SI" required> Soy el propietario y quiero activar emisión manual</label>
+              {% if cred.entorno == 'produccion' %}
+                <label class="sf-arca__confirmar"><input type="checkbox" name="confirmo_produccion" value="SI" required> Confirmo que se emitirán facturas reales</label>
+              {% endif %}
+              <button type="submit">Activar facturación</button>
+            </form>
+            {% endif %}
+            {% if cred.activa %}
+              <form method="post" action="{% url 'marca:arca_desactivar_5a' %}">{% csrf_token %}
+                <input type="hidden" name="entorno" value="{{ cred.entorno }}">
+                <button type="submit" class="sf-arca__btn-danger">Desactivar facturación</button>
+              </form>
+            {% endif %}
+          </div>
+        </article>
+      {% empty %}
+        <p class="sf-arca__hint">Todavía no se cargó ningún certificado fiscal. La emisión permanece deshabilitada.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+</main>
+{% endblock %}

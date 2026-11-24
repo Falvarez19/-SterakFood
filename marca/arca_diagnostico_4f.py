@@ -108,6 +108,39 @@ def diagnosticar_arca(request):
     respuesta_5a = diagnostico_autogestion_5a()
     if respuesta_5a is not None:
         return JsonResponse(respuesta_5a)
+    # STERAKFOOD_5C_DIAGNOSTICO_AUTOGESTION
+    # Sin P12 cargado, no pedir variables antiguas de servidor al cliente.
+    from .arca_vault_5a import boveda_disponible
+    if boveda_disponible():
+        env_sin_p12 = os.environ.get('ARCA_ENV', 'homologacion').strip().lower()
+        if env_sin_p12 not in ('homologacion', 'produccion'):
+            env_sin_p12 = 'homologacion'
+        estado_sin_p12 = {
+            'certificado': _paso('Certificado digital P12', 'pendiente',
+                'Todavía no cargaste un certificado desde Mi negocio.'),
+            'wsaa': _paso('Autenticación WSAA', 'pendiente',
+                'Después de cargar el P12, comprobá la autorización ARCA desde Mi negocio.'),
+            'wsfe': _paso('Comunicación WSFEv1', 'pendiente',
+                'Requiere autenticar primero con el P12 del negocio.'),
+            'punto': _paso('Punto de venta', 'pendiente',
+                'Se validará con WSFEv1 cuando cargues el certificado y los datos fiscales.'),
+        }
+        try:
+            ping = _fedummy(env_sin_p12)
+            servidores = ping.get('estados') or {}
+            texto = ' · '.join(k + ': ' + servidores.get(k, '?')
+                              for k in ('AppServer', 'DbServer', 'AuthServer'))
+            estado_sin_p12['servidores'] = _paso('Servidores ARCA',
+                'ok' if ping.get('disponible') else 'aviso', texto)
+        except Exception:
+            estado_sin_p12['servidores'] = _paso('Servidores ARCA', 'error',
+                'No respondió FEDummy. Reintentá más tarde.')
+        return JsonResponse({
+            'entorno': env_sin_p12, 'resultado': 'parcial',
+            'pasos': estado_sin_p12, 'mensaje':
+                'Servidores comprobados. Para completar las pruebas, cargá el certificado desde Mi negocio. No se emitieron facturas.',
+            'comprobante_emitido': False,
+        })
     env = os.environ.get('ARCA_ENV', 'homologacion').strip().lower()
     pasos = {
         'certificado': _paso('Certificado digital P12', 'pendiente', 'Todavía no se comprobó.'),

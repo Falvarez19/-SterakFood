@@ -34,9 +34,9 @@
       <h2>Estado de integración</h2>
       <dl class="sf-arca__status">
         <div><dt>Entorno configurado</dt><dd>{{ estado.entorno }}</dd></div>
-        <div><dt>Emisión por el POS</dt><dd>{% if estado.emision_habilitada %}Habilitada en servidor{% else %}Deshabilitada{% endif %}</dd></div>
-        <div><dt>Certificado P12</dt><dd>{% if estado.certificado_configurado %}Configurado en servidor{% else %}No configurado{% endif %}</dd></div>
-        <div><dt>Punto de venta de emisión</dt><dd>{% if estado.punto_venta_configurado %}Configurado en servidor{% else %}No configurado{% endif %}</dd></div>
+        <div><dt>Emisión por el POS</dt><dd>{% if estado.emision_habilitada %}Activada desde Mi negocio{% else %}Deshabilitada{% endif %}</dd></div>
+        <div><dt>Certificado P12</dt><dd>{% if estado.certificado_configurado %}Cargado desde Mi negocio{% else %}No cargado{% endif %}</dd></div>
+        <div><dt>Punto de venta de emisión</dt><dd>{% if estado.punto_venta_configurado %}Cargado desde Mi negocio{% else %}No configurado{% endif %}</dd></div>
       </dl>
 
       <!-- STERAKFOOD_4F_DIAGNOSTICO_INICIO -->
@@ -65,6 +65,18 @@
       <p class="sf-arca__hint">La facturación real permanece sujeta a la validación técnica y fiscal del negocio. Guardar estos datos no solicita CAE.</p>
     </aside>
   </div>
+  <!-- STERAKFOOD_5C_COMPATIBILIDAD_FISCAL -->
+  <section class="sf-arca__section" aria-labelledby="sf-arca-5c-titulo">
+    <h2 id="sf-arca-5c-titulo">Compatibilidad fiscal del negocio</h2>
+    <p class="sf-arca__hint">Resumen según la condición frente al IVA elegida. No habilita por sí solo ningún comprobante.</p>
+    <dl class="sf-arca__status">
+      <div><dt>Condición fiscal</dt><dd>{{ compatibilidad_5c.regimen }}</dd></div>
+      <div><dt>Comprobante previsto</dt><dd>{{ compatibilidad_5c.comprobante }}</dd></div>
+      <div><dt>Estado del motor</dt><dd>{{ compatibilidad_5c.estado }}</dd></div>
+    </dl>
+    <p class="sf-arca__hint">{{ compatibilidad_5c.detalle }}</p>
+    <p class="sf-arca__warning"><strong>Importante:</strong> Factura C todavía no está implementada para emitir. Las facturas reales requieren pruebas de homologación y autorización fiscal.</p>
+  </section>
   <!-- STERAKFOOD_5A_PANEL_ARCA_AUTOGESTION -->
   <section class="sf-arca__section sf-arca__selfservice" aria-labelledby="sf-arca-5a-titulo">
     <h2 id="sf-arca-5a-titulo">Alta de facturación desde Mi negocio</h2>
