@@ -1,0 +1,5 @@
+PASO 5B INSTALADO CORRECTAMENTE
+No se modificaron base de datos ni certificados.
+Se añadió verificación de bóveda y bloqueo fiscal legado.
+Proyecto: C:\Users\FerchoNB\Desktop\Python Cositas\-SterakFood
+Respaldo: C:\Users\FerchoNB\Desktop\Python Cositas\-SterakFood\.sterakfood_actualizaciones\RESPALDO_5B_20261124_173144_676359

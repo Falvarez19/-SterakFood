@@ -75,6 +75,16 @@
     {% if fiscal.condicion_iva != 'ri' %}
       <p class="sf-arca__warning"><strong>Emisión restringida.</strong> El facturador actual está preparado únicamente para Factura B de responsable inscripto con ítems al 21%. Para otros regímenes se necesita ampliar el motor fiscal antes de activar.</p>
     {% endif %}
+    <!-- STERAKFOOD_5B_BOVEDA_PROBAR -->
+    {% if boveda_5a %}
+      <div class="sf-arca__entorno">
+        <p class="sf-arca__hint"><strong>Bóveda configurada.</strong> Antes de subir certificados, comprobá el cifrado y la tabla segura. Esta prueba no usa datos fiscales ni emite comprobantes.</p>
+        <form method="post" action="{% url 'marca:arca_comprobar_boveda_5b' %}">
+          {% csrf_token %}
+          <button type="submit" class="sf-arca__btn-outline">Comprobar bóveda (sin certificado)</button>
+        </form>
+      </div>
+    {% endif %}
     <form class="sf-arca__selfservice-form" action="{% url 'marca:arca_cargar_certificado_5a' %}" method="post" enctype="multipart/form-data" autocomplete="off">
       {% csrf_token %}
       <label>Entorno ARCA

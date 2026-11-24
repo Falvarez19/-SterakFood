@@ -1,0 +1,7 @@
+{
+  "marca/arca_vault_5a.py": true,
+  "marca/urls.py": true,
+  "marca/templates/marca/arca_propietario.html": true,
+  "marca/arca_boveda_5b.py": false,
+  "marca/tests_boveda_5b.py": false
+}

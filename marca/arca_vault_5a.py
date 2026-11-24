@@ -135,9 +135,12 @@ def runtime_emision():
     try:
         row = ArcaCredencial.objects.filter(activa=True).first()
         if row is None:
-            if ArcaCredencial.objects.exists():
-                raise ConfiguracionSeguraError('La facturación está deshabilitada desde Mi negocio.')
-            return None
+            # STERAKFOOD_5B_BLOQUEO_EMISION_LEGADA
+            # No permitir facturar por variables antiguas del servidor.
+            # Una credencial debe validarse y activarse desde Mi negocio.
+            raise ConfiguracionSeguraError(
+                'La facturación está deshabilitada. Cargá, verificá y activá el certificado desde Mi negocio.'
+            )
     except (OperationalError, ProgrammingError):
         return None
     from pedidos.models import ConfiguracionFiscal
