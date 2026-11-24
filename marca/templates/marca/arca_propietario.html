@@ -4,7 +4,9 @@
 {% block nav_acciones %}<a class="btn-nav-ghost" href="{% url 'marca:configurar' %}">← Mi negocio</a>{% endblock %}
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/arca_propietario.css' %}">
-<main class="sf-arca">
+<!-- STERAKFOOD_5E_TABS_FISCALES -->
+<link rel="stylesheet" href="{% static 'css/arca_panel_5e.css' %}">
+<main class="sf-arca sf-arca--5e" data-condicion-iva="{{ fiscal.condicion_iva }}">
   <header class="sf-arca__header">
     <div>
       <span class="sf-arca__eyebrow">STERAKFOOD · SOLO PROPIETARIO</span>
@@ -173,5 +175,6 @@
     </div>
   </section>
 
+<script src="{% static 'script/arca_panel_5e.js' %}" defer></script>
 </main>
 {% endblock %}

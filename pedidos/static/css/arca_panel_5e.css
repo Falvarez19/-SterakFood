@@ -1,0 +1,32 @@
+/* SterakFood 5E: navegacion compacta ARCA. Amplia estilos 4E-5D, no los reemplaza. */
+.sf-arca--5e{max-width:1250px;margin:20px auto;padding:0 20px 24px;}
+.sf-arca--5e .sf-arca__header{margin-bottom:14px;align-items:center;}
+.sf-arca--5e .sf-arca__header h1{font-size:clamp(1.48rem,2.2vw,2rem);}
+.sf-arca--5e .sf-arca__header p{margin:4px 0;}
+.sf-arca5e__tabs{display:flex;gap:5px;align-items:stretch;overflow-x:auto;border-bottom:1px solid var(--borde);margin:8px 0 14px;padding:2px 2px 0;scrollbar-width:thin;}
+.sf-arca5e__tab{appearance:none;border:0;border-bottom:3px solid transparent;color:var(--texto-mutado);background:transparent;padding:12px 15px;cursor:pointer;font:inherit;font-size:.9rem;font-weight:700;white-space:nowrap;border-radius:7px 7px 0 0;}
+.sf-arca5e__tab:hover{background:var(--card-bg);color:var(--text-color);}
+.sf-arca5e__tab[aria-selected="true"]{color:var(--naranja-sterak);border-bottom-color:var(--naranja-sterak);background:var(--card-bg);}
+.sf-arca5e__tab:focus-visible{outline:2px solid var(--naranja-sterak);outline-offset:-3px;}
+.sf-arca5e__panel[hidden]{display:none!important;}
+.sf-arca5e__panel>.sf-arca__section{margin:0;}
+.sf-arca5e__panel>.sf-arca__section+.sf-arca__section{margin-top:12px;}
+.sf-arca--5e .sf-arca__section{padding:18px 20px;border-radius:10px;}
+.sf-arca--5e .sf-arca__section h2{font-size:1.06rem;margin-bottom:6px;}
+.sf-arca--5e .sf-arca__form{gap:11px;margin-top:12px;}
+.sf-arca--5e .sf-arca__selfservice-form{gap:11px;margin:12px 0;}
+.sf-arca--5e .sf-arca__form input,.sf-arca--5e .sf-arca__form select,.sf-arca--5e .sf-arca__selfservice-form input,.sf-arca--5e .sf-arca__selfservice-form select{min-height:39px;padding:8px 10px;}
+.sf-arca--5e .sf-arca__status{margin:7px 0 12px;}
+.sf-arca--5e .sf-arca__status>div{padding:8px 0;}
+.sf-arca--5e .sf-arca__hint{margin:6px 0 10px;line-height:1.45;}
+.sf-arca--5e .sf-arca__warning{margin:10px 0;padding:9px 12px;}
+.sf-arca--5e .sf-arca__diag{margin:0;padding:0;border:0;}
+.sf-arca--5e .sf-arca__entornos{margin-top:14px;}
+.sf-arca--5e .sf-arca__diag-boton{margin:5px 0 11px;}
+.sf-arca5e__atajos{display:flex;gap:9px;flex-wrap:wrap;margin:0 0 12px;}
+.sf-arca5e__atajos button{background:transparent;border:1px solid var(--borde);color:var(--text-color);border-radius:7px;padding:9px 13px;font-weight:650;cursor:pointer;}
+.sf-arca5e__atajos button:hover{border-color:var(--naranja-sterak);color:var(--naranja-sterak);}
+.sf-arca5e__aviso-pruebas{border-left:3px solid var(--naranja-sterak);background:var(--card-bg);padding:10px 14px;margin:0 0 12px;font-size:.9rem;line-height:1.5;}
+.sf-arca--5e .sf-arca__message{padding:8px 12px;border-left:3px solid var(--naranja-sterak);background:var(--card-bg);margin:8px 0;}
+@media(max-width:700px){.sf-arca--5e{padding:0 12px 20px;margin-top:14px;}.sf-arca--5e .sf-arca__header{gap:8px;}.sf-arca--5e .sf-arca__section{padding:15px;}.sf-arca5e__tab{padding:11px;font-size:.83rem;}.sf-arca--5e .sf-arca__form,.sf-arca--5e .sf-arca__selfservice-form{grid-template-columns:1fr;}.sf-arca--5e .sf-arca__status>div{gap:8px;}.sf-arca5e__atajos{flex-direction:column;}.sf-arca5e__atajos button{width:100%;}}
+@media(prefers-reduced-motion:reduce){.sf-arca5e__tab{transition:none;}}

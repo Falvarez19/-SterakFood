@@ -1,0 +1,5 @@
+PASO 5E INSTALADO CORRECTAMENTE
+Panel fiscal compacto en cinco pestañas.
+Preserva endpoints, contraseñas, certificados, BD, POS y emisión.
+NO agrega emisión de Factura C ni solicita CAE.
+Respaldo: C:\Users\FerchoNB\Desktop\Python Cositas\-SterakFood\.sterakfood_actualizaciones\RESPALDO_5E_20261124_181651_420328
