@@ -7,8 +7,14 @@ from .arca_autogestion_5a import (  # STERAKFOOD_5A_RUTAS
     cargar_certificado_5a, verificar_arca_5a, activar_arca_5a, desactivar_arca_5a,
 )
 
+# STERAKFOOD_6A_PERSONALIZACION_VISUAL
+from .visual_6a import menu_fondo, menu_portada, menu_tema_css
+
 app_name = 'marca'
 urlpatterns = [
+    path('menu-fondo-6a.webp', menu_fondo, name='menu_fondo_6a'),
+    path('menu-portada-6a', menu_portada, name='menu_portada_6a'),
+    path('menu-visual-6a.css', menu_tema_css, name='menu_tema_css_6a'),
     path('arca/diagnosticar/', diagnosticar_arca, name='arca_diagnosticar'),
     path('arca/simular-factura-c/', simular_factura_c_5d, name='arca_simular_c_5d'),
     path('arca/certificado/', cargar_certificado_5a, name='arca_cargar_certificado_5a'),

@@ -1,0 +1,118 @@
+{% extends 'pedidos/base.html' %}
+{% load static %}
+{% block title %}Mi negocio | {{ marca.nombre }}{% endblock %}
+{% block nav_acciones %}<a class="btn-nav-ghost" href="{% url 'pedidos:panel_control' %}">Volver al panel</a>{% endblock %}
+{% block content %}
+<div class="sf-brand sf-brand--5f">
+  <header class="sf-brand__header">
+    <div>
+      <h1>Mi negocio</h1>
+      <p>Nombre, logo y colores que se muestran en tu restaurante.</p>
+    </div>
+    <span class="sf-brand__owner">Configuración del propietario</span>
+  </header>
+  {% for message in messages %}<p class="sf-brand__message" role="status">{{ message }}</p>{% endfor %}
+  <link rel="stylesheet" href="{% static 'css/arca_propietario.css' %}">
+<!-- STERAKFOOD_5F_MI_NEGOCIO_TABS -->
+<link rel="stylesheet" href="{% static 'css/marca_panel_5f.css' %}">
+  <div class="sf-brand__5f-summary" aria-label="Resumen del negocio">
+    <div class="sf-brand__5f-tile"><small>Nombre comercial</small><strong>{{ marca_actual.nombre }}</strong></div>
+    <div class="sf-brand__5f-tile"><small>Nombre corto</small><strong>{{ marca_actual.nombre_corto }}</strong></div>
+    <a class="sf-brand__5f-tile sf-brand__5f-tile--link" href="{% url 'marca:arca_propietario' %}"><small>Solo propietario</small><strong>Facturación ARCA</strong><small>Certificados, diagnóstico y activación</small></a>
+  </div>
+  <form method="post" enctype="multipart/form-data" id="sf-marca-form">
+    {% csrf_token %}
+    <nav class="sf-brand__5f-tabs" aria-label="Apartados de Mi negocio" role="tablist">
+      <button type="button" class="sf-brand__5f-tab" role="tab" id="sf5f-tab-datos" aria-controls="sf5f-panel-datos" aria-selected="true" data-sf5f-target="datos">Información</button>
+      <button type="button" class="sf-brand__5f-tab" role="tab" id="sf5f-tab-logos" aria-controls="sf5f-panel-logos" aria-selected="false" data-sf5f-target="logos">Logos</button>
+      <button type="button" class="sf-brand__5f-tab" role="tab" id="sf5f-tab-colores" aria-controls="sf5f-panel-colores" aria-selected="false" data-sf5f-target="colores">Colores</button>
+    </nav>
+    <button type="button" class="sf-brand__5f-tab sf-brand__5f-preview-toggle" aria-controls="sf5f-preview" aria-expanded="false">Mostrar/ocultar vista previa</button>
+    <div class="sf-brand__layout">
+      <div class="sf-brand__settings">
+        <section class="sf-brand__section" data-sf5f-section="datos" role="tabpanel" aria-labelledby="sf5f-tab-datos" id="sf5f-panel-datos">
+          <div class="sf-brand__section-head">
+            <h2 id="sf-nombre-titulo">Información del restaurante</h2>
+            <p>Se muestra en el menú, los pedidos y el panel.</p>
+          </div>
+          <div class="sf-brand__fields">
+            <label for="sf-nombre">Nombre comercial
+              <input name="nombre" id="sf-nombre" maxlength="90" minlength="2" required value="{{ marca_actual.nombre }}" placeholder="Nombre del restaurante">
+            </label>
+            <label for="sf-corto">Nombre corto
+              <input name="nombre_corto" id="sf-corto" maxlength="45" minlength="2" required value="{{ marca_actual.nombre_corto }}" placeholder="Nombre para la app">
+            </label>
+            <label class="sf-brand__wide" for="sf-subtitulo">Descripción corta
+              <input name="subtitulo" id="sf-subtitulo" maxlength="160" value="{{ marca_actual.subtitulo }}" placeholder="Una frase sobre tu restaurante (opcional)">
+            </label>
+          </div>
+        </section>
+
+        <section class="sf-brand__section" data-sf5f-section="logos" role="tabpanel" aria-labelledby="sf5f-tab-logos" id="sf5f-panel-logos">
+          <div class="sf-brand__section-head">
+            <h2 id="sf-logos-titulo">Logos</h2>
+            <p>Elegí los archivos que querés mostrar. Si no cambiás nada, se mantienen los actuales.</p>
+          </div>
+          <div class="sf-brand__logo-row">
+            <div class="sf-brand__logo-frame sf-brand__logo-frame--dark"><img src="{% url 'marca:logo' %}" alt="Logo para fondo oscuro"></div>
+            <div class="sf-brand__logo-controls">
+              <label for="sf-logo-archivo">Logo principal</label>
+              <input type="file" name="logo" id="sf-logo-archivo" accept="image/png,image/jpeg,image/webp">
+              {% if marca_actual.logo_png %}<label class="sf-brand__check"><input type="checkbox" name="borrar_logo" value="1"> Usar el logo predeterminado</label>{% endif %}
+            </div>
+          </div>
+          <div class="sf-brand__logo-row">
+            <div class="sf-brand__logo-frame sf-brand__logo-frame--light"><img src="{% url 'marca:logo_claro' %}" alt="Logo para fondo claro"></div>
+            <div class="sf-brand__logo-controls">
+              <label for="sf-logo-claro">Logo para fondo claro</label>
+              <input type="file" name="logo_claro" id="sf-logo-claro" accept="image/png,image/jpeg,image/webp">
+              {% if marca_actual.logo_claro_png %}<label class="sf-brand__check"><input type="checkbox" name="borrar_logo_claro" value="1"> Usar el logo principal</label>{% endif %}
+            </div>
+          </div>
+          <p class="sf-brand__hint">Formatos PNG, JPG o WebP. Hasta 2 MB cada uno.</p>
+        </section>
+
+        <section class="sf-brand__section" data-sf5f-section="colores" role="tabpanel" aria-labelledby="sf5f-tab-colores" id="sf5f-panel-colores">
+          <div class="sf-brand__section-head">
+            <h2 id="sf-colores-titulo">Colores de la interfaz</h2>
+            <p>Podés conservar el estilo original o ajustar los colores de cada negocio.</p>
+          </div>
+          <div class="sf-brand__colors">
+            <label for="sf-principal"><span>Principal</span><input type="color" id="sf-principal" name="color_principal" value="{{ marca_actual.color_principal }}"></label>
+            <label for="sf-secundario"><span>Secundario</span><input type="color" id="sf-secundario" name="color_secundario" value="{{ marca_actual.color_secundario }}"></label>
+            <label for="sf-acento"><span>Acento</span><input type="color" id="sf-acento" name="color_acento" value="{{ marca_actual.color_acento }}"></label>
+          </div>
+          <button type="button" class="sf-brand__restore" data-sf-palette="#FF6600,#FF6600,#FF8533">Restaurar colores originales de SterakFood</button>
+        </section>
+      </div>
+
+      <aside class="sf-brand__preview-column" id="sf5f-preview">
+        <section class="sf-brand__preview-section">
+          <h2>Vista previa</h2>
+          <p>Así se verá la identidad dentro del sistema.</p>
+          <div class="sf-brand__preview" id="sf-preview">
+            <div class="sf-brand__previewtop">
+              <img id="sf-preview-logo" src="{% url 'marca:logo' %}" alt="Logo del negocio">
+              <strong id="sf-preview-nombre">{{ marca_actual.nombre }}</strong>
+              <span>POS</span>
+            </div>
+            <div class="sf-brand__preview-nav"><span class="sf-brand__preview-active">Mesas</span><span>Para llevar</span><span>Caja</span></div>
+            <div class="sf-brand__previewbody">
+              <div><small>Salón</small><strong>Mesas y pedidos</strong></div>
+              <div class="sf-brand__preview-tiles"><span>01</span><span>02</span><span>03</span><span>04</span></div>
+              <div class="sf-brand__preview-foot"><span>Estado de mesas</span><i></i> Disponible</div>
+            </div>
+          </div>
+          <p class="sf-brand__hint">La vista previa es orientativa. Los cambios aparecen en el sistema después de guardarlos.</p>
+        </section>
+      </aside>
+    </div>
+    <div class="sf-brand__footer">
+      <span>Estos cambios son solo para este restaurante.</span>
+      <button type="submit" class="sf-brand__save">Guardar cambios</button>
+    </div>
+  </form>
+</div>
+<script src="{% static 'script/marca_rapida.js' %}" defer></script>
+<script src="{% static 'script/marca_panel_5f.js' %}" defer></script>
+{% endblock %}

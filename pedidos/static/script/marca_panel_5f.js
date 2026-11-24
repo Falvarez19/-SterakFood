@@ -8,7 +8,7 @@
   const sections = [...root.querySelectorAll('.sf-brand__settings > .sf-brand__section[data-sf5f-section]')];
   const preview = root.querySelector('#sf5f-preview');
   const toggle = root.querySelector('.sf-brand__5f-preview-toggle');
-  if (!form || tabs.length !== 3 || sections.length !== 3 || !preview) return;
+  if (!form || tabs.length < 3 || tabs.length !== sections.length || !preview) return;
 
   function showTab(tab, focusTab = false) {
     const target = tab.dataset.sf5fTarget;

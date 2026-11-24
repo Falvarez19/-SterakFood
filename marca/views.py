@@ -87,10 +87,13 @@ def configurar(request):
                     logos[key] = _leer_png(archivo)
                 elif request.POST.get(f'borrar_{field}') == '1':
                     logos[key] = None
+            # STERAKFOOD_6A_PERSONALIZACION_VISUAL
+            from .visual_6a import cambios_visuales
+            visual_6a = cambios_visuales(request, registro)
             registro.nombre = nombre
             registro.nombre_corto = nombre_corto
             registro.subtitulo = subtitulo
-            for key, value in {**campos, **logos}.items():
+            for key, value in {**campos, **logos, **visual_6a}.items():
                 setattr(registro, key, value)
             registro.colores_personalizados = any(
                 campos[k].upper() != DEFAULTS[k].upper()

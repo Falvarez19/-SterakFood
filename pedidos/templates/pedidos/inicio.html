@@ -2,6 +2,9 @@
 {% load static %}
 {% block title %}Menú {{ puesto_activo.nombre }} | {{ restaurant_name }}{% endblock %}
 {% block content %}
+<!-- STERAKFOOD_6A_PERSONALIZACION_VISUAL -->
+<link rel="stylesheet" href="{% url 'marca:menu_tema_css_6a' %}">
+<script src="{% static 'script/menu_visual_6a.js' %}" data-portada="{% url 'marca:menu_portada_6a' %}" data-logo="{% url 'marca:logo' %}" defer></script>
 
     {% if welcome_modal_enabled and bienvenida_popup_urls %}
     <!-- # MODAL DE BIENVENIDA DEL MENÚ -->

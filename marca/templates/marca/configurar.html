@@ -7,7 +7,7 @@
   <header class="sf-brand__header">
     <div>
       <h1>Mi negocio</h1>
-      <p>Nombre, logo y colores que se muestran en tu restaurante.</p>
+      <p>Personalizá el menú: logos, colores, fuentes, GIF, fondo y tarjetas.</p>
     </div>
     <span class="sf-brand__owner">Configuración del propietario</span>
   </header>
@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="{% static 'css/arca_propietario.css' %}">
 <!-- STERAKFOOD_5F_MI_NEGOCIO_TABS -->
 <link rel="stylesheet" href="{% static 'css/marca_panel_5f.css' %}">
+<link rel="stylesheet" href="{% static 'css/marca_visual_6a.css' %}">
   <div class="sf-brand__5f-summary" aria-label="Resumen del negocio">
     <div class="sf-brand__5f-tile"><small>Nombre comercial</small><strong>{{ marca_actual.nombre }}</strong></div>
     <div class="sf-brand__5f-tile"><small>Nombre corto</small><strong>{{ marca_actual.nombre_corto }}</strong></div>
@@ -26,6 +27,10 @@
       <button type="button" class="sf-brand__5f-tab" role="tab" id="sf5f-tab-datos" aria-controls="sf5f-panel-datos" aria-selected="true" data-sf5f-target="datos">Información</button>
       <button type="button" class="sf-brand__5f-tab" role="tab" id="sf5f-tab-logos" aria-controls="sf5f-panel-logos" aria-selected="false" data-sf5f-target="logos">Logos</button>
       <button type="button" class="sf-brand__5f-tab" role="tab" id="sf5f-tab-colores" aria-controls="sf5f-panel-colores" aria-selected="false" data-sf5f-target="colores">Colores</button>
+      <!-- STERAKFOOD_6A_PERSONALIZACION_VISUAL -->
+      <button type="button" class="sf-brand__5f-tab" role="tab" id="sf5f-tab-tipografia" aria-controls="sf5f-panel-tipografia" aria-selected="false" data-sf5f-target="tipografia">Tipografía</button>
+      <button type="button" class="sf-brand__5f-tab" role="tab" id="sf5f-tab-multimedia" aria-controls="sf5f-panel-multimedia" aria-selected="false" data-sf5f-target="multimedia">Multimedia</button>
+      <button type="button" class="sf-brand__5f-tab" role="tab" id="sf5f-tab-tarjetas" aria-controls="sf5f-panel-tarjetas" aria-selected="false" data-sf5f-target="tarjetas">Tarjetas</button>
     </nav>
     <button type="button" class="sf-brand__5f-tab sf-brand__5f-preview-toggle" aria-controls="sf5f-preview" aria-expanded="false">Mostrar/ocultar vista previa</button>
     <div class="sf-brand__layout">
@@ -84,6 +89,53 @@
           </div>
           <button type="button" class="sf-brand__restore" data-sf-palette="#FF6600,#FF6600,#FF8533">Restaurar colores originales de SterakFood</button>
         </section>
+
+        <section class="sf-brand__section" data-sf5f-section="tipografia" role="tabpanel" aria-labelledby="sf5f-tab-tipografia" id="sf5f-panel-tipografia">
+          <div class="sf-brand__section-head"><h2>Fuente y tamaño de letras</h2><p>Elegí una letra para el menú público, sin alterar el POS ni los tickets.</p></div>
+          <div class="sf6a-controls">
+            <div class="sf6a-group"><label for="sf6a-font">Tipo de letra</label><select id="sf6a-font" name="menu_fuente">
+              <option value="original" {% if marca_actual.menu_fuente == 'original' %}selected{% endif %}>Original de SterakFood</option>
+              <option value="moderna" {% if marca_actual.menu_fuente == 'moderna' %}selected{% endif %}>Moderna</option>
+              <option value="clasica" {% if marca_actual.menu_fuente == 'clasica' %}selected{% endif %}>Clásica</option>
+              <option value="elegante" {% if marca_actual.menu_fuente == 'elegante' %}selected{% endif %}>Elegante</option>
+              <option value="cursiva" {% if marca_actual.menu_fuente == 'cursiva' %}selected{% endif %}>Cursiva / letra corrida</option>
+              <option value="suave" {% if marca_actual.menu_fuente == 'suave' %}selected{% endif %}>Redondeada</option>
+            </select></div>
+            <div class="sf6a-group"><label for="sf6a-title">Títulos y categorías</label><div class="sf6a-inline"><input type="range" id="sf6a-title" name="menu_titulo_px" min="20" max="62" value="{{ marca_actual.menu_titulo_px }}" data-sf6a-output="sf6a-title-val"><output id="sf6a-title-val">{{ marca_actual.menu_titulo_px }} px</output></div></div>
+            <div class="sf6a-group"><label for="sf6a-product">Productos</label><div class="sf6a-inline"><input type="range" id="sf6a-product" name="menu_producto_px" min="12" max="30" value="{{ marca_actual.menu_producto_px }}" data-sf6a-output="sf6a-product-val"><output id="sf6a-product-val">{{ marca_actual.menu_producto_px }} px</output></div></div>
+            <div class="sf6a-group"><label for="sf6a-desc">Descripciones</label><div class="sf6a-inline"><input type="range" id="sf6a-desc" name="menu_descripcion_px" min="11" max="24" value="{{ marca_actual.menu_descripcion_px }}" data-sf6a-output="sf6a-desc-val"><output id="sf6a-desc-val">{{ marca_actual.menu_descripcion_px }} px</output></div></div>
+            <div class="sf6a-group"><label for="sf6a-price">Precios</label><div class="sf6a-inline"><input type="range" id="sf6a-price" name="menu_precio_px" min="12" max="36" value="{{ marca_actual.menu_precio_px }}" data-sf6a-output="sf6a-price-val"><output id="sf6a-price-val">{{ marca_actual.menu_precio_px }} px</output></div></div>
+          </div>
+          <p class="sf6a-hint">La fuente cursiva depende de las letras disponibles en el dispositivo; si no están, se usa una alternativa del sistema.</p>
+        </section>
+
+        <section class="sf-brand__section" data-sf5f-section="multimedia" role="tabpanel" aria-labelledby="sf5f-tab-multimedia" id="sf5f-panel-multimedia">
+          <div class="sf-brand__section-head"><h2>Fondo y GIF del menú</h2><p>Cambiá el fondo que ya tiene el menú y la imagen animada de portada desde acá.</p></div>
+          <div class="sf6a-controls">
+            <div class="sf6a-file-zone"><label for="sf6a-bg">Fondo del menú (imagen)</label><input id="sf6a-bg" type="file" name="archivo_fondo_menu" accept="image/png,image/jpeg,image/webp"><span class="sf6a-file-status">{% if marca_actual.menu_fondo_archivo %}Fondo personalizado cargado{% else %}Se conserva el fondo original{% endif %}</span>
+              {% if marca_actual.menu_fondo_archivo %}<label class="sf6a-check"><input type="checkbox" name="borrar_archivo_fondo_menu" value="1"> Restaurar fondo original</label>{% endif %}</div>
+            <div class="sf6a-file-zone"><label for="sf6a-hero">Imagen o GIF de portada</label><input id="sf6a-hero" type="file" name="archivo_portada_menu" accept="image/gif,image/png,image/jpeg,image/webp"><span class="sf6a-file-status">{% if marca_actual.menu_portada_archivo %}Portada personalizada cargada{% else %}Se conserva la portada original{% endif %}</span>
+              {% if marca_actual.menu_portada_archivo %}<label class="sf6a-check"><input type="checkbox" name="borrar_archivo_portada_menu" value="1"> Restaurar portada original</label>{% endif %}</div>
+            <div class="sf6a-group"><label for="sf6a-overlay">Oscurecer imagen de fondo</label><div class="sf6a-inline"><input type="range" id="sf6a-overlay" name="menu_oscurecer" min="0" max="85" value="{{ marca_actual.menu_oscurecer }}" data-sf6a-output="sf6a-overlay-val"><output id="sf6a-overlay-val">{{ marca_actual.menu_oscurecer }}%</output></div></div>
+            <div class="sf6a-group"><label for="sf6a-bgcolor">Color de fondo sin imagen</label><input type="color" id="sf6a-bgcolor" name="menu_color_fondo" value="{{ marca_actual.menu_color_fondo }}"></div>
+          </div>
+          <label class="sf6a-check"><input type="checkbox" name="menu_mostrar_portada" {% if marca_actual.menu_mostrar_portada %}checked{% endif %}> Mostrar la imagen / GIF de portada elegido</label>
+          <p class="sf6a-hint">Fondo fijo PNG/JPG/WebP hasta 5 MB; imagen o GIF de portada hasta 3 MB y 80 cuadros. Se guardan en la base de datos, no en el disco temporal de Render.</p>
+        </section>
+
+        <section class="sf-brand__section" data-sf5f-section="tarjetas" role="tabpanel" aria-labelledby="sf5f-tab-tarjetas" id="sf5f-panel-tarjetas">
+          <div class="sf-brand__section-head"><h2>Tarjetas y botones del menú</h2><p>Alineación uniforme de productos, precios, imágenes y botones.</p></div>
+          <div class="sf6a-controls">
+            <div class="sf6a-group"><label for="sf6a-button-color">Color de botones Agregar</label><input type="color" id="sf6a-button-color" name="menu_color_boton" value="{{ marca_actual.menu_color_boton }}"></div>
+            <div class="sf6a-group"><label for="sf6a-buttons">Formato de botones</label><select id="sf6a-buttons" name="menu_boton_estilo">
+              <option value="normal" {% if marca_actual.menu_boton_estilo == 'normal' %}selected{% endif %}>Redondeado</option><option value="redondo" {% if marca_actual.menu_boton_estilo == 'redondo' %}selected{% endif %}>Píldora</option><option value="recto" {% if marca_actual.menu_boton_estilo == 'recto' %}selected{% endif %}>Cuadrado</option>
+            </select></div>
+            <div class="sf6a-group"><label for="sf6a-radius">Redondez de las tarjetas</label><div class="sf6a-inline"><input id="sf6a-radius" type="range" name="menu_borde_px" min="0" max="30" value="{{ marca_actual.menu_borde_px }}" data-sf6a-output="sf6a-radius-val"><output id="sf6a-radius-val">{{ marca_actual.menu_borde_px }} px</output></div></div>
+          </div>
+          <input type="hidden" name="menu_ajustes_6a" value="1">
+          <label class="sf6a-check"><input type="checkbox" name="menu_tarjetas_iguales" {% if marca_actual.menu_tarjetas_iguales %}checked{% endif %}> Alinear tarjetas, imágenes, precios y botones automáticamente</label>
+          <label class="sf6a-check"><input type="checkbox" name="menu_sombra_tarjetas" {% if marca_actual.menu_sombra_tarjetas %}checked{% endif %}> Mostrar sombras suaves en las tarjetas</label>
+        </section>
       </div>
 
       <aside class="sf-brand__preview-column" id="sf5f-preview">
@@ -103,7 +155,17 @@
               <div class="sf-brand__preview-foot"><span>Estado de mesas</span><i></i> Disponible</div>
             </div>
           </div>
-          <p class="sf-brand__hint">La vista previa es orientativa. Los cambios aparecen en el sistema después de guardarlos.</p>
+
+          <div class="sf6a-preview" id="sf6a-preview" {% if marca_actual.menu_fondo_archivo %}data-sf6a-background="{% url 'marca:menu_fondo_6a' %}"{% endif %}>
+            <div class="sf6a-preview-inner">
+              <h3 class="sf6a-preview-title">Nuestro menú</h3>
+              <div class="sf6a-card">
+                <div class="sf6a-card-media"><img id="sf6a-image-preview" src="{% url 'marca:menu_portada_6a' %}" alt="Vista previa de la portada del menú"></div>
+                <div class="sf6a-card-body"><h3>Milanesa napolitana</h3><p>Con guarnición a elección</p><span class="sf6a-card-price">$12.000</span><button type="button" class="sf6a-card-button" disabled>+ Agregar</button></div>
+              </div>
+            </div>
+          </div>
+          <p class="sf-brand__hint">Vista previa del menú. Los cambios se publican al guardar.</p>
         </section>
       </aside>
     </div>
@@ -115,4 +177,5 @@
 </div>
 <script src="{% static 'script/marca_rapida.js' %}" defer></script>
 <script src="{% static 'script/marca_panel_5f.js' %}" defer></script>
+<script src="{% static 'script/marca_visual_6a.js' %}" defer></script>
 {% endblock %}

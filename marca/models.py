@@ -14,6 +14,25 @@ class MarcaNegocio(models.Model):
     # con el filesystem efímero de Render y en actualizaciones del instalador.
     logo_png = models.BinaryField(null=True, blank=True, editable=False)
     logo_claro_png = models.BinaryField(null=True, blank=True, editable=False)
+
+    # STERAKFOOD_6A_PERSONALIZACION_VISUAL — solo menú público y Mi negocio.
+    menu_fuente = models.CharField(max_length=20, default='original')
+    menu_titulo_px = models.PositiveSmallIntegerField(default=32)
+    menu_producto_px = models.PositiveSmallIntegerField(default=17)
+    menu_descripcion_px = models.PositiveSmallIntegerField(default=14)
+    menu_precio_px = models.PositiveSmallIntegerField(default=18)
+    menu_color_fondo = models.CharField(max_length=7, default='#121212')
+    menu_color_boton = models.CharField(max_length=7, default='#FF6600')
+    menu_fondo_archivo = models.BinaryField(null=True, blank=True, editable=False)
+    menu_portada_archivo = models.BinaryField(null=True, blank=True, editable=False)
+    menu_portada_mime = models.CharField(max_length=32, blank=True, default='')
+    menu_mostrar_portada = models.BooleanField(default=True)
+    menu_oscurecer = models.PositiveSmallIntegerField(default=40)
+    menu_tarjetas_iguales = models.BooleanField(default=True)
+    menu_sombra_tarjetas = models.BooleanField(default=True)
+    menu_borde_px = models.PositiveSmallIntegerField(default=14)
+    menu_boton_estilo = models.CharField(max_length=12, default='normal')
+
     actualizado = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):

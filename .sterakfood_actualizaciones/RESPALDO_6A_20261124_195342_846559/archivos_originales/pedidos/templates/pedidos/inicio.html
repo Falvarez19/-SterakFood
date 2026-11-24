@@ -1,0 +1,502 @@
+{% extends 'pedidos/base.html' %}
+{% load static %}
+{% block title %}Menú {{ puesto_activo.nombre }} | {{ restaurant_name }}{% endblock %}
+{% block content %}
+
+    {% if welcome_modal_enabled and bienvenida_popup_urls %}
+    <!-- # MODAL DE BIENVENIDA DEL MENÚ -->
+    <div
+        id="modal-bienvenida-menu"
+        class="bienvenida-menu-modal"
+        aria-hidden="true"
+    >
+        <div
+            class="bienvenida-menu-modal__fondo"
+            data-bienvenida-cerrar
+        ></div>
+
+        <div
+            class="bienvenida-menu-modal__tarjeta"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Bienvenida al {{ restaurant_name }}"
+        >
+            <button
+                type="button"
+                id="btn-cerrar-bienvenida-menu"
+                class="bienvenida-menu-modal__cerrar"
+                aria-label="Cerrar mensaje de bienvenida"
+            >
+                ×
+            </button>
+
+            <div class="bienvenida-popup-carrusel">
+                {% for imagen in bienvenida_popup_urls %}
+                    <img
+                        src="{{ imagen.url }}"
+                        alt="Bienvenida {{ forloop.counter }} del {{ restaurant_name }}"
+                        class="bienvenida-menu-modal__imagen bienvenida-popup-slide {% if forloop.first %}is-active{% endif %}"
+                    >
+                {% endfor %}
+            </div>
+
+            {% if bienvenida_popup_urls|length > 1 %}
+                <div class="bienvenida-popup-controles">
+                    <button type="button" class="bienvenida-popup-nav" data-popup-prev>‹</button>
+                    <div class="bienvenida-popup-dots">
+                        {% for imagen in bienvenida_popup_urls %}
+                            <button
+                                type="button"
+                                class="bienvenida-popup-dot {% if forloop.first %}is-active{% endif %}"
+                                data-popup-dot="{{ forloop.counter0 }}"
+                                aria-label="Ver imagen {{ forloop.counter }}"
+                            ></button>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="bienvenida-popup-nav" data-popup-next>›</button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    {% if not buffet_habilitado %}
+    <div class="aviso-pedidos-pausados">
+        ⚠️ LOS PEDIDOS POR EL CELULAR ESTÁN DESACTIVADOS POR ALTA DEMANDA
+    </div>
+    {% endif %}
+    {% if descuento_activo %}
+    <div class="aviso-descuento-efectivo">
+        <span>💵</span>
+        ¡10% DE DESCUENTO pagando en EFECTIVO el total de la mesa!
+        <span>💵</span>
+    </div>
+    {% endif %}
+    <!-- # HERO -->
+    <header class="hero hero-menu-moderno">
+        <div class="hero-content">
+            <div class="hero-texto">
+                <span class="hero-kicker">
+                    {{ restaurant_name|upper }}
+                </span>
+                <h1>
+                    {{ puesto_activo.nombre }}
+                </h1>
+                <p>
+                    Elegí lo que quieras. ¡Que tengas buen provecho!
+                </p>
+            </div>
+            <div class="hero-logo-side">
+                <img
+                    src="{% url 'marca:logo' %}"
+                    alt="Escudo {{ restaurant_name }}"
+                >
+            </div>
+        </div>
+    </header>
+    <main class="container menu-principal-moderno">
+        {% regroup productos by categoria.nombre as categorias_lista %}
+        {% if mostrar_promociones %}
+        <!-- # PROMOCIONES -->
+        <section
+            id="zona-promos"
+            class="seccion-categoria seccion-promos"
+        >
+            <div
+                class="
+                    categoria-encabezado
+                    categoria-encabezado--fijo
+                "
+            >
+                <div>
+                    <span class="categoria-kicker">
+                        PROMOCIONES
+                    </span>
+                    <h2 class="seccion-titulo">
+                        🔥 Promos
+                    </h2>
+                </div>
+                {% if promociones %}
+                    <span class="desliza-ayuda">
+                        Deslizá ➝
+                    </span>
+                {% endif %}
+            </div>
+            <!-- # HAY PROMOCIONES -->
+            {% if promociones %}
+                <div class="menu-horizontal">
+                    {% for producto in promociones %}
+                    <article
+                        class="
+                            tarjeta-producto
+                            horizontal-card
+                            tarjeta-promo
+                        "
+                    >
+                        {% if producto.imagen %}
+                        <div
+                            class="
+                                tarjeta-imagen
+                                tarjeta-imagen--popular
+                            "
+                        >
+                            <span class="badge-popular">
+                                🔥 PROMO
+                            </span>
+                            <img
+                                src="{{ producto.imagen.url }}"
+                                alt="{{ producto.nombre }}"
+                                loading="lazy"
+                            >
+                        </div>
+                        {% else %}
+                        <div
+                            style="
+                                padding: 12px 15px 0;
+                            "
+                        >
+                            <span class="badge-popular">
+                                🔥 PROMO
+                            </span>
+                        </div>
+                        {% endif %}
+                        <div class="tarjeta-cuerpo">
+                            <h3>
+                                {{ producto.nombre }}
+                            </h3>
+                            <p class="descripcion">
+                                {{ producto.descripcion|default:""|truncatechars:60 }}
+                            </p>
+                        </div>
+                        <div class="tarjeta-pie">
+                            <span class="precio">
+                                ${{ producto.precio }}
+                            </span>
+                            <!-- # OPCIONES -->
+                            <div
+                                class="opciones-contenedor"
+                                data-id="{{ producto.id }}"
+                                data-variante="{{ producto.variantes|default:'' }}"
+                                data-guarnicion="{{ producto.guarniciones|default:'' }}"
+                                data-punto="{{ producto.puntos_coccion|default:'' }}"
+                                data-relleno="{{ producto.rellenos|default:'' }}"
+                                data-salsa="{{ producto.salsas|default:'' }}"
+                                data-adicional="{{ producto.adicionales|default:'' }}"
+                                data-hielo="{{ producto.opcion_hielo|default:'' }}"
+                            >
+                            </div>
+                            {% if buffet_habilitado %}
+                                <button
+                                    type="button"
+                                    class="btn-agregar"
+                                    onclick="agregarConOpciones({{ producto.id }}, this)"
+                                >
+                                    + Agregar
+                                </button>
+                            {% else %}
+                                <button
+                                    type="button"
+                                    class="
+                                        btn-agregar
+                                        btn-agregar--pausado
+                                    "
+                                    disabled
+                                >
+                                    Pausado
+                                </button>
+                            {% endif %}
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+            <!-- # NO HAY PROMOCIONES -->
+            {% else %}
+                <div class="promo-placeholder">
+                    <div class="promo-placeholder__contenido">
+                        <span class="promo-placeholder__icono">
+                            🍔
+                        </span>
+                        <div>
+                            <strong>
+                                Próximamente nuevas promos
+                            </strong>
+                            <p>
+                                Acá vas a encontrar nuestras promociones especiales.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </section>
+        {% endif %}
+        <!-- =====================================================
+             OPINIONES Y RESEÑAS
+             ===================================================== -->
+
+        {% if mostrar_opiniones or mostrar_google_reviews %}
+        <section class="feedback-cliente">
+            <div class="feedback-cliente__header">
+                <span class="categoria-kicker">TU OPINIÓN IMPORTA</span>
+                <h2>Ayudanos a seguir mejorando</h2>
+            </div>
+
+            <div class="feedback-cliente__grid">
+                {% if mostrar_google_reviews %}
+                <a
+                    href="https://share.google/8KFezox0rrf2E9vwa"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="feedback-card feedback-card--google"
+                >
+                    <span class="feedback-card__icono">⭐</span>
+                    <div>
+                        <strong>¿Te gustó tu experiencia?</strong>
+                        <p>Dejanos una reseña en Google. Nos ayuda muchísimo.</p>
+                        <span class="feedback-card__accion">Opinar en Google →</span>
+                    </div>
+                </a>
+                {% endif %}
+
+                {% if mostrar_opiniones %}
+                <button
+                    type="button"
+                    class="feedback-card feedback-card--privado"
+                    onclick="abrirModalOpinion()"
+                >
+                    <span class="feedback-card__icono">💬</span>
+                    <div>
+                        <strong>¿Algo no salió como esperabas?</strong>
+                        <p>Contanos qué pasó. Tu comentario es privado y nos ayuda a mejorar.</p>
+                        <span class="feedback-card__accion">Hacenos saber →</span>
+                    </div>
+                </button>
+                {% endif %}
+            </div>
+        </section>
+
+                {% endif %}
+
+{% if mostrar_opiniones %}
+        <!-- =====================================================
+             MODAL DE OPINIÓN PRIVADA
+             ===================================================== -->
+
+        <div id="modal-opinion" class="opinion-modal" aria-hidden="true">
+            <div class="opinion-modal__fondo" onclick="cerrarModalOpinion()"></div>
+            <div class="opinion-modal__contenido">
+                <button type="button" class="opinion-modal__cerrar" onclick="cerrarModalOpinion()">×</button>
+                <span class="categoria-kicker">QUEREMOS MEJORAR</span>
+                <h2>💬 Contanos qué pasó</h2>
+                <p class="opinion-modal__intro">Este comentario es privado y solamente lo verá el equipo del {{ restaurant_name }}.</p>
+
+                <form id="form-opinion" action="{% url 'pedidos:enviar_opinion' %}" method="POST">
+                    {% csrf_token %}
+
+                    <div class="opinion-modal__doble">
+                        <label class="opinion-campo">
+                            <span>Número de mesa</span>
+                            <input type="text" name="mesa" maxlength="20" inputmode="numeric" placeholder="Ej: 14" required>
+                        </label>
+
+                        <label class="opinion-campo">
+                            <span>Nombre de la persona</span>
+                            <input type="text" name="nombre" maxlength="100" placeholder="Ej: Álvaro" required>
+                        </label>
+                    </div>
+
+                    <label class="opinion-campo">
+                        <span>Mozo que te atendió</span>
+                        <input
+                            type="text"
+                            name="mozo"
+                            maxlength="100"
+                            list="lista-mozos-opinion"
+                            placeholder="Elegí o escribí el nombre"
+                            autocomplete="off"
+                            required
+                        >
+                        <datalist id="lista-mozos-opinion">
+                            {% for mozo in mozos %}
+                                <option value="{{ mozo.nombre }}"></option>
+                            {% endfor %}
+                        </datalist>
+                    </label>
+
+                    <label class="opinion-campo">
+                        <span>Tu opinión</span>
+                        <textarea
+                            name="mensaje"
+                            rows="5"
+                            maxlength="1000"
+                            placeholder="Contanos qué pasó o qué podríamos mejorar..."
+                            required
+                        ></textarea>
+                    </label>
+
+                    <button type="submit" class="opinion-enviar" id="btn-enviar-opinion">
+                        💬 Enviar opinión
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {% endif %}
+
+        <!-- # CARTA COMPLETA -->
+        <section class="menu-completo-header">
+            <span class="categoria-kicker">
+                CARTA COMPLETA
+            </span>
+            <h2>
+                Explorá el menú
+            </h2>
+            <p>
+                Abrí la categoría que quieras ver.
+            </p>
+        </section>
+        <!-- # CATEGORÍAS -->
+        {% for categoria in categorias_lista %}
+        <section
+            class="
+                seccion-categoria
+                categoria-acordeon
+            "
+        >
+            <button
+                type="button"
+                class="
+                    categoria-encabezado
+                    categoria-toggle
+                "
+                onclick="toggleGrilla(this)"
+                aria-expanded="false"
+            >
+                <div>
+                    <h2 class="seccion-titulo">
+                        {{ categoria.grouper|slice:"4:" }}
+                    </h2>
+                    <span class="categoria-cantidad">
+                        {{ categoria.list|length }}
+                        producto{{ categoria.list|length|pluralize }}
+                    </span>
+                </div>
+                <span class="icono-plegar">
+                    ⌄
+                </span>
+            </button>
+            <div
+                class="
+                    menu-grid
+                    menu-grid-colapsada
+                "
+            >
+                {% for producto in categoria.list %}
+                <article class="tarjeta-producto">
+                    {% if producto.imagen %}
+                    <div class="tarjeta-imagen">
+                        <img
+                            src="{{ producto.imagen.url }}"
+                            alt="{{ producto.nombre }}"
+                            loading="lazy"
+                        >
+                    </div>
+                    {% endif %}
+                    <div class="tarjeta-cuerpo">
+                        <h3>
+                            {{ producto.nombre }}
+                        </h3>
+                        <p class="descripcion">
+                            {{ producto.descripcion|default:"" }}
+                        </p>
+                    </div>
+                    <div class="tarjeta-pie">
+                        <span class="precio">
+                            ${{ producto.precio }}
+                        </span>
+                        <!-- # OPCIONES -->
+                        <div
+                            class="opciones-contenedor"
+                            data-id="{{ producto.id }}"
+                            data-variante="{{ producto.variantes|default:'' }}"
+                            data-guarnicion="{{ producto.guarniciones|default:'' }}"
+                            data-punto="{{ producto.puntos_coccion|default:'' }}"
+                            data-relleno="{{ producto.rellenos|default:'' }}"
+                            data-salsa="{{ producto.salsas|default:'' }}"
+                            data-adicional="{{ producto.adicionales|default:'' }}"
+                            data-hielo="{{ producto.opcion_hielo|default:'' }}"
+                        >
+                        </div>
+                        {% if buffet_habilitado %}
+                            <button
+                                type="button"
+                                class="btn-agregar"
+                                onclick="agregarConOpciones({{ producto.id }}, this)"
+                            >
+                                + Agregar
+                            </button>
+                        {% else %}
+                            <button
+                                type="button"
+                                class="
+                                    btn-agregar
+                                    btn-agregar--pausado
+                                "
+                                disabled
+                            >
+                                Pausado
+                            </button>
+                        {% endif %}
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+        {% empty %}
+        <div class="menu-vacio">
+            <h4>
+                ¡Menú en preparación! 👨‍🍳
+            </h4>
+            <p>
+                Todavía no cargamos platos en este mostrador.
+                Volvé a ingresar en unos minutos.
+            </p>
+        </div>
+        {% endfor %}
+    </main>
+    <!-- # ACORDEÓN DE CATEGORÍAS -->
+    <script>
+        function toggleGrilla(
+            elementoTitulo
+        ) {
+            const grilla =
+                elementoTitulo.nextElementSibling;
+            const icono =
+                elementoTitulo.querySelector(
+                    '.icono-plegar'
+                );
+            const estaAbierta =
+                grilla.classList.contains(
+                    'is-open'
+                );
+            grilla.classList.toggle(
+                'is-open',
+                !estaAbierta
+            );
+            elementoTitulo.classList.toggle(
+                'is-open',
+                !estaAbierta
+            );
+            elementoTitulo.setAttribute(
+                'aria-expanded',
+                String(
+                    !estaAbierta
+                )
+            );
+            icono.textContent =
+                estaAbierta
+                    ?
+                    '⌄'
+                    :
+                    '⌃';
+        }
+    </script>
+{% endblock %}

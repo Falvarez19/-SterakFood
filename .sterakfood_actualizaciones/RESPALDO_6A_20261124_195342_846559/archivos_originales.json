@@ -1,0 +1,46 @@
+{
+  "marca/models.py": {
+    "original": true,
+    "sha256": "ab79db602a07afbb05fecf0a24c9687f7180c89031d6fe498f675b838a30ce5e"
+  },
+  "marca/views.py": {
+    "original": true,
+    "sha256": "1c15eb8d2633b0113b6647bdbae65e12f911481e05967553743cd125091b3361"
+  },
+  "marca/urls.py": {
+    "original": true,
+    "sha256": "7eeb8007ba053a751097ffdeb8b600513202dadc43b24a7fa06549cc9c65cfd9"
+  },
+  "marca/templates/marca/configurar.html": {
+    "original": true,
+    "sha256": "cc42f78cdb1f6c13802dd3fec3d56b80c9c2dd69876238781d8769a3507bb891"
+  },
+  "pedidos/templates/pedidos/inicio.html": {
+    "original": true,
+    "sha256": "204be3743639c5db42f218874e551d7a60d8ffda4420df9bdad467d0c98bc703"
+  },
+  "pedidos/static/script/marca_panel_5f.js": {
+    "original": true,
+    "sha256": "854b2dc3d5aa7d66ee2e03aad0c5eb92756a5c0b445ff48af1f5b09e0250e244"
+  },
+  "marca/visual_6a.py": {
+    "original": false,
+    "sha256": null
+  },
+  "pedidos/static/css/marca_visual_6a.css": {
+    "original": false,
+    "sha256": null
+  },
+  "pedidos/static/script/marca_visual_6a.js": {
+    "original": false,
+    "sha256": null
+  },
+  "pedidos/static/script/menu_visual_6a.js": {
+    "original": false,
+    "sha256": null
+  },
+  "marca/migrations/0003_visual_menu_6a.py": {
+    "original": false,
+    "sha256": null
+  }
+}

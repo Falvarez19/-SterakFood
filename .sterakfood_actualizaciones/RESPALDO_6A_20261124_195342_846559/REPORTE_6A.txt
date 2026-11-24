@@ -1,0 +1,5 @@
+PASO 6A INSTALADO CORRECTAMENTE
+Mi negocio: Logos/Colores/Tipografía/Multimedia/Tarjetas
+Menú: fondo configurable, portada/GIF, tamaños y tarjetas uniformes
+La facturación, los certificados y el POS no se modificaron.
+Migración: marca/migrations/0003_visual_menu_6a.py
