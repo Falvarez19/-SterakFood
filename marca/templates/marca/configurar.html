@@ -3,7 +3,7 @@
 {% block title %}Mi negocio | {{ marca.nombre }}{% endblock %}
 {% block nav_acciones %}<a class="btn-nav-ghost" href="{% url 'pedidos:panel_control' %}">Volver al panel</a>{% endblock %}
 {% block content %}
-<div class="sf-brand">
+<div class="sf-brand sf-brand--5f">
   <header class="sf-brand__header">
     <div>
       <h1>Mi negocio</h1>
@@ -13,12 +13,24 @@
   </header>
   {% for message in messages %}<p class="sf-brand__message" role="status">{{ message }}</p>{% endfor %}
   <link rel="stylesheet" href="{% static 'css/arca_propietario.css' %}">
-  <a class="sf-brand__fiscal-link" href="{% url 'marca:arca_propietario' %}">Configuración fiscal (ARCA) · solo propietario</a>
+<!-- STERAKFOOD_5F_MI_NEGOCIO_TABS -->
+<link rel="stylesheet" href="{% static 'css/marca_panel_5f.css' %}">
+  <div class="sf-brand__5f-summary" aria-label="Resumen del negocio">
+    <div class="sf-brand__5f-tile"><small>Nombre comercial</small><strong>{{ marca_actual.nombre }}</strong></div>
+    <div class="sf-brand__5f-tile"><small>Nombre corto</small><strong>{{ marca_actual.nombre_corto }}</strong></div>
+    <a class="sf-brand__5f-tile sf-brand__5f-tile--link" href="{% url 'marca:arca_propietario' %}"><small>Solo propietario</small><strong>Facturación ARCA</strong><small>Certificados, diagnóstico y activación</small></a>
+  </div>
   <form method="post" enctype="multipart/form-data" id="sf-marca-form">
     {% csrf_token %}
+    <nav class="sf-brand__5f-tabs" aria-label="Apartados de Mi negocio" role="tablist">
+      <button type="button" class="sf-brand__5f-tab" role="tab" id="sf5f-tab-datos" aria-controls="sf5f-panel-datos" aria-selected="true" data-sf5f-target="datos">Información</button>
+      <button type="button" class="sf-brand__5f-tab" role="tab" id="sf5f-tab-logos" aria-controls="sf5f-panel-logos" aria-selected="false" data-sf5f-target="logos">Logos</button>
+      <button type="button" class="sf-brand__5f-tab" role="tab" id="sf5f-tab-colores" aria-controls="sf5f-panel-colores" aria-selected="false" data-sf5f-target="colores">Colores</button>
+    </nav>
+    <button type="button" class="sf-brand__5f-tab sf-brand__5f-preview-toggle" aria-controls="sf5f-preview" aria-expanded="false">Mostrar/ocultar vista previa</button>
     <div class="sf-brand__layout">
       <div class="sf-brand__settings">
-        <section class="sf-brand__section" aria-labelledby="sf-nombre-titulo">
+        <section class="sf-brand__section" data-sf5f-section="datos" role="tabpanel" aria-labelledby="sf5f-tab-datos" id="sf5f-panel-datos">
           <div class="sf-brand__section-head">
             <h2 id="sf-nombre-titulo">Información del restaurante</h2>
             <p>Se muestra en el menú, los pedidos y el panel.</p>
@@ -36,7 +48,7 @@
           </div>
         </section>
 
-        <section class="sf-brand__section" aria-labelledby="sf-logos-titulo">
+        <section class="sf-brand__section" data-sf5f-section="logos" role="tabpanel" aria-labelledby="sf5f-tab-logos" id="sf5f-panel-logos">
           <div class="sf-brand__section-head">
             <h2 id="sf-logos-titulo">Logos</h2>
             <p>Elegí los archivos que querés mostrar. Si no cambiás nada, se mantienen los actuales.</p>
@@ -60,7 +72,7 @@
           <p class="sf-brand__hint">Formatos PNG, JPG o WebP. Hasta 2 MB cada uno.</p>
         </section>
 
-        <section class="sf-brand__section" aria-labelledby="sf-colores-titulo">
+        <section class="sf-brand__section" data-sf5f-section="colores" role="tabpanel" aria-labelledby="sf5f-tab-colores" id="sf5f-panel-colores">
           <div class="sf-brand__section-head">
             <h2 id="sf-colores-titulo">Colores de la interfaz</h2>
             <p>Podés conservar el estilo original o ajustar los colores de cada negocio.</p>
@@ -74,7 +86,7 @@
         </section>
       </div>
 
-      <aside class="sf-brand__preview-column">
+      <aside class="sf-brand__preview-column" id="sf5f-preview">
         <section class="sf-brand__preview-section">
           <h2>Vista previa</h2>
           <p>Así se verá la identidad dentro del sistema.</p>
@@ -102,4 +114,5 @@
   </form>
 </div>
 <script src="{% static 'script/marca_rapida.js' %}" defer></script>
+<script src="{% static 'script/marca_panel_5f.js' %}" defer></script>
 {% endblock %}

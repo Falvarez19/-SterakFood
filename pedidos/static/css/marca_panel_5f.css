@@ -1,0 +1,56 @@
+/* SterakFood 5F — Mi negocio compacto. Solo afecta .sf-brand--5f. */
+.sf-brand--5f { max-width:1360px; margin:24px auto 36px; padding:0 18px; }
+.sf-brand--5f .sf-brand__header { display:flex; gap:16px; justify-content:space-between; align-items:center; margin-bottom:14px; }
+.sf-brand--5f .sf-brand__header h1 { margin:0 0 4px; font-size:clamp(1.5rem,2.8vw,2rem); }
+.sf-brand--5f .sf-brand__header p { margin:0; color:var(--texto-mutado,#a8a8ad); font-size:.9rem; }
+.sf-brand--5f .sf-brand__owner { flex-shrink:0; font-size:.78rem; }
+.sf-brand--5f .sf-brand__5f-summary { display:grid; grid-template-columns:1fr 1fr minmax(200px,1.1fr); gap:10px; margin:12px 0 16px; }
+.sf-brand--5f .sf-brand__5f-tile { background:var(--card-bg,#17191c); border:1px solid var(--borde,#303339); border-radius:9px; padding:13px 16px; min-width:0; display:flex; flex-direction:column; gap:4px; color:var(--text-color,#fff); text-decoration:none; }
+.sf-brand--5f .sf-brand__5f-tile small { font-size:.76rem; color:var(--texto-mutado,#a5acb3); }
+.sf-brand--5f .sf-brand__5f-tile strong { font-size:.96rem; overflow-wrap:anywhere; }
+.sf-brand--5f .sf-brand__5f-tile--link { border-color:var(--naranja-sterak,#ff6700); }
+.sf-brand--5f .sf-brand__5f-tile--link strong { color:var(--naranja-sterak,#ff6700); }
+.sf-brand--5f .sf-brand__5f-tile--link:hover { background:color-mix(in srgb,var(--naranja-sterak,#ff6700) 8%,var(--card-bg,#17191c)); }
+.sf-brand--5f .sf-brand__5f-tabs { display:none; border-bottom:1px solid var(--borde,#303339); margin-bottom:14px; gap:5px; flex-wrap:wrap; }
+.sf-brand--5f.sf-brand--5f-ready .sf-brand__5f-tabs { display:flex; }
+.sf-brand--5f .sf-brand__5f-tab { appearance:none; background:transparent; color:var(--texto-mutado,#aeb0b7); border:0; border-bottom:2px solid transparent; font:inherit; font-size:.9rem; font-weight:700; padding:10px 16px; cursor:pointer; border-radius:7px 7px 0 0; }
+.sf-brand--5f .sf-brand__5f-tab:hover { background:var(--card-bg,#17191c); color:var(--text-color,#fff); }
+.sf-brand--5f .sf-brand__5f-tab[aria-selected="true"] { background:var(--card-bg,#17191c); color:var(--naranja-sterak,#ff6700); border-bottom-color:var(--naranja-sterak,#ff6700); }
+.sf-brand--5f .sf-brand__5f-preview-toggle { display:none; }
+.sf-brand--5f .sf-brand__layout { display:grid; grid-template-columns:minmax(0,1.3fr) minmax(285px,.8fr); gap:16px; align-items:start; }
+.sf-brand--5f .sf-brand__settings { min-width:0; }
+.sf-brand--5f .sf-brand__settings > .sf-brand__section { margin:0; padding:20px; }
+.sf-brand--5f.sf-brand--5f-ready .sf-brand__settings > .sf-brand__section[hidden] { display:none !important; }
+.sf-brand--5f .sf-brand__section-head { margin-bottom:14px; }
+.sf-brand--5f .sf-brand__section-head h2 { margin:0 0 4px; font-size:1.12rem; }
+.sf-brand--5f .sf-brand__section-head p { margin:0; font-size:.84rem; line-height:1.4; }
+.sf-brand--5f .sf-brand__fields { gap:12px; }
+.sf-brand--5f .sf-brand__fields input { min-height:42px; }
+.sf-brand--5f .sf-brand__logo-row { gap:15px; padding:10px 0; }
+.sf-brand--5f .sf-brand__logo-frame { width:90px; min-width:90px; height:74px; }
+.sf-brand--5f .sf-brand__logo-frame img { width:100%; height:100%; object-fit:contain; }
+.sf-brand--5f .sf-brand__preview-column { min-width:0; position:sticky; top:110px; }
+.sf-brand--5f .sf-brand__preview-section { padding:18px; }
+.sf-brand--5f .sf-brand__preview-section > h2 { margin:0 0 4px; font-size:1.1rem; }
+.sf-brand--5f .sf-brand__preview-section > p { margin-top:2px; font-size:.82rem; }
+.sf-brand--5f .sf-brand__footer { position:sticky; z-index:4; bottom:0; margin-top:14px; padding:12px 16px; border:1px solid var(--borde,#303339); border-radius:9px; background:var(--card-bg,#17191c); display:flex; align-items:center; justify-content:space-between; gap:10px; box-shadow:0 -7px 22px rgba(0,0,0,.13); }
+.sf-brand--5f .sf-brand__footer span { font-size:.83rem; color:var(--texto-mutado,#b0b5ba); }
+.sf-brand--5f .sf-brand__save { min-height:42px; }
+.sf-brand--5f .sf-brand__5f-tab:focus-visible,.sf-brand--5f .sf-brand__5f-preview-toggle:focus-visible,.sf-brand--5f .sf-brand__5f-tile--link:focus-visible { outline:2px solid var(--naranja-sterak,#ff6700); outline-offset:3px; }
+@media (max-width:960px) {
+ .sf-brand--5f .sf-brand__layout { grid-template-columns:1fr; }
+ .sf-brand--5f .sf-brand__preview-column { position:static; }
+ .sf-brand--5f.sf-brand--5f-ready .sf-brand__5f-preview-toggle { display:inline-block; }
+ .sf-brand--5f.sf-brand--5f-ready .sf-brand__preview-column:not(.sf-brand__5f-preview-open) { display:none; }
+}
+@media (max-width:680px) {
+ .sf-brand--5f { padding:0 12px; margin-top:18px; }
+ .sf-brand--5f .sf-brand__header { align-items:flex-start; flex-wrap:wrap; }
+ .sf-brand--5f .sf-brand__5f-summary { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .sf-brand--5f .sf-brand__5f-tile--link { grid-column:1/-1; }
+ .sf-brand--5f .sf-brand__5f-tab { font-size:.81rem; padding:9px 10px; }
+ .sf-brand--5f .sf-brand__settings > .sf-brand__section { padding:14px; }
+ .sf-brand--5f .sf-brand__footer { padding:10px; }
+ .sf-brand--5f .sf-brand__footer span { font-size:.72rem; }
+}
+@media (prefers-reduced-motion:reduce) { .sf-brand--5f * { scroll-behavior:auto !important; } }

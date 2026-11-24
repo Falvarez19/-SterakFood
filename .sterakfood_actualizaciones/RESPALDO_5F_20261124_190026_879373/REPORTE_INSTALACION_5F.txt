@@ -1,0 +1,4 @@
+PASO 5F INSTALADO CORRECTAMENTE
+Solo interfaz de Mi negocio.
+Sin migraciones ni cambios en facturación o DB.
+Respaldo: C:\Users\FerchoNB\Desktop\Python Cositas\-SterakFood\.sterakfood_actualizaciones\RESPALDO_5F_20261124_190026_879373
