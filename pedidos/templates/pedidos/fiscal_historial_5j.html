@@ -1,0 +1,28 @@
+{% extends 'pedidos/base.html' %}
+{% load static %}
+{% block title %}Historial fiscal · SterakFood{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/fiscal_historial_5j.css' %}">
+<main class="container sf5j-historial">
+  <h1>Historial fiscal · Salón y Para llevar</h1>
+  <p>Los comprobantes autorizados permanecen guardados al cerrar caja. Si una solicitud quedó incierta, consultala en ARCA antes de reintentar.</p>
+  <p><a href="{% url 'pedidos:salon' %}">← Volver al Salón</a></p>
+  <div class="sf5j-scroll"><table>
+  <thead><tr><th>ID</th><th>Origen</th><th>Tipo</th><th>Número</th><th>Importe</th><th>Estado</th><th>CAE / Acción</th></tr></thead>
+  <tbody>{% for f in facturas %}
+  <tr><td>#{{ f.pk }}</td><td>{{ f.get_origen_display }}</td>
+  <td>{% if f.tipo_comprobante == 1 %}A{% elif f.tipo_comprobante == 6 %}B{% elif f.tipo_comprobante == 11 %}C{% else %}{{ f.tipo_comprobante }}{% endif %}</td>
+  <td>{{ f.punto_venta|stringformat:'05d' }}-{{ f.numero|default:'—' }}</td>
+  <td>${{ f.total }}</td><td>{{ f.estado }}</td><td>
+  {% if f.cae %}CAE: {{ f.cae }}{% elif f.numero %}
+  <form class="sf5j-recuperar" method="post" action="{% url 'pedidos:fiscal_consultar_incierta' f.pk %}">
+    {% csrf_token %}<button type="submit">Consultar ARCA (sin emitir)</button>
+  </form>
+  {% else %}Revisión manual{% endif %}
+  </td></tr>
+  {% empty %}<tr><td colspan="7">No hay comprobantes registrados.</td></tr>{% endfor %}
+  </tbody></table></div>
+  <p class="sf5j-aviso">Homologación: los CAE de prueba no tienen validez fiscal. El botón Consultar nunca vuelve a emitir.</p>
+</main>
+<script src="{% static 'script/fiscal_historial_5j.js' %}" defer></script>
+{% endblock %}

@@ -255,6 +255,23 @@
           btn.onclick=async()=>{btn.disabled=true;try{await api(panel.dataset.statusTemplate.replace('999999',p.id),{estado:'listo'});await loadHistory();}catch(e){notify(e.message,true);btn.disabled=false;}};
           actions.append(btn);
         }
+        if (p.cobrado && p.estado !== 'cancelado' && panel.dataset.fiscalTemplate) {
+          const fiscalBtn=el('button','Facturar * (ARCA)');fiscalBtn.type='button';
+          fiscalBtn.onclick=async()=>{
+            if (!window.SterakFiscal5J) return notify('Falta el módulo fiscal 5J.',true);
+            const receptor=await window.SterakFiscal5J.pedirReceptor();
+            if(!receptor) return;
+            if(!confirm(`¿Confirmás solicitar un CAE de HOMOLOGACIÓN para el pedido #${p.id}?`)) return;
+            fiscalBtn.disabled=true;
+            try {
+              const respuesta=await api(panel.dataset.fiscalTemplate.replace('999999',p.id),
+                {...receptor,confirmacion:'FACTURAR_CON_ASTERISCO'});
+              notify(`Factura ${respuesta.tipo} de HOMOLOGACIÓN autorizada. CAE ${respuesta.cae}.`);
+              await loadHistory();
+            }catch(e){notify(e.message+' Revisá el historial fiscal antes de reintentar.',true);fiscalBtn.disabled=false;}
+          };
+          actions.append(fiscalBtn);
+        }
         if(p.estado==='listo'&&p.cobrado&&p.impreso){
           const btn=el('button','Entregado');btn.type='button';
           btn.onclick=async()=>{btn.disabled=true;try{await api(panel.dataset.statusTemplate.replace('999999',p.id),{estado:'entregado'});await loadHistory();}catch(e){notify(e.message,true);btn.disabled=false;}};

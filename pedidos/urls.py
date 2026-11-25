@@ -2,11 +2,13 @@
 from django.views.generic import TemplateView
 from django.contrib import admin
 from django.urls import path
-from . import views, impresoras_views, fiscal_views, para_llevar, configuracion_operativa
+from . import views, impresoras_views, fiscal_views, para_llevar, configuracion_operativa, fiscal_integral_5j
 app_name = 'pedidos'
 urlpatterns = [
-    path('salon/fiscal/emitir-manual/', fiscal_views.emitir_manual, name='fiscal_emitir_manual'),
-    path('salon/fiscal/consultar/<int:factura_id>/', fiscal_views.consultar_incierta, name='fiscal_consultar_incierta'),
+    path('salon/fiscal/historial-5j/', fiscal_integral_5j.historial_5j, name='fiscal_historial_5j'),
+    path('salon/fiscal/para-llevar/<int:pedido_id>/facturar-5j/', fiscal_integral_5j.facturar_para_llevar_5j, name='fiscal_facturar_para_llevar_5j'),
+    path('salon/fiscal/emitir-manual/', fiscal_integral_5j.emitir_manual_5j, name='fiscal_emitir_manual'),
+    path('salon/fiscal/consultar/<int:factura_id>/', fiscal_integral_5j.recuperar_5j, name='fiscal_consultar_incierta'),
     path('api/tickets-fiscales-pendientes/', fiscal_views.tickets_fiscales_pendientes, name='tickets_fiscales_pendientes'),
     path('api/tickets-fiscales-confirmar/<int:factura_id>/', fiscal_views.confirmar_impresion, name='tickets_fiscales_confirmar'),
     # Panel de impresoras: guarda destinos, no imprime desde Render.

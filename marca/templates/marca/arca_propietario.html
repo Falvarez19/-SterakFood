@@ -136,8 +136,8 @@
     {% if not boveda_5a %}
       <p class="sf-arca__warning"><strong>Bóveda sin configurar.</strong> El administrador de la instalación debe definir una sola vez la clave persistente <code>STERAK_ARCA_VAULT_KEY</code> en el servidor. Hasta entonces la carga se mantiene deshabilitada. No compartas esa clave por el chat.</p>
     {% endif %}
-    {% if fiscal.condicion_iva != 'ri' %}
-      <p class="sf-arca__warning"><strong>Emisión restringida.</strong> El facturador actual está preparado únicamente para Factura B de responsable inscripto con ítems al 21%. Para otros regímenes se necesita ampliar el motor fiscal antes de activar.</p>
+    {% if fiscal.condicion_iva != 'ri' or not fiscal.cuit %}
+      <p class="sf-arca__warning"><strong>Emisión restringida.</strong> El motor 5J admite Factura A/B (responsables inscriptos, ítems gravados al 21%) y C (monotributistas) únicamente para ventas nacionales de bienes en ARS. Producción permanece bloqueada hasta homologación y auditoría.</p>
     {% endif %}
     <!-- STERAKFOOD_5B_BOVEDA_PROBAR -->
     {% if boveda_5a %}
@@ -187,7 +187,7 @@
               <input type="hidden" name="entorno" value="{{ cred.entorno }}">
               <button type="submit" class="sf-arca__btn-outline">Comprobar autorización ARCA</button>
             </form>
-            {% if not cred.activa and fiscal.condicion_iva == 'ri' %}
+            {% if not cred.activa and fiscal.condicion_iva == 'ri' or fiscal.condicion_iva == 'monotributo' %}
             <form method="post" action="{% url 'marca:arca_activar_5a' %}">{% csrf_token %}
               <input type="hidden" name="entorno" value="{{ cred.entorno }}">
               <label class="sf-arca__confirmar"><input type="checkbox" name="confirmo" value="SI" required> Soy el propietario y quiero activar emisión manual</label>

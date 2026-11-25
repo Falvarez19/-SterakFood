@@ -199,8 +199,11 @@ def tickets_fiscales_pendientes(request):
          'condicion_iva_emisor':_dato_ticket_5a('condicion_iva_emisor', os.environ.get('ARCA_CONDICION_IVA','')),
          'ingresos_brutos':_dato_ticket_5a('ingresos_brutos', os.environ.get('ARCA_INGRESOS_BRUTOS','')),
          'inicio_actividades':_dato_ticket_5a('inicio_actividades', os.environ.get('ARCA_INICIO_ACTIVIDADES','')),
+         'tipo_comprobante':f.tipo_comprobante, 'nombre_receptor':f.receptor_nombre,
+         'doc_receptor':f.receptor_numero_documento, 'doc_tipo_receptor':f.receptor_tipo_documento,
+         'condicion_iva_receptor':f.receptor_condicion_iva,
          'mesa':f.borrador.mesa,'mozo':f.borrador.mozo,
-         'items':f.borrador.items,'total':str(f.total),
+         'items':f.borrador.items,'total':str(f.total), 'neto_21':str(f.neto_21), 'iva_21':str(f.iva_21),
          'numero':f'{f.punto_venta:05d}-{f.numero:08d}',
          'fecha':f.fecha_comprobante,'cae':f.cae,
          'vencimiento_cae':f.vencimiento_cae,'url_qr':f.url_qr}

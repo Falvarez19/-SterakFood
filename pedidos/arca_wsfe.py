@@ -213,7 +213,8 @@ def consultar(pv,tipo,numero):
     cae = _value(result,'CodAutorizacion')
     if not cae: return None
     return {'cae':cae,'vencimiento':_value(result,'FchVto'),'total':_value(result,'ImpTotal'),
-            'fecha':_value(result,'CbteFch'),'numero':int(numero)}
+            'fecha':_value(result,'CbteFch'),'numero':int(numero),
+            'doc_tipo':_value(result,'DocTipo'),'doc_nro':_value(result,'DocNro')}
 
 
 def emitir_factura_b(pv,numero,importe, fecha, iva_receptor=5):

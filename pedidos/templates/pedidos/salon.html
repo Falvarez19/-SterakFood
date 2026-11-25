@@ -61,6 +61,7 @@
             <h1>Control de Salón 🍽️</h1>
 
             <p>Elegí una mesa y administrá la cuenta como en un POS clásico.</p>
+            <a class="sf5j-link" href="{% url 'pedidos:fiscal_historial_5j' %}" style="font-size:.85rem;color:inherit;text-decoration:underline">Ver historial fiscal / CAE</a>
             {% if sm_local_mode %}<span id="sm-local-save-state" class="sm-local-save">Cargando respaldo de mesas...</span>{% endif %}
 
         </div>
@@ -175,6 +176,7 @@
          data-list-url="{% url 'pedidos:pedidos_para_llevar' %}"
          data-create-url="{% url 'pedidos:pedidos_para_llevar' %}"
          data-charge-template="{% url 'pedidos:cobrar_para_llevar' 999999 %}"
+         data-fiscal-template="{% url 'pedidos:fiscal_facturar_para_llevar_5j' 999999 %}"
          data-status-template="{% url 'pedidos:estado_para_llevar' 999999 %}">
       <div class="pl-backdrop" data-pl-close></div>
       <section class="pl-window" role="dialog" aria-modal="true" aria-labelledby="pl-title" tabindex="-1">
@@ -921,6 +923,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'script/fiscal_comercial_5j.js' %}?v=sf5j-1"></script>
 <script src="{% static 'script/para_llevar_pos.js' %}?v=sterak-3a-20261121"></script>
 <script src="{% static 'script/salon_cuentas_modal.js' %}?v=20261029-cuentas-inline-2"></script>
 <script src="{% static 'script/salon_profesional.js' %}?v=sf2a-20261120-v2"></script>

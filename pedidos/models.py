@@ -445,6 +445,13 @@ class FacturaFiscal(models.Model):
     vencimiento_cae = models.CharField(max_length=8, blank=True)
     url_qr = models.TextField(blank=True)
     observaciones = models.TextField(blank=True)
+    # 5J: información de receptor y origen inmutable asociada al CAE.
+    receptor_tipo_documento = models.PositiveSmallIntegerField(default=99)
+    receptor_numero_documento = models.CharField(max_length=20, default='0')
+    receptor_condicion_iva = models.PositiveSmallIntegerField(default=5)
+    receptor_nombre = models.CharField(max_length=150, blank=True, default='')
+    origen = models.CharField(max_length=20, choices=[('salon','Salón'),('para_llevar','Para llevar')], default='salon')
+    origen_pedido = models.ForeignKey('Pedido', on_delete=models.PROTECT, null=True, blank=True)
     impresion_confirmada = models.BooleanField(default=False, db_index=True)
     fecha_impresion = models.DateTimeField(null=True, blank=True)
     creado = models.DateTimeField(auto_now_add=True)
@@ -458,7 +465,8 @@ class FacturaFiscal(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.entorno}: B-{self.punto_venta:05d}-{(self.numero or 0):08d} {self.estado}"
+        letra = {1:'A',6:'B',11:'C'}.get(self.tipo_comprobante, str(self.tipo_comprobante))
+        return f"{self.entorno}: {letra}-{self.punto_venta:05d}-{(self.numero or 0):08d} {self.estado}"
 
 
 class OperacionCobroSalon(models.Model):

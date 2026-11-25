@@ -155,6 +155,8 @@ def activar_arca_5a(request):
             raise ConfiguracionSeguraError('Confirmá que sos el propietario y que querés habilitar la emisión.')
         if env == 'produccion' and request.POST.get('confirmo_produccion') != 'SI':
             raise ConfiguracionSeguraError('Confirmá expresamente la activación de comprobantes reales.')
+        if env == 'produccion':
+            raise ConfiguracionSeguraError('Producción fiscal bloqueada en 5J hasta homologación, auditoría y verificación real de impresión.')
         fila = ArcaCredencial.objects.get(entorno=env)
         fiscal = _datos_fiscales()
         # Revalidar contra ARCA justo antes de la activación (sin CAE).

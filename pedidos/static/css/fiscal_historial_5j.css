@@ -1,0 +1,8 @@
+
+.sf5j-historial{max-width:1150px;margin:25px auto;padding:20px}
+.sf5j-scroll{overflow-x:auto;border:1px solid #7774;border-radius:12px}
+.sf5j-scroll table{width:100%;border-collapse:collapse;font-size:.9rem}
+.sf5j-scroll td,.sf5j-scroll th{padding:12px 10px;text-align:left;border-bottom:1px solid #7773;white-space:nowrap}
+.sf5j-historial button{border:1px solid #f97316;border-radius:8px;background:transparent;color:inherit;padding:8px 12px;cursor:pointer}
+.sf5j-historial button:hover{background:#f9731620}
+.sf5j-aviso{font-size:.84rem;opacity:.75}

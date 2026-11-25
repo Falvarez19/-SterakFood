@@ -145,7 +145,7 @@ def runtime_emision():
         return None
     from pedidos.models import ConfiguracionFiscal
     fiscal = ConfiguracionFiscal.objects.filter(pk=1).first()
-    if fiscal is None or fiscal.cuit != row.cuit or fiscal.punto_venta_referencia != row.punto_venta or fiscal.condicion_iva != 'ri':
+    if fiscal is None or fiscal.cuit != row.cuit or fiscal.punto_venta_referencia != row.punto_venta or fiscal.condicion_iva not in ('ri', 'monotributo'):
         raise ConfiguracionSeguraError('Datos fiscales cambiados: verificá y activá nuevamente desde Mi negocio.')
     return cargar_runtime(row)
 
@@ -215,11 +215,8 @@ def verificar_row(row, fiscal):
     from .arca_diagnostico_4f import _fedummy, _punto_valido
     if not fiscal.cuit or fiscal.cuit != row.cuit or fiscal.punto_venta_referencia != row.punto_venta:
         raise ConfiguracionSeguraError('Guardá primero el mismo CUIT y punto de venta en Datos fiscales.')
-    if fiscal.condicion_iva != 'ri':
-        raise ConfiguracionSeguraError(
-            'El emisor actual solo soporta Factura B con productos íntegramente al 21% de IVA. '
-            'No habilitar para monotributo/exentos antes de incorporar Factura C y sus reglas.'
-        )
+    if fiscal.condicion_iva not in ('ri', 'monotributo'):
+        raise ConfiguracionSeguraError('Este régimen fiscal no está soportado. Solo RI o monotributo en esta versión.')
     if not fiscal.razon_social or not fiscal.domicilio_fiscal:
         raise ConfiguracionSeguraError('Completá razón social y domicilio fiscal.')
     if not row.ingresos_brutos or not row.inicio_actividades:

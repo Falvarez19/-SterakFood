@@ -304,14 +304,19 @@ def imprimir_factura_fiscal(impresora, factura):
     for campo,etiqueta in [('condicion_iva_emisor','IVA: '),('ingresos_brutos','IIBB: '),('inicio_actividades','Inicio actividades: ')]:
         if factura.get(campo):
             for l in textwrap.wrap(etiqueta+str(factura[campo]),width=ANCHO_TICKET): impresora.text(l+'\n')
-    impresora.text('FACTURA B\n')
+    tipo_letra = {1:'A',6:'B',11:'C'}.get(int(factura.get('tipo_comprobante',6)))
+    if not tipo_letra:
+        raise ValueError('Tipo fiscal desconocido: no imprimir comprobante.')
+    impresora.text('FACTURA '+tipo_letra+'\n')
     impresora.text('Nro. '+str(factura['numero'])+'\n')
     fecha = str(factura.get('fecha',''))
     if len(fecha)==8: fecha=f'{fecha[6:8]}/{fecha[4:6]}/{fecha[:4]}'
     impresora.text('Fecha: '+fecha+'\n')
     impresora.set(align='left',bold=False)
     impresora.text('-'*ANCHO_TICKET+'\n')
-    impresora.text('Consumidor Final\n')
+    impresora.text(str(factura.get('nombre_receptor') or 'Consumidor Final')[:90]+'\n')
+    if factura.get('doc_tipo_receptor') != 99 and factura.get('doc_receptor'):
+        impresora.text('Documento: '+str(factura.get('doc_receptor'))+'\n')
     impresora.text('Mesa '+str(factura.get('mesa',''))+'  Mozo '+str(factura.get('mozo',''))+'\n')
     impresora.text('-'*ANCHO_TICKET+'\n')
     for item in factura.get('items',[]):
@@ -322,6 +327,9 @@ def imprimir_factura_fiscal(impresora, factura):
         impresora.set(align='left')
     impresora.text('-'*ANCHO_TICKET+'\n')
     impresora.set(align='right',bold=True)
+    if tipo_letra == 'A':
+        impresora.text('NETO gravado $ '+str(factura.get('neto_21','0'))+'\n')
+        impresora.text('IVA 21% $ '+str(factura.get('iva_21','0'))+'\n')
     impresora.text('TOTAL $ '+str(factura['total'])+'\n')
     impresora.set(align='center',bold=False)
     impresora.text('CAE: '+str(factura['cae'])+'\n')

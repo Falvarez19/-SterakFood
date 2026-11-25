@@ -4272,10 +4272,10 @@ function eliminarOpinion(opinionId, url) {
         var habilitado = root.getAttribute('data-fiscal-emission-enabled') === '1';
         Swal.fire({
             icon: habilitado ? 'warning' : 'info',
-            title: habilitado ? 'Emitir Factura B con ARCA' : 'Preparación fiscal · Sin CAE',
+            title: habilitado ? 'Facturación manual A/B/C · Homologación' : 'Preparación fiscal · Sin CAE',
             html: habilitado
-                ? '<p><b>Solicitarás un CAE real si está configurado PRODUCCIÓN.</b></p>' +
-                  '<p>Confirmá que todos los productos están gravados al 21% de IVA y que los datos de la mesa son correctos.</p>' +
+                ? '<p><b>Solo se permiten CAE de HOMOLOGACIÓN; no son facturas válidas.</b></p>' +
+                  '<p>Confirmá la mesa. Si el emisor es RI, solo se admiten productos íntegramente gravados al 21%.</p>' +
                   '<p>La mesa NO se cobrará ni cerrará automáticamente. Se enviará a imprimir solo si ARCA autoriza.</p>'
                 : '<p>Se guardará un borrador de la mesa. No se factura ni se imprime.</p>',
             showCancelButton: true,
@@ -4319,16 +4319,23 @@ function eliminarOpinion(opinionId, url) {
                     confirmButtonText:'Entendido', background:'var(--card-bg)',color:'var(--text-color)'});
                 var emitirUrl = root.getAttribute('data-fiscal-emit-url');
                 if (!emitirUrl) throw new Error('Falta la URL de emisión fiscal.');
-                return fetch(emitirUrl, {method:'POST',
-                    headers: {'Content-Type':'application/json','X-CSRFToken':obtenerCsrf()},
-                    body:JSON.stringify({borrador_id:data.borrador_id,
-                        confirmacion:'FACTURAR_CON_ASTERISCO',iva_21_confirmado:true})
-                }).then(function(r){return r.json().then(function(d){
-                    if(!r.ok || d.status!=='ok') throw new Error(d.mensaje || 'ARCA no autorizó la factura.');
+                if (!window.SterakFiscal5J) throw new Error('Falta el selector de receptor fiscal.');
+                return window.SterakFiscal5J.pedirReceptor().then(function(receptor) {
+                    if (!receptor) return;
+                    return fetch(emitirUrl, {method:'POST',
+                        headers: {'Content-Type':'application/json','X-CSRFToken':obtenerCsrf()},
+                        body:JSON.stringify(Object.assign({borrador_id:data.borrador_id,
+                            confirmacion:'FACTURAR_CON_ASTERISCO'}, receptor))
+                    });
+                }).then(function(r){
+                    if (!r) return {status:'cancelado'};
+                    return r.json().then(function(d){
+                    if(!r.ok || d.status!=='ok') throw new Error(d.mensaje || 'ARCA no autorizó la factura. Consultá historial fiscal.');
                     return d;
                 });}).then(function(d){
-                    return Swal.fire({icon:'success', title:'Factura B · '+d.numero,
-                        text:'CAE: '+d.cae+' · La ticketera la imprimirá desde la cola fiscal. La mesa sigue abierta.',
+                    if (d.status==='cancelado') return;
+                    return Swal.fire({icon:'success', title:'Factura '+d.tipo+' · '+d.numero,
+                        text:'CAE de HOMOLOGACIÓN: '+d.cae+' · No tiene valor fiscal. La ticketera la imprimirá si está conectada. La mesa sigue abierta.',
                         confirmButtonText:'Entendido',background:'var(--card-bg)',color:'var(--text-color)'});
                 });
             }).catch(mostrarError).finally(function() {enviando = false; render();});

@@ -45,6 +45,16 @@ def _nombre_comercial():
     return datos_marca()['nombre']
 
 
+def _fiscal_5j_lista():
+    """No anunciar emisión si bóveda, tipo fiscal o activación no coinciden."""
+    try:
+        from marca.arca_vault_5a import runtime_emision
+        runtime=runtime_emision()
+        return runtime.entorno=='homologacion'
+    except Exception:
+        return False
+
+
 def obtener_configuracion():
     config, _ = Configuracion.objects.get_or_create(id=1)
     return config
@@ -1880,7 +1890,7 @@ def salon(request):
         'mesas': range(1, numero_mesas_visibles + 1), 'productos': productos_js,
         'mozos': mozos_js, 'pedidos_web_salon': _salon_items_pedidos_web(),
         'cuentas_corrientes_pos': cuentas_credito_js,
-        'fiscal_emision_activa': os.environ.get('ARCA_FISCAL_ENABLED')=='1' and (os.environ.get('ARCA_ENV','homologacion')!='produccion' or os.environ.get('ARCA_PRODUCCION_CONFIRMADA')=='SI'),
+        'fiscal_emision_activa': _fiscal_5j_lista(),
     })
 
 
