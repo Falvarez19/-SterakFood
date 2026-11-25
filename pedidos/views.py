@@ -743,6 +743,7 @@ def panel_control(request):
         'cuentas_total_favor': cuentas_total_favor,
         'mozos': Mozo.objects.all().order_by('nombre'),
         'configuracion': config,
+        'sm_local_mode': bool(getattr(settings, 'SM_LOCAL_MODE', False)),
         'salon_habilitado': getattr(config, 'salon_habilitado', True),
         'welcome_image_available': bienvenida_disponible(),
         'welcome_image_url': bienvenida_popup_url(),
@@ -1891,6 +1892,7 @@ def salon(request):
         'mozos': mozos_js, 'pedidos_web_salon': _salon_items_pedidos_web(),
         'cuentas_corrientes_pos': cuentas_credito_js,
         'fiscal_emision_activa': _fiscal_5j_lista(),
+        'sm_local_mode': bool(getattr(settings, 'SM_LOCAL_MODE', False)),
     })
 
 

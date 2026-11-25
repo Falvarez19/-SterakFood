@@ -11,3 +11,9 @@ urlpatterns = [
     path('api/v1/archivo/<str:kind>/<int:remote_id>/', api.asset, name='image'),
     path('api/v1/archivo/<str:kind>/', api.asset, name='asset'),
 ]
+
+# STERAKFOOD_DESKTOP_6D_ROUTES
+from django.conf import settings
+from django.urls import include
+if getattr(settings, 'STERAK_DESKTOP_MODE', False):
+    urlpatterns += [path('operaciones/', include('desktop6d.urls'))]

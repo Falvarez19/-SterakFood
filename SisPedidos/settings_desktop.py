@@ -37,6 +37,13 @@ SECURE_SSL_REDIRECT = False
 SECURE_PROXY_SSL_HEADER = None
 ARCA_FISCAL_ENABLED = False
 STERAK_DESKTOP_MODE = True
+# STERAKFOOD_DESKTOP_6D_LOCAL
+SM_LOCAL_MODE = True
+DESKTOP_OPERACION_6D = True
+if 'desktop6d' not in INSTALLED_APPS:
+    INSTALLED_APPS += ['desktop6d']
+STATICFILES_DIRS = [p for p in STATICFILES_DIRS if Path(p).is_dir()]
+
 # Las operaciones fiscales no se emiten offline. El operador debe usar la web autorizada.
 os.environ['ARCA_FISCAL_ENABLED'] = '0'
 LOCAL_CONFIG = DATA_DIR / 'config.json'
