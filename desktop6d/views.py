@@ -114,4 +114,4 @@ def resolver_incierta(request, registro_id):
         reg.ultimo_error='Reimpresión autorizada manualmente por propietario.'
         reg.save(update_fields=['estado','ultimo_error','actualizado'])
     # Ninguna de las acciones borra ventas ni factura.
-    return redirect('desktop6d:panel')
+    return redirect('desktop6c:desktop6d:panel')
