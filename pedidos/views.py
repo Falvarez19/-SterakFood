@@ -34,6 +34,7 @@ from django.contrib.staticfiles import finders
 from .models import CorteHistorialVentas, BorradorFiscal, ConfiguracionFiscal, OperacionCobroSalon
 from uuid import UUID
 from django.db import IntegrityError
+from .models import RespaldoMesasLocal  # SterakFood 6D.7 - respaldo de mesas local
 
 # ==========================================================================
 # CONFIGURACIÓN GLOBAL DEL SISTEMA
