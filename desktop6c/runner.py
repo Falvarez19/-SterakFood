@@ -31,6 +31,8 @@ def main():
     sync = subprocess.Popen(cmd + ['desktop_sync_loop'], cwd=str(root), env=env)
     # STERAKFOOD_6D_PRINTER_START
     printer = subprocess.Popen(cmd + ['desktop_print_loop'], cwd=str(root), env=env)
+    # STERAKFOOD_6E_OUTBOX_START
+    outbox = subprocess.Popen(cmd + ['desktop_outbox_loop'], cwd=str(root), env=env)
     try:
         for _ in range(40):
             if server.poll() is not None:
@@ -49,10 +51,10 @@ def main():
         print('Cerrando SterakFood Desktop...')
         return 0
     finally:
-        for child in (printer, sync, server):
+        for child in (outbox, printer, sync, server):
             if child.poll() is None:
                 child.terminate()
-        for child in (printer, sync, server):
+        for child in (outbox, printer, sync, server):
             try: child.wait(timeout=3)
             except subprocess.TimeoutExpired: child.kill()
 

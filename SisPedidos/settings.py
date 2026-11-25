@@ -146,3 +146,7 @@ ARCA_FISCAL_ENABLED = os.environ.get('ARCA_FISCAL_ENABLED', '0') == '1'
 if 'desktop6c' not in INSTALLED_APPS:
     INSTALLED_APPS += ['desktop6c']
 STERAK_DESKTOP_MODE = False
+
+# STERAKFOOD_6E_SETTINGS
+if not any(app == 'desktop6e' or app.startswith('desktop6e.') for app in INSTALLED_APPS):
+    INSTALLED_APPS += ['desktop6e.apps.Desktop6eConfig']
