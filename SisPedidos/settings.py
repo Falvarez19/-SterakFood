@@ -141,3 +141,8 @@ RESTAURANT_NAME = os.environ.get('RESTAURANT_NAME', 'SterakFood').strip() or 'St
 PANEL_PIN = (os.environ.get('PANEL_PIN') or os.environ.get('DASHBOARD_PIN') or '').strip()
 # Facturación instalada pero DESACTIVADA hasta homologar y configurar cada CUIT.
 ARCA_FISCAL_ENABLED = os.environ.get('ARCA_FISCAL_ENABLED', '0') == '1'
+
+# STERAKFOOD_DESKTOP_6C_INSTALLED
+if 'desktop6c' not in INSTALLED_APPS:
+    INSTALLED_APPS += ['desktop6c']
+STERAK_DESKTOP_MODE = False

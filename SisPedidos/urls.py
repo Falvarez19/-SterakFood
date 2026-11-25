@@ -33,3 +33,6 @@ urlpatterns += [
         'document_root': settings.MEDIA_ROOT,
     }),
 ]
+
+# STERAKFOOD_DESKTOP_6C_URLS
+urlpatterns.append(path('desktop/', include('desktop6c.urls')))
