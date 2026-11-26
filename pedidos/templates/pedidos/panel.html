@@ -1,5 +1,9 @@
 {% extends 'pedidos/base.html' %}
 {% load static %}
+<!-- STERAKFOOD_6F4_HERRAMIENTAS -->
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/herramientas_6f4.css' %}?v=6f4-1">
+{% endblock %}
 {% block title %}Panel | {{ restaurant_name }}{% endblock %}
 {% block nav_acciones %}
     <a
@@ -1583,6 +1587,7 @@
 {% block extra_js %}
 {# Lógica de navegación desacoplada del script global del menú público. #}
 <script src="{% static 'script/dashboard_navegacion.js' %}?v=sterak-nav-20261120"></script>
+<script src="{% static 'script/herramientas_6f4.js' %}?v=6f4-1"></script>
 <link rel="stylesheet" href="{% static 'css/impresoras_6f3.css' %}">
 <script src="{% static 'script/impresoras_6f3.js' %}?v=6f3"></script>
 {% endblock %}
