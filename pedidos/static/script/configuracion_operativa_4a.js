@@ -70,16 +70,17 @@
     try {
       const info = await leer(await fetch(raiz.dataset.impresorasGet,{credentials:'same-origin'}));
       const c=info.configuracion;
-      for(const campo of ['caja_windows','ip_cocina','ip_barra','ancho_ticket']){
+      for(const campo of ['caja_modo','caja_windows','caja_ip','cocina_modo','cocina_windows','ip_cocina','barra_modo','barra_windows','ip_barra','ancho_ticket']){
         if(impresoras.elements[campo]) impresoras.elements[campo].value = c[campo] ?? '';
       }
+      if(window.SterakPrinter6F3)window.SterakPrinter6F3.refresh(impresoras);
       document.getElementById('op-impresoras-conexion').textContent = c.vinculada?'PC vinculada':'Sin vincular';
     }catch(e){mensaje('op-impresoras-estado',e.message,true);document.getElementById('op-impresoras-conexion').textContent='Sin datos';}
   }
   impresoras.addEventListener('submit',async(event)=>{
     event.preventDefault(); const btn=impresoras.querySelector('button[type="submit"]');btn.disabled=true;
     try{
-      const c={};for(const k of ['caja_windows','ip_cocina','ip_barra','ancho_ticket'])c[k]=impresoras.elements[k].value.trim();
+      const c={};for(const k of ['caja_modo','caja_windows','caja_ip','cocina_modo','cocina_windows','ip_cocina','barra_modo','barra_windows','ip_barra','ancho_ticket'])c[k]=impresoras.elements[k].value.trim();
       const info=await leer(await fetch(raiz.dataset.impresorasPost,{method:'POST',credentials:'same-origin',headers:{...cabeceras,'Content-Type':'application/json'},body:JSON.stringify(c)}));
       mensaje('op-impresoras-estado',info.mensaje||'Guardado.',false);
     }catch(e){mensaje('op-impresoras-estado',e.message,true);}finally{btn.disabled=false;}

@@ -397,6 +397,14 @@ class ConfiguracionImpresorasPOS(models.Model):
     actualizado = models.DateTimeField(auto_now=True)
     ultima_conexion = models.DateTimeField(blank=True, null=True)
 
+    # STERAKFOOD_6F3_IMPRESORAS — rutas de impresión por sector
+    caja_modo = models.CharField(max_length=10, default='windows')
+    caja_ip = models.GenericIPAddressField(protocol='IPv4', blank=True, null=True, default=None)
+    cocina_modo = models.CharField(max_length=10, default='tcp')
+    cocina_windows = models.CharField(max_length=120, blank=True, default='')
+    barra_modo = models.CharField(max_length=10, default='tcp')
+    barra_windows = models.CharField(max_length=120, blank=True, default='')
+
     def __str__(self):
         return self.nombre
 

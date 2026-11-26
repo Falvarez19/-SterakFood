@@ -1046,22 +1046,27 @@
                             <div>
                                 <span class="sm-impresoras__kicker">HERRAMIENTAS · IMPRESIÓN</span>
                                 <h3 id="sm-impresoras-titulo">Configurar impresoras</h3>
-                                <p>Elegí los destinos de impresión. La PC vinculada recibirá estos ajustes.</p>
+                                <p>Elegí los destinos de impresión. La web guarda opciones; detección solo desde una PC con Desktop abierto. La aplicación local se configura por separado.</p>
                             </div>
                             <button type="button" class="sm-impresoras__cerrar" data-impresoras-cerrar
                                     aria-label="Cerrar ventana">×</button>
                         </header>
                         <form id="sm-impresoras-form" class="sm-impresoras__form">
-                            <label>Impresora de caja <small>Nombre exacto en Windows</small>
-                                <input name="caja_windows" maxlength="120" placeholder="FACTURA_PYTHON"
-                                       autocomplete="off" required></label>
-                            <label>Ancho del ticket <small>Caracteres por línea</small>
-                                <select name="ancho_ticket"><option value="32">32</option><option value="42">42</option><option value="48">48</option></select></label>
-                            <label>Impresora de cocina <small>Dirección IP</small>
-                                <input name="ip_cocina" placeholder="192.168.1.100" required inputmode="decimal"></label>
-                            <label>Impresora de barra <small>Dirección IP</small>
-                                <input name="ip_barra" placeholder="192.168.1.101" required inputmode="decimal"></label>
-                            <div class="sm-impresoras__acciones">
+<div class="sf6f3-tools"><button type="button" data-sf6f3-buscar>Buscar impresoras de esta PC</button><output data-sf6f3-estado>Windows USB, red o Wi-Fi · requiere Desktop abierto en esta computadora</output></div>
+<label class="sf6f3-field">Caja · tipo de conexión<select name="caja_modo"><option value="windows" selected>Instalada en Windows (USB / red / Wi-Fi)</option><option value="tcp">IP directa (puerto 9100)</option><option value="off">Sin impresora</option></select></label>
+<label class="sf6f3-field" data-sf6f3-sector="caja" data-sf6f3-mostrar="windows">Cola instalada en Windows<select data-sf6f3-select="caja"><option value="">Pulsá buscar impresoras…</option></select></label>
+<label class="sf6f3-field" data-sf6f3-sector="caja" data-sf6f3-mostrar="windows">Nombre manual, si no aparece<input name="caja_windows" maxlength="120" autocomplete="off" placeholder="Nombre de Windows"></label>
+<label class="sf6f3-field" data-sf6f3-sector="caja" data-sf6f3-mostrar="tcp">IP privada (9100)<input name="caja_ip" inputmode="decimal" autocomplete="off" placeholder="192.168.1.100"></label>
+<label class="sf6f3-field">Cocina · tipo de conexión<select name="cocina_modo"><option value="windows">Instalada en Windows (USB / red / Wi-Fi)</option><option value="tcp" selected>IP directa (puerto 9100)</option><option value="off">Sin impresora</option></select></label>
+<label class="sf6f3-field" data-sf6f3-sector="cocina" data-sf6f3-mostrar="windows">Cola instalada en Windows<select data-sf6f3-select="cocina"><option value="">Pulsá buscar impresoras…</option></select></label>
+<label class="sf6f3-field" data-sf6f3-sector="cocina" data-sf6f3-mostrar="windows">Nombre manual, si no aparece<input name="cocina_windows" maxlength="120" autocomplete="off" placeholder="Nombre de Windows"></label>
+<label class="sf6f3-field" data-sf6f3-sector="cocina" data-sf6f3-mostrar="tcp">IP privada (9100)<input name="ip_cocina" inputmode="decimal" autocomplete="off" placeholder="192.168.1.100"></label>
+<label class="sf6f3-field">Barra · tipo de conexión<select name="barra_modo"><option value="windows">Instalada en Windows (USB / red / Wi-Fi)</option><option value="tcp" selected>IP directa (puerto 9100)</option><option value="off">Sin impresora</option></select></label>
+<label class="sf6f3-field" data-sf6f3-sector="barra" data-sf6f3-mostrar="windows">Cola instalada en Windows<select data-sf6f3-select="barra"><option value="">Pulsá buscar impresoras…</option></select></label>
+<label class="sf6f3-field" data-sf6f3-sector="barra" data-sf6f3-mostrar="windows">Nombre manual, si no aparece<input name="barra_windows" maxlength="120" autocomplete="off" placeholder="Nombre de Windows"></label>
+<label class="sf6f3-field" data-sf6f3-sector="barra" data-sf6f3-mostrar="tcp">IP privada (9100)<input name="ip_barra" inputmode="decimal" autocomplete="off" placeholder="192.168.1.100"></label>
+<label class="sf6f3-field">Ancho del ticket<select name="ancho_ticket"><option value="32">32 caracteres</option><option value="42">42 caracteres</option><option value="48">48 caracteres</option></select></label>
+<div class="sm-impresoras__acciones">
                                 <button type="submit" class="sm-impresoras__btn sm-impresoras__btn--principal">Guardar cambios</button>
                                 <button type="button" id="sm-impresoras-vincular" class="sm-impresoras__btn sm-impresoras__btn--secundario">Vincular PC / descargar clave</button>
                             </div>
@@ -1578,4 +1583,6 @@
 {% block extra_js %}
 {# Lógica de navegación desacoplada del script global del menú público. #}
 <script src="{% static 'script/dashboard_navegacion.js' %}?v=sterak-nav-20261120"></script>
+<link rel="stylesheet" href="{% static 'css/impresoras_6f3.css' %}">
+<script src="{% static 'script/impresoras_6f3.js' %}?v=6f3"></script>
 {% endblock %}

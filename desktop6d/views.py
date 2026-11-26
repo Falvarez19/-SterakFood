@@ -71,30 +71,55 @@ def configurar_impresoras(request):
     error = ''
     mensaje = ''
     if request.method == 'POST':
-        caja = (request.POST.get('caja') or '').strip()
-        cocina = (request.POST.get('cocina') or '').strip()
-        barra = (request.POST.get('barra') or '').strip()
-        habilitar = request.POST.get('habilitar') == 'on'
+        from pedidos.impresoras_views import validar_rutas_6f3
         try:
-            if not 1 <= len(caja) <= 120 or any(ord(c) < 32 for c in caja):
-                raise ValueError('Escribí el nombre de la impresora Windows de caja.')
-            # Las IP son obligatorias solo al activar la impresión.
-            if habilitar:
-                cocina = _ip_local(cocina)
-                barra = _ip_local(barra)
-            else:
-                if cocina: cocina = _ip_local(cocina)
-                if barra: barra = _ip_local(barra)
-            cfg.caja_windows = caja
-            if cocina: cfg.ip_cocina = cocina
-            if barra: cfg.ip_barra = barra
-            cfg.save(update_fields=['caja_windows','ip_cocina','ip_barra','actualizado'])
+            datos = validar_rutas_6f3(request.POST)
+            habilitar = request.POST.get('habilitar') == 'on'
+            for campo, valor in datos.items():
+                setattr(cfg, campo, valor)
+            cfg.save(update_fields=[*datos.keys(), 'actualizado'])
             ajuste.impresion_activa = habilitar
-            ajuste.save(update_fields=['impresion_activa','actualizado'])
-            mensaje = 'Impresoras configuradas. ' + ('El agente local podrá procesar la cola.' if habilitar else 'Impresión automática detenida.')
-        except ValueError as exc:
+            ajuste.save(update_fields=['impresion_activa', 'actualizado'])
+            mensaje = 'Impresoras guardadas. ' + ('Agente de impresión habilitado.' if habilitar else 'Envío físico desactivado.')
+        except (ValueError, TypeError) as exc:
             error = str(exc)
-    return render(request,'desktop6d/impresoras.html',{'cfg':cfg,'ajuste':ajuste,'error':error,'mensaje':mensaje})
+    return render(request, 'desktop6d/impresoras.html',
+                  {'cfg': cfg, 'ajuste': ajuste, 'error': error, 'mensaje': mensaje})
+
+
+def detectadas_6f3(request):
+    """Puente LOCAL limitado a la web vinculada. Solo devuelve nombres instalados."""
+    from urllib.parse import urlsplit
+    from django.http import JsonResponse, HttpResponse
+    from desktop6c.models import DesktopLink
+    from .printer_discovery import impresoras_instaladas
+
+    origin = request.headers.get('Origin', '').rstrip('/')
+    # Se impide uso desde servidores remotos, DNS rebinding y sitios ajenos.
+    host = request.get_host().lower()
+    if host not in ('127.0.0.1:8765', 'localhost:8765'):
+        return HttpResponseForbidden('Solo disponible en esta PC.')
+    link = DesktopLink.objects.first()
+    vinculado = (urlsplit(link.server_url).scheme + '://' + urlsplit(link.server_url).netloc
+                 if link else '')
+    remoto = bool(origin and vinculado.startswith('https://') and origin == vinculado)
+    if not remoto and not _owner(request):
+        return HttpResponseForbidden('Primero iniciá sesión local o abrí la web vinculada.')
+    if request.method not in ('GET', 'OPTIONS'):
+        return HttpResponse(status=405)
+    if request.method == 'OPTIONS':
+        response = HttpResponse(status=204)
+    else:
+        impresoras, advertencia = impresoras_instaladas()
+        response = JsonResponse({'ok': True, 'impresoras': impresoras, 'advertencia': advertencia})
+    response['Cache-Control'] = 'no-store'
+    response['Vary'] = 'Origin'
+    if remoto:
+        response['Access-Control-Allow-Origin'] = origin
+        response['Access-Control-Allow-Methods'] = 'GET, OPTIONS'
+        response['Access-Control-Allow-Headers'] = 'Content-Type'
+        response['Access-Control-Allow-Private-Network'] = 'true'
+    return response
 
 
 @require_POST

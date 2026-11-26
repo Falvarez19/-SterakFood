@@ -6497,7 +6497,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return m?decodeURIComponent(m[1]):'';
         }
         function fill(d){
-            ['caja_windows','ip_cocina','ip_barra','ancho_ticket'].forEach(function(k){if(form.elements[k]&&d[k]!=null)form.elements[k].value=d[k];});
+            ['caja_modo','caja_windows','caja_ip','cocina_modo','cocina_windows','ip_cocina','barra_modo','barra_windows','ip_barra','ancho_ticket'].forEach(function(k){if(form.elements[k]&&d[k]!=null)form.elements[k].value=d[k];}); if(window.SterakPrinter6F3)window.SterakPrinter6F3.refresh(form);
             estado.textContent=!d.vinculada?'Sin PC vinculada':d.ultima_conexion?'Última conexión: '+new Date(d.ultima_conexion).toLocaleString('es-AR'):'Clave generada · Aún no conectada';
         }
         function send(url,payload){
@@ -6510,7 +6510,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }).catch(function(e){estado.textContent='No se pudo leer: '+e.message;});
         form.addEventListener('submit',function(ev){
             ev.preventDefault();
-            var data={};['caja_windows','ip_cocina','ip_barra','ancho_ticket'].forEach(function(k){data[k]=form.elements[k].value;});
+            var data={};['caja_modo','caja_windows','caja_ip','cocina_modo','cocina_windows','ip_cocina','barra_modo','barra_windows','ip_barra','ancho_ticket'].forEach(function(k){data[k]=form.elements[k].value;});
             msg.textContent='Guardando...';
             send(root.dataset.guardar,data).then(function(d){fill(d.configuracion);msg.textContent='✓ Guardado. La ticketera vinculada tomará el cambio al consultar Render.';})
               .catch(function(e){msg.textContent='Error: '+e.message;});

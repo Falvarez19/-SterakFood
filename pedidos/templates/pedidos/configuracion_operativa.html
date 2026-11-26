@@ -64,19 +64,21 @@
     <div class="sf-op__titulo"><h2 id="op-impresoras-titulo">Impresoras del negocio</h2><span id="op-impresoras-conexion">Consultando...</span></div>
     <p>Elegí los destinos de caja, cocina y barra. La impresión ocurre desde la PC o el agente del restaurante, nunca directamente desde Render.</p>
     <form id="op-impresoras-form" class="sf-op__impresoras-grid">
-      <label>Impresora de caja (nombre en Windows)
-        <input name="caja_windows" maxlength="120" autocomplete="off" required placeholder="FACTURA_PYTHON">
-      </label>
-      <label>Ancho del ticket
-        <select name="ancho_ticket"><option value="32">32 caracteres</option><option value="42">42 caracteres</option><option value="48">48 caracteres</option></select>
-      </label>
-      <label>IP de cocina
-        <input name="ip_cocina" autocomplete="off" required placeholder="192.168.1.100">
-      </label>
-      <label>IP de barra
-        <input name="ip_barra" autocomplete="off" required placeholder="192.168.1.101">
-      </label>
-      <div class="sf-op__impresoras-acciones">
+<div class="sf6f3-tools"><button type="button" data-sf6f3-buscar>Buscar impresoras de esta PC</button><output data-sf6f3-estado>Windows USB, red o Wi-Fi · requiere Desktop abierto en esta computadora</output></div>
+<label class="sf6f3-field">Caja · tipo de conexión<select name="caja_modo"><option value="windows" selected>Instalada en Windows (USB / red / Wi-Fi)</option><option value="tcp">IP directa (puerto 9100)</option><option value="off">Sin impresora</option></select></label>
+<label class="sf6f3-field" data-sf6f3-sector="caja" data-sf6f3-mostrar="windows">Cola instalada en Windows<select data-sf6f3-select="caja"><option value="">Pulsá buscar impresoras…</option></select></label>
+<label class="sf6f3-field" data-sf6f3-sector="caja" data-sf6f3-mostrar="windows">Nombre manual, si no aparece<input name="caja_windows" maxlength="120" autocomplete="off" placeholder="Nombre de Windows"></label>
+<label class="sf6f3-field" data-sf6f3-sector="caja" data-sf6f3-mostrar="tcp">IP privada (9100)<input name="caja_ip" inputmode="decimal" autocomplete="off" placeholder="192.168.1.100"></label>
+<label class="sf6f3-field">Cocina · tipo de conexión<select name="cocina_modo"><option value="windows">Instalada en Windows (USB / red / Wi-Fi)</option><option value="tcp" selected>IP directa (puerto 9100)</option><option value="off">Sin impresora</option></select></label>
+<label class="sf6f3-field" data-sf6f3-sector="cocina" data-sf6f3-mostrar="windows">Cola instalada en Windows<select data-sf6f3-select="cocina"><option value="">Pulsá buscar impresoras…</option></select></label>
+<label class="sf6f3-field" data-sf6f3-sector="cocina" data-sf6f3-mostrar="windows">Nombre manual, si no aparece<input name="cocina_windows" maxlength="120" autocomplete="off" placeholder="Nombre de Windows"></label>
+<label class="sf6f3-field" data-sf6f3-sector="cocina" data-sf6f3-mostrar="tcp">IP privada (9100)<input name="ip_cocina" inputmode="decimal" autocomplete="off" placeholder="192.168.1.100"></label>
+<label class="sf6f3-field">Barra · tipo de conexión<select name="barra_modo"><option value="windows">Instalada en Windows (USB / red / Wi-Fi)</option><option value="tcp" selected>IP directa (puerto 9100)</option><option value="off">Sin impresora</option></select></label>
+<label class="sf6f3-field" data-sf6f3-sector="barra" data-sf6f3-mostrar="windows">Cola instalada en Windows<select data-sf6f3-select="barra"><option value="">Pulsá buscar impresoras…</option></select></label>
+<label class="sf6f3-field" data-sf6f3-sector="barra" data-sf6f3-mostrar="windows">Nombre manual, si no aparece<input name="barra_windows" maxlength="120" autocomplete="off" placeholder="Nombre de Windows"></label>
+<label class="sf6f3-field" data-sf6f3-sector="barra" data-sf6f3-mostrar="tcp">IP privada (9100)<input name="ip_barra" inputmode="decimal" autocomplete="off" placeholder="192.168.1.100"></label>
+<label class="sf6f3-field">Ancho del ticket<select name="ancho_ticket"><option value="32">32 caracteres</option><option value="42">42 caracteres</option><option value="48">48 caracteres</option></select></label>
+<div class="sf-op__impresoras-acciones">
         <button type="submit" class="sf-op__btn sf-op__btn--principal">Guardar impresoras</button>
         <button type="button" id="op-descargar-vinculo" class="sf-op__btn">Descargar vinculación para esta PC</button>
       </div>
@@ -88,4 +90,6 @@
 {% endblock %}
 {% block extra_js %}
 <script src="{% static 'script/configuracion_operativa_4a.js' %}?v=4a-1" defer></script>
+<link rel="stylesheet" href="{% static 'css/impresoras_6f3.css' %}">
+<script src="{% static 'script/impresoras_6f3.js' %}?v=6f3" defer></script>
 {% endblock %}

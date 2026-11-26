@@ -163,13 +163,23 @@ def procesar_una(reg, config):
                 raise PrinterNotReady('Comprobante no encontrado: requiere revisión manual.')
             datos = _cuenta_bytes(registro)
         else: raise ValueError('Tipo de trabajo no permitido.')
-        if reg.destino == 'caja':
-            _send_windows(config.caja_windows,datos)
-        elif reg.destino == 'cocina':
-            _send_network(config.ip_cocina,datos)
-        elif reg.destino == 'barra':
-            _send_network(config.ip_barra,datos)
-        else: raise ValueError('Destino desconocido.')
+        # STERAKFOOD_6F3_RUTEO: cada sector puede usar cola Windows o IP directa.
+        destino = reg.destino
+        modo = getattr(config, destino + '_modo', 'windows' if destino == 'caja' else 'tcp')
+        if modo == 'off':
+            raise PrinterNotReady('Impresora de ' + destino + ' deshabilitada; trabajo pendiente.')
+        if modo == 'windows':
+            nombre = config.caja_windows if destino == 'caja' else getattr(config,destino+'_windows','')
+            if not nombre:
+                raise PrinterNotReady('Sin cola Windows configurada para '+destino)
+            _send_windows(nombre, datos)
+        elif modo == 'tcp':
+            ip = config.caja_ip if destino == 'caja' else getattr(config,'ip_'+destino,'')
+            if not ip:
+                raise PrinterNotReady('Sin IP de impresora configurada para '+destino)
+            _send_network(ip, datos)
+        else:
+            raise PrinterNotReady('Método de impresión no reconocido para '+destino)
     except PrinterNotReady as exc:
         # No se imprimió nada: el trabajo queda pendiente para reintentar.
         ImpresionLocal6D.objects.filter(pk=reg.pk).update(estado='pendiente',ultimo_error=str(exc)[:400])
