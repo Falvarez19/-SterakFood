@@ -11,15 +11,12 @@
 <div class="sf-op" id="sf-operacion"
   data-mesas-url="{% url 'pedidos:guardar_mesas_visibles' %}"
   data-mozos-agregar="{% url 'pedidos:agregar_mozo' %}"
-  data-mozos-eliminar-patron="{% url 'pedidos:eliminar_mozo' 999999 %}"
-  data-impresoras-get="{% url 'pedidos:impresoras_obtener' %}"
-  data-impresoras-post="{% url 'pedidos:impresoras_guardar' %}"
-  data-impresoras-vincular="{% url 'pedidos:impresoras_vincular' %}">
+  data-mozos-eliminar-patron="{% url 'pedidos:eliminar_mozo' 999999 %}">
   <header class="sf-op__cabecera">
     <div>
       <span class="sf-op__kicker">STERAKFOOD · CONFIGURACIÓN</span>
       <h1>Operación del restaurante</h1>
-      <p>Mesas, personal e impresoras. Estos ajustes pertenecen solamente a esta instalación.</p>
+      <p>Mesas y personal del restaurante.</p>
     </div>
     <nav class="sf-op__nav" aria-label="Accesos rápidos">
       <a href="{% url 'pedidos:salon' %}">Ir a Salón</a>
@@ -60,32 +57,6 @@
     </section>
   </div>
 
-  <section class="sf-op__seccion sf-op__impresoras" aria-labelledby="op-impresoras-titulo">
-    <div class="sf-op__titulo"><h2 id="op-impresoras-titulo">Impresoras del negocio</h2><span id="op-impresoras-conexion">Consultando...</span></div>
-    <p>Elegí los destinos de caja, cocina y barra. La impresión ocurre desde la PC o el agente del restaurante, nunca directamente desde Render.</p>
-    <form id="op-impresoras-form" class="sf-op__impresoras-grid">
-<div class="sf6f3-tools"><button type="button" data-sf6f3-buscar>Buscar impresoras de esta PC</button><output data-sf6f3-estado>Windows USB, red o Wi-Fi · requiere Desktop abierto en esta computadora</output></div>
-<label class="sf6f3-field">Caja · tipo de conexión<select name="caja_modo"><option value="windows" selected>Instalada en Windows (USB / red / Wi-Fi)</option><option value="tcp">IP directa (puerto 9100)</option><option value="off">Sin impresora</option></select></label>
-<label class="sf6f3-field" data-sf6f3-sector="caja" data-sf6f3-mostrar="windows">Cola instalada en Windows<select data-sf6f3-select="caja"><option value="">Pulsá buscar impresoras…</option></select></label>
-<label class="sf6f3-field" data-sf6f3-sector="caja" data-sf6f3-mostrar="windows">Nombre manual, si no aparece<input name="caja_windows" maxlength="120" autocomplete="off" placeholder="Nombre de Windows"></label>
-<label class="sf6f3-field" data-sf6f3-sector="caja" data-sf6f3-mostrar="tcp">IP privada (9100)<input name="caja_ip" inputmode="decimal" autocomplete="off" placeholder="192.168.1.100"></label>
-<label class="sf6f3-field">Cocina · tipo de conexión<select name="cocina_modo"><option value="windows">Instalada en Windows (USB / red / Wi-Fi)</option><option value="tcp" selected>IP directa (puerto 9100)</option><option value="off">Sin impresora</option></select></label>
-<label class="sf6f3-field" data-sf6f3-sector="cocina" data-sf6f3-mostrar="windows">Cola instalada en Windows<select data-sf6f3-select="cocina"><option value="">Pulsá buscar impresoras…</option></select></label>
-<label class="sf6f3-field" data-sf6f3-sector="cocina" data-sf6f3-mostrar="windows">Nombre manual, si no aparece<input name="cocina_windows" maxlength="120" autocomplete="off" placeholder="Nombre de Windows"></label>
-<label class="sf6f3-field" data-sf6f3-sector="cocina" data-sf6f3-mostrar="tcp">IP privada (9100)<input name="ip_cocina" inputmode="decimal" autocomplete="off" placeholder="192.168.1.100"></label>
-<label class="sf6f3-field">Barra · tipo de conexión<select name="barra_modo"><option value="windows">Instalada en Windows (USB / red / Wi-Fi)</option><option value="tcp" selected>IP directa (puerto 9100)</option><option value="off">Sin impresora</option></select></label>
-<label class="sf6f3-field" data-sf6f3-sector="barra" data-sf6f3-mostrar="windows">Cola instalada en Windows<select data-sf6f3-select="barra"><option value="">Pulsá buscar impresoras…</option></select></label>
-<label class="sf6f3-field" data-sf6f3-sector="barra" data-sf6f3-mostrar="windows">Nombre manual, si no aparece<input name="barra_windows" maxlength="120" autocomplete="off" placeholder="Nombre de Windows"></label>
-<label class="sf6f3-field" data-sf6f3-sector="barra" data-sf6f3-mostrar="tcp">IP privada (9100)<input name="ip_barra" inputmode="decimal" autocomplete="off" placeholder="192.168.1.100"></label>
-<label class="sf6f3-field">Ancho del ticket<select name="ancho_ticket"><option value="32">32 caracteres</option><option value="42">42 caracteres</option><option value="48">48 caracteres</option></select></label>
-<div class="sf-op__impresoras-acciones">
-        <button type="submit" class="sf-op__btn sf-op__btn--principal">Guardar impresoras</button>
-        <button type="button" id="op-descargar-vinculo" class="sf-op__btn">Descargar vinculación para esta PC</button>
-      </div>
-    </form>
-    <p class="sf-op__nota">Se admiten direcciones IPv4 privadas. Si cambiás la vinculación, el agente anterior deja de estar autorizado; hacelo solamente cuando necesites volver a vincular la PC. El archivo descargado es privado.</p>
-    <p class="sf-op__respuesta" id="op-impresoras-estado" aria-live="polite"></p>
-  </section>
 </div>
 {% endblock %}
 {% block extra_js %}

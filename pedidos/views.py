@@ -2634,48 +2634,88 @@ def fiscal_probar_conexion_arca(request):
 
 
 # respaldo_mesas_local_api
+# STERAKFOOD_6F8_RESPALDO_SQLITE
+# CAS atómico sin pérdida de comandas: reintentos solo cuando SQLite indica busy/locked.
 def respaldo_mesas_local_api(request):
+    from django.db.utils import OperationalError as _SQLiteOperationalError
+    import time as _time
+    import logging as _logging
+    _log = _logging.getLogger(__name__)
     if not getattr(settings, 'SM_LOCAL_MODE', False):
         raise Http404
     if not request.session.get('dashboard_auth'):
         return JsonResponse({'status': 'error', 'mensaje': 'No autorizado'}, status=403)
     if request.method not in ('GET', 'POST'):
         return JsonResponse({'status': 'error', 'mensaje': 'Método no permitido'}, status=405)
+
+    # El guardado de mesas NUNCA responde "ok" si SQLite no confirmó la escritura.
+    # No se reintentan conflictos de versión (409): requieren recargar la ventana.
+    def _bloqueada(exc):
+        mensaje = str(exc).lower()
+        return 'locked' in mensaje or 'busy' in mensaje or 'ocupada' in mensaje
+
     if request.method == 'GET':
-        registro = RespaldoMesasLocal.objects.filter(pk=1).first()
-        return JsonResponse({'status': 'ok', 'version': registro.version if registro else 0,
-                             'cuentas': registro.datos if registro else {}})
+        for intento in range(3):
+            try:
+                registro = RespaldoMesasLocal.objects.filter(pk=1).first()
+                return JsonResponse({'status': 'ok', 'version': registro.version if registro else 0,
+                                     'cuentas': registro.datos if registro else {}})
+            except _SQLiteOperationalError as exc:
+                if not _bloqueada(exc):
+                    _log.exception('Respaldo de mesas GET: error de base')
+                    return JsonResponse({'status': 'error', 'mensaje': 'Error local al leer mesas'}, status=500)
+                if intento < 2:
+                    _time.sleep(.3 * (intento + 1))
+                    continue
+                _log.warning('Respaldo de mesas GET: SQLite ocupada tras reintentos')
+                return JsonResponse({'status':'error','mensaje':'SQLite ocupada; reintentá en unos segundos',
+                                     'reintentable':True},status=503)
+        raise RuntimeError('GET de respaldo sin resultado')
+
     if len(request.body) > 800_000:
-        return JsonResponse({'status': 'error', 'mensaje': 'Respaldo excesivo'}, status=413)
+        return JsonResponse({'status':'error','mensaje':'Respaldo excesivo'},status=413)
     try:
-        payload = json.loads(request.body)
-        cuentas = payload['cuentas']
-        version = payload['version']
-        if not isinstance(cuentas, dict) or not isinstance(version, int) or isinstance(version,bool) or version < 0:
+        payload=json.loads(request.body)
+        cuentas=payload['cuentas']
+        version=payload['version']
+        if not isinstance(cuentas,dict) or not isinstance(version,int) or isinstance(version,bool) or version<0:
             raise ValueError()
-        if len(cuentas) > 110 or any(
-            not str(m).isdigit() or not 1 <= int(m) <= 100 or
-            not isinstance(c, dict) or not isinstance(c.get('items', []), list) or
-            len(c.get('items', [])) > 250
-            for m, c in cuentas.items()
+        if len(cuentas)>110 or any(
+            not str(m).isdigit() or not 1<=int(m)<=100 or
+            not isinstance(c,dict) or not isinstance(c.get('items',[]),list) or
+            len(c.get('items',[]))>250
+            for m,c in cuentas.items()
         ):
             raise ValueError()
-    except (ValueError, KeyError, TypeError, UnicodeError):
-        return JsonResponse({'status': 'error', 'mensaje': 'Estado de mesas inválido'}, status=400)
-    # CAS: evita que otra pestaña sobrescriba silenciosamente consumos.
-    # La fila se crea solo una vez; en SQLite las escrituras son transaccionales.
-    try:
-        with transaction.atomic():
-            RespaldoMesasLocal.objects.get_or_create(pk=1)
-            actualizados = RespaldoMesasLocal.objects.filter(pk=1, version=version).update(
-                datos=cuentas, version=F('version') + 1, modificado=timezone.now()
-            )
-    except Exception:
-        return JsonResponse({'status': 'error', 'mensaje': 'Base local ocupada, reintentá'}, status=503)
-    if actualizados != 1:
-        return JsonResponse({'status': 'conflicto', 'mensaje': 'Otra ventana actualizó las mesas. Recargá para evitar sobrescribir.',}, status=409)
-    return JsonResponse({'status': 'ok', 'version': version+1})
+    except (ValueError,KeyError,TypeError,UnicodeError):
+        return JsonResponse({'status':'error','mensaje':'Estado de mesas inválido'},status=400)
 
+    for intento in range(3):
+        try:
+            with transaction.atomic():
+                RespaldoMesasLocal.objects.get_or_create(pk=1)
+                actualizados=RespaldoMesasLocal.objects.filter(pk=1,version=version).update(
+                    datos=cuentas,version=F('version')+1,modificado=timezone.now()
+                )
+            if actualizados!=1:
+                return JsonResponse({'status':'conflicto',
+                                     'mensaje':'Otra ventana actualizó las mesas. Recargá para evitar sobrescribir.'},
+                                    status=409)
+            return JsonResponse({'status':'ok','version':version+1})
+        except _SQLiteOperationalError as exc:
+            if not _bloqueada(exc):
+                _log.exception('Respaldo de mesas POST: error local de SQLite')
+                return JsonResponse({'status':'error','mensaje':'Error al guardar mesas en SQLite'},status=500)
+            if intento<2:
+                _time.sleep(.35*(intento+1))
+                continue
+            _log.warning('Respaldo de mesas POST: SQLite ocupada tras reintentos')
+            return JsonResponse({'status':'error','mensaje':'Base local ocupada; se reintentará el guardado',
+                                 'reintentable':True},status=503)
+        except Exception:
+            _log.exception('Respaldo de mesas POST: fallo inesperado')
+            return JsonResponse({'status':'error','mensaje':'Fallo de guardado local: revisar consola Desktop'},status=500)
+    raise RuntimeError('POST de respaldo sin resultado')
 
 
 # estado_ticket_salon

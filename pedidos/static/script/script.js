@@ -2609,29 +2609,47 @@ function eliminarOpinion(opinionId, url) {
             confirmButtonText:'Entendido',allowOutsideClick:false,
             background:'var(--card-bg)',color:'var(--text-color)'});
     }
+    // STERAKFOOD_6F8_REINTENTOS_CLIENTE: nunca cobrar hasta que SQLite confirme.
+    var respaldoReintentos = 0;
+    var respaldoReintentoTimer = null;
     function enviarRespaldo() {
         if (!respaldoUrl || !respaldoPreparado || respaldoBloqueado ||
-            respaldoGuardando || !respaldoPendiente) return;
-        if (respaldoTimer) { clearTimeout(respaldoTimer); respaldoTimer=null; }
+            respaldoGuardando || respaldoReintentoTimer || !respaldoPendiente) return;
+        if (respaldoTimer) { clearTimeout(respaldoTimer); respaldoTimer = null; }
         respaldoPendiente = false;
         respaldoGuardando = true;
         var copia = JSON.parse(JSON.stringify(cuentas));
         indicarRespaldo('Guardando mesas en esta PC...');
-        fetch(respaldoUrl,{method:'POST',credentials:'same-origin',
+        fetch(respaldoUrl, {method:'POST', credentials:'same-origin',
             headers:{'Content-Type':'application/json','X-CSRFToken':obtenerCsrf()},
-            body:JSON.stringify({version:respaldoVersion,cuentas:copia})})
-        .then(function(res){
-            return res.json().catch(function(){return {};}).then(function(d){
+            body:JSON.stringify({version:respaldoVersion, cuentas:copia})})
+        .then(function(res) {
+            return res.json().catch(function(){return {};}).then(function(d) {
                 if (!res.ok || d.status !== 'ok') {
-                    throw new Error(d.mensaje || 'No se pudo guardar en esta PC.');
+                    var error = new Error(d.mensaje || 'No se pudo guardar en esta PC.');
+                    error.reintentable = res.status === 503 && d.reintentable === true;
+                    throw error;
                 }
+                respaldoReintentos = 0;
                 respaldoVersion = Number(d.version);
-                indicarRespaldo('Mesas respaldadas en esta PC · versión '+respaldoVersion);
+                indicarRespaldo('Mesas respaldadas en esta PC · versión ' + respaldoVersion);
             });
-        }).catch(function(err){ bloquearRespaldo(err.message); })
-        .finally(function(){
+        }).catch(function(err) {
+            if (err.reintentable && respaldoReintentos < 3) {
+                respaldoReintentos += 1;
+                respaldoPendiente = true;
+                indicarRespaldo('SQLite ocupada, reintento ' + respaldoReintentos + '/3…', true);
+                respaldoReintentoTimer = setTimeout(function() {
+                    respaldoReintentoTimer = null;
+                    enviarRespaldo();
+                }, 500 * respaldoReintentos);
+            } else {
+                bloquearRespaldo(err.message);
+            }
+        }).finally(function() {
             respaldoGuardando = false;
-            if (respaldoPendiente && !respaldoBloqueado) enviarRespaldo();
+            if (respaldoPendiente && !respaldoBloqueado && !respaldoReintentoTimer)
+                enviarRespaldo();
         });
     }
     function programarRespaldo() {

@@ -66,6 +66,7 @@
   });
 
   const impresoras = document.getElementById('op-impresoras-form');
+  if (!impresoras) return; // 6F8: se usa la configuración unificada de impresoras del panel.
   async function cargarImpresoras(){
     try {
       const info = await leer(await fetch(raiz.dataset.impresorasGet,{credentials:'same-origin'}));
