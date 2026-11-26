@@ -1,177 +1,193 @@
-/* SterakFood 6F.4 — organiza Herramientas sin reemplazar forms, IDs ni eventos.
- * Deliberadamente mueve los nodos existentes (appendChild) en vez de clonar
- * HTML: conserva valores, event listeners, CSRF y las integraciones 6F3.
+/* SterakFood 6F.5 — Configuración compacta: cinco destinos sin duplicados.
+ * SOLO presentación del panel existente. No reconstruye formularios ni eventos;
+ * reubica los nodos originales para conservar listeners, CSRF y endpoints.
  */
 (function () {
   'use strict';
-
-  function montarHerramientas() {
+  function iniciar() {
     var tab = document.getElementById('tab-config');
-    if (!tab || tab.dataset.sf64Montado === 'si') return;
-
+    if (!tab || tab.dataset.sf65Montado === 'si') return;
     var central = document.getElementById('sm-herramientas-central');
     var grid = central && central.querySelector('.sm-herramientas-central__grid');
     var config = document.getElementById('sm-ajustes-sistema');
     var operaciones = tab.querySelector('.sm-herramientas-operaciones');
     var impresoras = document.getElementById('sm-impresoras-panel');
     var ayuda = config && config.querySelector('.config-ayuda-v2');
-    if (!central || !grid || !config || !operaciones || !impresoras || !ayuda) {
-      console.warn('SterakFood 6F4: Herramientas no tiene la estructura esperada; no se cambia la pantalla.');
+    var cabecera = central && central.querySelector('.sm-herramientas-central__titulo');
+    if (!tab || !central || !grid || !config || !operaciones || !impresoras || !ayuda || !cabecera) {
+      console.warn('SterakFood 6F5: estructura diferente. No se reorganizan controles.');
       return;
     }
-
+    var acciones = Array.from(grid.children);
     var grupos = Array.from(config.children).filter(function (el) {
       return el.classList && el.classList.contains('config-grupo');
     });
-    var acciones = Array.from(grid.children);
-    // Mapeo de la plantilla que ya existe. No elimina ni inventa operaciones.
-    if (grupos.length !== 5 || acciones.length < 9 ||
-        !acciones[0].hasAttribute('data-salon-tool-open') ||
-        !acciones[1].hasAttribute('data-salon-tool-open') ||
-        !acciones[2].hasAttribute('data-salon-tool-open') ||
-        !acciones[3].getAttribute('href') ||
-        !acciones[4].getAttribute('href')) {
-      console.warn('SterakFood 6F4: Se encontró otra versión de Herramientas; se conserva la anterior.');
+    if (acciones.length !== 9 || grupos.length !== 5 ||
+        !acciones[0].matches('[data-salon-tool-open="catalogo"]') ||
+        !acciones[1].matches('[data-salon-tool-open="mozos"]') ||
+        !acciones[2].matches('[data-salon-tool-open="importar"]')) {
+      console.warn('SterakFood 6F5: acciones inesperadas; se conserva la pantalla anterior.');
       return;
     }
 
-    var quick = [acciones[3], acciones[7], acciones[0], acciones[4]];
-    var toolMozos = acciones[1];
-    var toolImportar = acciones[2];
-    var toolFiscal = acciones[5];
-    var toolOperacion = acciones[6];
-    var toolAjustes = acciones[8];
-    var header = central.querySelector('.sm-herramientas-central__titulo');
-    var titulo = header && header.querySelector('h2');
-    var leyenda = header && header.querySelector('p');
-    if (titulo) titulo.textContent = 'Herramientas';
-    if (leyenda) leyenda.textContent = 'Elegí qué querés configurar. Todo lo demás queda a un clic.';
+    var h2 = cabecera.querySelector('h2');
+    var descripcion = cabecera.querySelector('p');
+    var kicker = cabecera.querySelector('.categoria-kicker');
+    if (h2) h2.textContent = 'Configuración';
+    if (descripcion) descripcion.textContent = 'Elegí qué querés cambiar en tu restaurante.';
+    if (kicker) kicker.textContent = 'STERAKFOOD';
+    var headerSistema = config.querySelector('.config-sistema__header');
+    if (headerSistema) headerSistema.hidden = true;
+    var estadoGuardado = document.getElementById('config-estado-guardado');
 
-    var subtitulo = document.createElement('div');
-    subtitulo.className = 'sf64-quick-title';
-    subtitulo.textContent = 'Accesos rápidos';
-    grid.parentNode.insertBefore(subtitulo, grid);
-    grid.classList.add('sf64-quick-grid');
-    quick.forEach(function (n) { grid.appendChild(n); });
+    var selector = document.createElement('nav');
+    selector.className = 'sf65-nav';
+    selector.setAttribute('aria-label', 'Apartados de configuración');
+    selector.setAttribute('role', 'tablist');
+    var paneles = document.createElement('div');
+    paneles.className = 'sf65-paneles';
+    var separador = document.createElement('div');
+    separador.className = 'sf65-estado';
+    separador.setAttribute('aria-live', 'polite');
+    if (estadoGuardado) separador.appendChild(estadoGuardado);
+    config.insertBefore(selector, config.firstChild);
+    selector.insertAdjacentElement('afterend', separador);
+    separador.insertAdjacentElement('afterend', paneles);
 
-    var encabezado = config.querySelector('.config-sistema__header');
-    if (encabezado) {
-      var h = encabezado.querySelector('h2');
-      var p = encabezado.querySelector('p');
-      if (h) h.textContent = 'Configuración';
-      if (p) p.textContent = 'Los cambios de esta pantalla se guardan igual que antes.';
+    var secciones = [];
+    function seccion(id, titulo, resumen) {
+      var boton = document.createElement('button');
+      boton.type = 'button';
+      boton.className = 'sf65-nav-boton';
+      boton.setAttribute('role', 'tab');
+      boton.setAttribute('aria-controls', id);
+      boton.id = id + '-tab';
+      boton.textContent = titulo;
+      selector.appendChild(boton);
+      var panel = document.createElement('section');
+      panel.className = 'sf65-panel';
+      panel.id = id;
+      panel.setAttribute('role', 'tabpanel');
+      panel.setAttribute('aria-labelledby', boton.id);
+      panel.setAttribute('tabindex', '0');
+      panel.hidden = true;
+      var heading = document.createElement('div');
+      heading.className = 'sf65-panel-titulo';
+      var tituloEl = document.createElement('h3');
+      tituloEl.textContent = titulo;
+      var p = document.createElement('p');
+      p.textContent = resumen;
+      heading.appendChild(tituloEl);
+      heading.appendChild(p);
+      panel.appendChild(heading);
+      paneles.appendChild(panel);
+      var obj = {id: id, boton: boton, panel: panel};
+      secciones.push(obj);
+      boton.addEventListener('click', function () { activar(obj); });
+      return panel;
     }
-
-    var stack = document.createElement('div');
-    stack.className = 'sf64-secciones';
-    stack.setAttribute('aria-label', 'Áreas de configuración');
-    if (encabezado && encabezado.nextSibling) {
-      config.insertBefore(stack, encabezado.nextSibling);
-    } else {
-      config.appendChild(stack);
-    }
-
-    function seccion(id, titulo, descripcion, abierta) {
-      var details = document.createElement('details');
-      details.className = 'sf64-seccion';
-      details.id = id;
-      details.open = Boolean(abierta);
-      var summary = document.createElement('summary');
-      summary.className = 'sf64-seccion-cabecera';
-      var txt = document.createElement('span');
-      txt.className = 'sf64-seccion-texto';
-      var h = document.createElement('strong');
-      h.textContent = titulo;
-      var desc = document.createElement('small');
-      desc.textContent = descripcion;
-      txt.appendChild(h);
-      txt.appendChild(desc);
-      var flecha = document.createElement('span');
-      flecha.className = 'sf64-chevron';
-      flecha.setAttribute('aria-hidden', 'true');
-      flecha.textContent = '⌄';
-      summary.appendChild(txt);
-      summary.appendChild(flecha);
-      var contenido = document.createElement('div');
-      contenido.className = 'sf64-seccion-contenido';
-      details.appendChild(summary);
-      details.appendChild(contenido);
-      stack.appendChild(details);
-      return { details: details, contenido: contenido };
-    }
-
-    function filaAcciones() {
-      var nav = document.createElement('div');
-      nav.className = 'sf64-enlaces-secundarios';
-      return nav;
-    }
-
-    var diaria = seccion('sf64-operacion', 'Operación diaria', 'Pedidos, descuento, salón y personal', true);
-    var diarioLinks = filaAcciones();
-    diarioLinks.appendChild(toolMozos);
-    diarioLinks.appendChild(toolOperacion);
-    diaria.contenido.appendChild(diarioLinks);
-    diaria.contenido.appendChild(grupos[0]); // Ventas: pedidos online + descuento
-    diaria.contenido.appendChild(grupos[4]); // Salón
-
-    var menu = seccion('sf64-menu', 'Menú público y clientes', 'Promociones, bienvenida y opiniones', false);
-    menu.contenido.appendChild(grupos[2]); // Menú público
-    menu.contenido.appendChild(grupos[3]); // Clientes
-
-    var impresion = seccion('sf64-impresion', 'Impresoras', 'Caja, cocina y barra · USB, red o Wi-Fi', false);
-    impresion.contenido.appendChild(impresoras); // incluye modal y eventos 6F3
-
-    var avanzado = seccion('sf64-avanzado', 'Administración avanzada', 'Respaldo, cierre de caja, importación y fiscal', false);
-    var avanzadoLinks = filaAcciones();
-    avanzadoLinks.appendChild(toolImportar);
-    avanzadoLinks.appendChild(toolFiscal);
-    avanzadoLinks.appendChild(toolAjustes);
-    // Si una versión futura suma accesos, se conservan; nunca se descartan.
-    Array.from(grid.children).forEach(function (n) {
-      if (quick.indexOf(n) === -1) avanzadoLinks.appendChild(n);
-    });
-    avanzado.contenido.appendChild(avanzadoLinks);
-    avanzado.contenido.appendChild(operaciones); // incluye acciones con confirmación
-
-    var notaPedidos = document.createElement('details');
-    notaPedidos.className = 'sf64-info';
-    var resumenPedidos = document.createElement('summary');
-    resumenPedidos.textContent = 'Información sobre los pedidos online';
-    notaPedidos.appendChild(resumenPedidos);
-    notaPedidos.appendChild(grupos[1]);
-    notaPedidos.appendChild(ayuda);
-    avanzado.contenido.appendChild(notaPedidos);
-
-    // Los accesos de arriba abren el bloque correcto, sin dejar secciones enormes.
-    var accesoImpresoras = quick[0];
-    accesoImpresoras.addEventListener('click', function (ev) {
-      ev.preventDefault();
-      impresion.details.open = true;
-      impresion.details.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-    toolAjustes.addEventListener('click', function (ev) {
-      ev.preventDefault();
-      diaria.details.open = true;
-      diaria.details.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-    var bloques = [diaria.details, menu.details, impresion.details, avanzado.details];
-    bloques.forEach(function (bloque) {
-      bloque.addEventListener('toggle', function () {
-        if (!bloque.open) return;
-        bloques.forEach(function (otro) { if (otro !== bloque) otro.open = false; });
+    function activar(obj) {
+      secciones.forEach(function (item) {
+        var selected = item === obj;
+        item.panel.hidden = !selected;
+        item.boton.setAttribute('aria-selected', String(selected));
+        item.boton.tabIndex = selected ? 0 : -1;
+        item.boton.classList.toggle('is-active', selected);
       });
+      // No se cambia el hash: el dashboard lo utiliza para sus pestañas globales.
+    }
+    selector.addEventListener('keydown', function (event) {
+      if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+      var index = secciones.findIndex(function (item) { return item.boton === document.activeElement; });
+      if (index === -1) return;
+      event.preventDefault();
+      var offset = event.key === 'ArrowRight' ? 1 : -1;
+      var siguiente = secciones[(index + offset + secciones.length) % secciones.length];
+      activar(siguiente);
+      siguiente.boton.focus();
     });
-    // Por si el usuario llega con #sm-impresoras-panel o #sm-ajustes-sistema.
-    if (window.location.hash === '#sm-impresoras-panel') impresion.details.open = true;
-    if (window.location.hash === '#sm-ajustes-sistema') diaria.details.open = true;
+    function añadirAccesos(destino, lista) {
+      var fila = document.createElement('div');
+      fila.className = 'sf65-accesos';
+      lista.forEach(function (item) { fila.appendChild(item); });
+      if (fila.children.length) destino.appendChild(fila);
+    }
+    function nota(destino, texto) {
+      var p = document.createElement('p');
+      p.className = 'sf65-nota';
+      p.textContent = texto;
+      destino.appendChild(p);
+    }
 
-    tab.dataset.sf64Montado = 'si';
-    tab.classList.add('sf64-herramientas');
+    // Operación: precios y administración del salón. La gestión de mozos tiene
+    // una sola entrada visible (Mesas y mozos), no dos atajos simultáneos.
+    var diaria = seccion('sf65-diaria', 'Operación diaria', 'Pedidos, descuentos, productos del salón y personal.');
+    añadirAccesos(diaria, [acciones[0], acciones[6]]);
+    diaria.appendChild(grupos[0]); // Pedidos online / descuento
+    diaria.appendChild(grupos[4]); // Módulo salón
+    var detalles = document.createElement('details');
+    detalles.className = 'sf65-aclaracion';
+    var resumen = document.createElement('summary');
+    resumen.textContent = 'Qué pasa si se corta Internet';
+    detalles.appendChild(resumen);
+    detalles.appendChild(grupos[1]); // Pedidos sin cierre automático
+    detalles.appendChild(ayuda); // Ayudas existentes
+    diaria.appendChild(detalles);
+
+    // Un único destino de impresión: se conserva completo el panel 6F3.
+    var impresion = seccion('sf65-impresion', 'Impresoras', 'Elegí caja, cocina y barra. Detectá USB, red o Wi-Fi desde Desktop.');
+    impresion.appendChild(impresoras);
+
+    // La identidad visual YA tiene su página con validaciones y formularios:
+    // no se crea una segunda copia de los campos de nombre, logos y colores.
+    var negocio = seccion('sf65-negocio', 'Mi negocio', 'Nombre, logos, colores y apariencia del restaurante.');
+    añadirAccesos(negocio, [acciones[7]]);
+    nota(negocio, 'Abrí Mi negocio para editar la identidad visual y guardar los cambios allí.');
+
+    var menu = seccion('sf65-menu', 'Menú web', 'Menú QR, promociones, imágenes y comentarios.');
+    añadirAccesos(menu, [acciones[4]]);
+    menu.appendChild(grupos[2]); // Promociones / popup de bienvenida
+    menu.appendChild(grupos[3]); // Comentarios / Google Reviews
+
+    var avanzado = seccion('sf65-avanzado', 'Avanzado', 'Respaldo, importación, fiscal y diagnóstico.');
+    nota(avanzado, 'Opciones administrativas. La caja se cierra desde Salón; no se duplica aquí.');
+    añadirAccesos(avanzado, [acciones[2], acciones[5]]);
+    var backup = operaciones.querySelector('a[href*="backup"]');
+    if (backup) añadirAccesos(avanzado, [backup]);
+    // En Desktop, 6E permanece desactivado por seguridad hasta configurar Render.
+    if (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') {
+      var linkSync = document.createElement('a');
+      linkSync.href = '/desktop/sync-6e/';
+      linkSync.className = 'sf65-link-extra';
+      linkSync.textContent = 'Ver sincronización offline (6E)';
+      avanzado.appendChild(linkSync);
+    }
+
+    // El formulario manual para pausar pedidos y el botón histórico de cierre
+    // quedan en su DOM original, ocultos, sin borrar endpoints o listeners.
+    // Las mismas acciones están en Operación diaria y en Salón respectivamente.
+    grid.hidden = true;
+    operaciones.hidden = true;
+    if (headerSistema) headerSistema.hidden = true;
+    tab.dataset.sf65Montado = 'si';
+    tab.classList.add('sf64-herramientas', 'sf65-ajustes');
+
+    // Destinos directos existentes (no rompe #tab-menu ni la navegación general).
+    function seleccionPorHash() {
+      var hash = window.location.hash;
+      var objetivo = hash === '#sm-impresoras-panel' || hash === '#sf65-impresion' ? impresion :
+        hash === '#sf65-negocio' ? negocio :
+        hash === '#sf65-menu' ? menu :
+        hash === '#sf65-avanzado' ? avanzado : diaria;
+      var entry = secciones.find(function (item) { return item.panel === objetivo; });
+      if (entry) activar(entry);
+    }
+    window.addEventListener('hashchange', seleccionPorHash);
+    seleccionPorHash();
   }
-
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', montarHerramientas);
+    document.addEventListener('DOMContentLoaded', iniciar);
   } else {
-    montarHerramientas();
+    iniciar();
   }
 }());

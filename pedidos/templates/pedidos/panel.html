@@ -2,7 +2,7 @@
 {% load static %}
 <!-- STERAKFOOD_6F4_HERRAMIENTAS -->
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/herramientas_6f4.css' %}?v=6f4-1">
+<link rel="stylesheet" href="{% static 'css/herramientas_6f4.css' %}?v=6f5-1">
 {% endblock %}
 {% block title %}Panel | {{ restaurant_name }}{% endblock %}
 {% block nav_acciones %}
@@ -870,7 +870,7 @@
                 </a>
                 {# Paso 4A: configuración rápida del funcionamiento por cliente. #}
                 <a href="{% url 'pedidos:configuracion_operativa' %}">
-                    <b>Operación del restaurante</b><small>Mesas, mozos e impresoras</small>
+                    <b>Operación del restaurante</b><small>Mesas visibles y mozos</small>
                 </a>
                 <a href="{% url 'marca:configurar' %}">
                     <b>🎨 Mi negocio</b><small>Cambiar nombre, logos y paleta de colores</small>
@@ -1587,7 +1587,7 @@
 {% block extra_js %}
 {# Lógica de navegación desacoplada del script global del menú público. #}
 <script src="{% static 'script/dashboard_navegacion.js' %}?v=sterak-nav-20261120"></script>
-<script src="{% static 'script/herramientas_6f4.js' %}?v=6f4-1"></script>
+<script src="{% static 'script/herramientas_6f4.js' %}?v=6f5-1"></script>
 <link rel="stylesheet" href="{% static 'css/impresoras_6f3.css' %}">
 <script src="{% static 'script/impresoras_6f3.js' %}?v=6f3"></script>
 {% endblock %}
