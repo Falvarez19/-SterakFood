@@ -1,0 +1,32 @@
+/* SterakFood 6F.6: una fila por destino, un campo activo, contraste correcto. */
+#sm-impresoras-vincular,
+#sm-impresoras-dialogo .sm-impresoras__ayuda,
+#sm-impresoras-estado { display:none !important; }
+#sm-impresoras-form.sf66-ready,
+#sf6f3-desktop-form.sf66-ready { display:grid !important; grid-template-columns:minmax(0,1fr) !important; gap:10px !important; }
+.sf66-ready .sf66-card { display:block !important; grid-column:1/-1; min-width:0; border:1px solid var(--borde,#3c3c3c); border-radius:7px; padding:12px 14px; background:transparent; }
+.sf66-card-title { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:8px; }
+.sf66-card-title strong { font-size:.94rem; }
+.sf66-card-title small { font-size:.74rem; opacity:.65; font-weight:400; }
+.sf66-card-body { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.15fr); gap:12px; align-items:start; }
+.sf66-card-target { display:flex; flex-direction:column; gap:7px; min-width:0; }
+.sf66-card .sf6f3-field { gap:5px; font-size:.78rem; font-weight:600; margin:0; }
+.sf66-card .sf6f3-field[hidden], .sf66-card [hidden], .sf66-ready .sf66-tools[hidden] { display:none !important; }
+.sf66-card .sf6f3-field input, .sf66-card .sf6f3-field select { min-height:39px; padding:7px 10px; font-size:.88rem; }
+.sf66-card .sf66-manual-toggle { cursor:pointer; align-self:flex-start; background:transparent; padding:2px 0; border:0; color:#e87b2b; text-align:left; font-size:.76rem; font-weight:600; }
+.sf66-card .sf66-manual-toggle:focus-visible { outline:2px solid #ea7a22; outline-offset:3px; }
+.sf66-card .sf66-off-hint { margin:6px 0; opacity:.75; font-size:.81rem; }
+.sf66-ready .sf66-tools { grid-column:1/-1; margin:0 0 2px; }
+.sf66-ready .sf66-tools output { font-size:.73rem; }
+.sf66-ready .sf66-general { grid-column:1/-1; max-width:210px; }
+.sf66-ready .sm-impresoras__acciones { grid-column:1/-1; margin-top:4px; }
+/* La configuración web hereda claro/oscuro de SterakFood, no del CSS oscuro 6F.3. */
+body[data-theme="light"] #sm-impresoras-form.sf66-ready :is(input,select),
+body[data-theme="light"] #sm-impresoras-dialogo .sf66-ready :is(input,select) { background:#fff !important; color:#1d232a !important; border:1px solid #ccd0d5 !important; color-scheme:light; }
+body[data-theme="light"] #sm-impresoras-dialogo .sf66-card { background:#fff; border-color:#d9dce0; }
+body[data-theme="light"] #sm-impresoras-dialogo .sf66-manual-toggle { color:#ad4d11; }
+body[data-theme="dark"] #sm-impresoras-form.sf66-ready :is(input,select),
+#sf6f3-desktop-form.sf66-ready :is(input,select) { background:#181a1e !important; color:#f5f5f5 !important; border:1px solid #45484b !important; color-scheme:dark; }
+#sf6f3-desktop-form.sf66-ready .sf66-card { border-color:#3a3c40; }
+.sf66-ready :is(input,select):focus-visible { outline:2px solid #f07827; outline-offset:1px; }
+@media(max-width:600px) { .sf66-card-body{grid-template-columns:1fr;gap:8px}.sf66-card-title{flex-wrap:wrap}.sf66-ready .sf66-tools output{min-width:100%} }
