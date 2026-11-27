@@ -25,41 +25,92 @@ def _sin_importes(value):
     return re.sub(r'\s*\(\s*[+-]\s*\$?\s*\d+(?:[.,]\d{1,2})?\s*\)', '', _texto(value))
 
 
-def _raw(lines):
-    contenido = '\n'.join(_texto(x) for x in lines) + '\n\n\n'
-    return b'\x1b@' + contenido.encode('cp850', errors='replace') + b'\x1dV\x00'
+# SF_TICKET_6F9_R4_FECHA_HORA_GRACIAS
+
+def _fecha_hora_ticket():
+    # Momento de impresion, no la fecha en la que se agrego la comanda.
+    momento = timezone.localtime(timezone.now())
+    return momento.strftime('%d/%m/%Y'), momento.strftime('%H:%M')
+
+
+def _importe_ticket(valor):
+    # Solo formato visual: no cambia el importe guardado en SQLite.
+    from decimal import Decimal
+    cantidad = Decimal(str(valor))
+    visual = f'{cantidad:,.2f}'.replace(',', '_').replace('.', ',').replace('_', '.')
+    if visual.endswith(',00'):
+        visual = visual[:-3]
+    return '$' + visual
+
+
+def _alinear_importe(descripcion, importe, ancho=32):
+    # Una sola linea si alcanza; si no, el importe se imprime a la derecha abajo.
+    descripcion = _texto(descripcion)
+    importe = _texto(importe)
+    if len(descripcion) + len(importe) + 1 <= ancho:
+        return [descripcion + ' ' * (ancho - len(descripcion) - len(importe)) + importe]
+    lineas = textwrap.wrap(descripcion, width=ancho, break_long_words=True) or ['']
+    return lineas + [importe.rjust(ancho)]
+
+
+def _raw(lines, compacta=False):
+    # Fuente B + dimensiones normales en tickets cliente (impresoras ESC/POS).
+    # Cada trabajo inicia con ESC @; no se altera la configuracion permanente.
+    contenido = '\n'.join(_texto(x) for x in lines) + '\n\n\n\n'
+    prefijo = b'\x1b@'
+    if compacta:
+        prefijo += b'\x1b!\x00\x1d!\x00\x1bM\x01'
+    return prefijo + contenido.encode('cp850', errors='replace') + b'\x1dV\x00'
 
 
 def _pedido_bytes(p, destino):
     if destino != 'caja' and p.tipo_entrega != 'para_llevar':
         raise ValueError('Salón manual no envía comandas a cocina.')
-    titulo = 'CONTROL DE MESA - NO FISCAL' if destino == 'caja' else 'COMANDA PARA LLEVAR'
-    lines = [titulo, 'PEDIDO #' + str(p.pk)]
-    if p.numero_mesa: lines.append('MESA ' + _texto(p.numero_mesa))
-    if p.mozo: lines.append('MOZO: ' + _texto(p.mozo))
-    if p.nombre_cliente: lines.append('CLIENTE: ' + _texto(p.nombre_cliente))
-    lines.append('-'*32)
+
+    fecha, hora = _fecha_hora_ticket()
+    if destino == 'caja':
+        lines = ['STERAKFOOD', 'CONTROL DE MESA - NO FISCAL',
+                 'FECHA: ' + fecha + '  HORA: ' + hora, '']
+    else:
+        # En cocina se conserva el ID interno, necesario para distinguir comandas.
+        lines = ['COMANDA PARA LLEVAR', 'PEDIDO #' + str(p.pk),
+                 'FECHA: ' + fecha + '  HORA: ' + hora]
+
+    if p.numero_mesa:
+        lines.append('MESA: ' + _texto(p.numero_mesa))
+    if p.mozo:
+        lines.append('MOZO: ' + _texto(p.mozo))
+    nombre_cliente = _texto(p.nombre_cliente or '').strip()
+    if nombre_cliente and not nombre_cliente.upper().startswith('POS SALON'):
+        lines.append('CLIENTE: ' + nombre_cliente)
+    lines.append('-' * 32)
+
     for d in p.items.select_related('producto').all():
-        nombre = _texto(d.producto.nombre if d.producto else 'Producto eliminado')
-        lines.extend(textwrap.wrap(f'{d.cantidad}x {nombre}', width=32))
-        for campo in ('variante_elegida','guarnicion_elegida','punto_coccion_elegido',
-                      'relleno_elegido','salsa_elegida','adicional_elegido','hielo_elegido'):
-            val = getattr(d,campo,'')
+        nombre = _texto(d.producto.nombre if d.producto else 'Producto eliminado').upper()
+        encabezado = f'{d.cantidad}x {nombre}'
+        if destino == 'caja':
+            subtotal = d.precio_unitario * d.cantidad
+            lines.extend(_alinear_importe(encabezado, _importe_ticket(subtotal)))
+        else:
+            lines.extend(textwrap.wrap(encabezado, width=32))
+        for campo in ('variante_elegida', 'guarnicion_elegida', 'punto_coccion_elegido',
+                      'relleno_elegido', 'salsa_elegida', 'adicional_elegido', 'hielo_elegido'):
+            val = getattr(d, campo, '')
             if val:
-                item = (_texto(val) if destino=='caja' else _sin_importes(val))
-                lines.extend(textwrap.wrap(' > '+item,width=32))
+                item = _texto(val) if destino == 'caja' else _sin_importes(val)
+                lines.extend(textwrap.wrap(' > ' + item, width=32))
         if d.aviso_celiaco:
             lines.append('*** CELIACO: REVISAR ***')
-        if destino == 'caja':
-            lines.append('$ '+str(d.precio_unitario * d.cantidad))
+
     if p.tipo_entrega == 'para_llevar':
-        extra = getattr(p,'para_llevar',None)
+        extra = getattr(p, 'para_llevar', None)
         if extra and extra.observaciones:
-            lines.append('OBS: '+_texto(extra.observaciones))
-    lines.append('-'*32)
+            lines.extend(textwrap.wrap('OBS: ' + _texto(extra.observaciones), width=32))
+    lines.append('-' * 32)
     if destino == 'caja':
-        lines.extend(['TOTAL $ '+str(p.total),'NO VALIDO COMO FACTURA'])
-    return _raw(lines)
+        lines.extend(_alinear_importe('TOTAL', _importe_ticket(p.total)))
+        lines.extend(['', 'GRACIAS POR ELEGIRNOS', 'NO VALIDO COMO FACTURA'])
+    return _raw(lines, compacta=(destino == 'caja'))
 
 
 def _cuenta_bytes(job):

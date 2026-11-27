@@ -122,14 +122,17 @@ def imprimir_ticket(impresora, pedido, tipo_ticket, items):
 
 def imprimir_ticket_cobro(impresora, pedido):
     impresora.text('\x1b\x40') 
-    impresora.set(align='center', font='a', bold=False, double_height=False, double_width=False)
+    # SF_TICKET_6F9_R4_FECHA_HORA_GRACIAS: ticket normal, fuente compacta
+    impresora.set(align='center', font='b', bold=False, double_height=False, double_width=False)
     
     impresora.set(bold=True)
     impresora.text(NOMBRE_RESTAURANTE.upper() + "\n")
     impresora.set(bold=False)
     
-    fecha_str = datetime.now().strftime("%d/%m/%y %H:%M")
-    impresora.text(f"{fecha_str} | Pedido #{pedido.get('id', '')}\n")
+    ahora_ticket = datetime.now()
+    fecha_str = ahora_ticket.strftime("%d/%m/%Y")
+    hora_str = ahora_ticket.strftime("%H:%M")
+    impresora.text(f"FECHA: {fecha_str}  HORA: {hora_str}\n")
     mozo = pedido.get('mozo') or 'CAJA'
     impresora.text(f"MESA: {pedido.get('mesa', '?')} | MOZO: {mozo}\n")
     impresora.text("-" * ANCHO_TICKET + "\n")
@@ -198,6 +201,7 @@ def imprimir_ticket_cobro(impresora, pedido):
     
     impresora.set(align='center', bold=False)
     impresora.text("-" * ANCHO_TICKET + "\n")
+    impresora.text("GRACIAS POR ELEGIRNOS\n")
     impresora.text("NO VALIDO COMO FACTURA\n")
     impresora.text("\n\n\n\n")
     impresora.cut()

@@ -35,6 +35,8 @@
 
     <script>window.STERAK_CONTACT_WHATSAPP = "{{ restaurant_whatsapp|escapejs }}";</script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- sf6f11-modal-impresoras -->
+<link rel="stylesheet" href="{% static 'css/impresoras_modal_6f11.css' %}?v=sf6f11-1">
 </head>
 
 <body class="bloquear-scroll">
@@ -220,5 +222,7 @@
     <!-- 🔥 ACORDATE QUE CAMBIAMOS LA VERSIÓN A v=21 ACÁ ABAJO 🔥 -->
     <script src="{% static 'script/script.js' %}?v=sterak-2k-20261123"></script>
     {% block extra_js %}{% endblock %}
+<!-- sf6f11-modal-impresoras -->
+<script src="{% static 'script/impresoras_modal_6f11.js' %}?v=sf6f11-1" defer></script>
 </body>
 </html>
