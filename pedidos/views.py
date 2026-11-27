@@ -14,7 +14,7 @@ import mercadopago
 import os
 import tarfile
 from django.db import connection, transaction
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, F
 from django.conf import settings
 from django.core.management import call_command
 from django.shortcuts import render, get_object_or_404, redirect
