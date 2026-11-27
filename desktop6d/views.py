@@ -64,27 +64,10 @@ def _ip_local(valor):
 
 @never_cache
 def configurar_impresoras(request):
+    """sf69r2_desktop_printers_redirect: misma UI que la Web."""
     if not _owner(request):
-        return HttpResponseForbidden('Configuración exclusiva del propietario local.')
-    cfg, _ = ConfiguracionImpresorasPOS.objects.get_or_create(pk=1)
-    ajuste, _ = AjustesDesktop6D.objects.get_or_create(pk=1)
-    error = ''
-    mensaje = ''
-    if request.method == 'POST':
-        from pedidos.impresoras_views import validar_rutas_6f3
-        try:
-            datos = validar_rutas_6f3(request.POST)
-            habilitar = request.POST.get('habilitar') == 'on'
-            for campo, valor in datos.items():
-                setattr(cfg, campo, valor)
-            cfg.save(update_fields=[*datos.keys(), 'actualizado'])
-            ajuste.impresion_activa = habilitar
-            ajuste.save(update_fields=['impresion_activa', 'actualizado'])
-            mensaje = 'Impresoras guardadas. ' + ('Agente de impresión habilitado.' if habilitar else 'Envío físico desactivado.')
-        except (ValueError, TypeError) as exc:
-            error = str(exc)
-    return render(request, 'desktop6d/impresoras.html',
-                  {'cfg': cfg, 'ajuste': ajuste, 'error': error, 'mensaje': mensaje})
+        return HttpResponseForbidden('Solo el propietario local.')
+    return redirect('pedidos:impresoras_unificadas')
 
 
 def detectadas_6f3(request):

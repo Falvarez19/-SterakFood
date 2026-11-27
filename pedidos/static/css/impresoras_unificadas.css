@@ -1,0 +1,33 @@
+/* SterakFood 6F.9: un solo formulario compacto por terminal, sin tarjetas duplicadas. */
+.sf9-wrap{max-width:1100px;padding-top:16px;color:#efefef}
+.sf9-header{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:14px}
+.sf9-header h1{font-size:24px;margin:8px 0 3px}.sf9-header p{font-size:13px;margin:0;color:#b4b5b8}
+.sf9-back{color:#ee8a41;text-decoration:none;border:1px solid #47484a;border-radius:4px;padding:9px 13px;font-size:12px;white-space:nowrap}
+.sf9-main{border:1px solid #34373a;border-radius:6px;background:#1b1e21;padding:14px;margin-bottom:12px}
+.sf9-titlebar{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;margin-bottom:10px}.sf9-titlebar span{color:#b0b1b4;font-size:12px}
+.sf9-gridhead,.sf9-printer-row{display:grid;grid-template-columns:140px 155px minmax(150px,1fr) 78px;gap:10px;align-items:center}
+.sf9-gridhead{padding:7px 10px;font-size:11px;color:#a6a8a8;border-bottom:1px solid #36383b}
+.sf9-printer-row{padding:11px 10px;border-bottom:1px solid #343638}.sf9-printer-row:last-of-type{border-bottom:0}
+.sf9-sector strong{display:block;font-size:14px}.sf9-sector small{display:block;color:#aeb0b2;font-size:11px}
+.sf9-field{display:block;margin:0}.sf9-field span{display:none}.sf9-field select,.sf9-field input,.sf9-paper select{display:block;width:100%;min-width:0;margin:0;padding:8px 9px;border:1px solid #4b4f54;border-radius:4px;background:#111416;color:#eaeaea;font-size:13px;height:37px}
+.sf9-destination [hidden]{display:none!important}.sf9-testbutton{background:transparent;color:#ffa063;border:1px solid #6d482f;border-radius:4px;padding:9px;font-size:12px;width:100%;cursor:pointer}
+.sf9-testbutton:hover,.sf9-back:hover{border-color:#ff8a3f}
+.sf9-bottom{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-top:14px}.sf9-paper{display:flex;align-items:center;gap:10px;color:#b9bcc0;font-size:12px}.sf9-paper select{width:145px}
+.sf9-agent{display:flex;align-items:center;gap:8px;margin:0;flex:1}.sf9-agent input,.sf9-confirm input{width:auto;margin:0;accent-color:#f97316}
+.sf9-agent strong{display:block;color:#eee;font-size:12px}.sf9-agent small{display:block;color:#b6b6b6;font-size:11px;font-weight:400}
+.sf9-save{background:#ee762e;color:#141414;border:0;border-radius:4px;padding:11px 15px;font-weight:700;font-size:12px;cursor:pointer}
+.sf9-note,.sf9-muted{font-size:12px;color:#aeb1b3;margin:9px 0}.sf9-alert,.sf9-ok{padding:12px;border:1px solid #7b5134;background:#28211b;color:#ffe6d1;border-radius:5px;font-size:12px;margin-bottom:10px}
+.sf9-ok{background:#1a3224;border-color:#387049;color:#d5f4dc}.sf9-warning{margin-top:12px;display:grid;gap:5px}
+.sf9-confirm{display:flex;align-items:center;gap:6px;color:#fff;font-weight:500;margin:4px 0}.sf9-warning a{color:#ff9d60}
+@media(max-width:820px){.sf9-gridhead{display:none}.sf9-printer-row{grid-template-columns:minmax(75px,110px) minmax(100px,1fr);gap:6px}.sf9-destination{grid-column:2}.sf9-test{grid-column:2;justify-self:end}.sf9-testbutton{width:auto;padding:7px 14px}.sf9-header{align-items:flex-start}.sf9-titlebar span{display:none}}
+/* Web y Desktop usan exactamente las mismas clases y proporcion visual. */
+.sf9-envnote{border-left:3px solid #f47624;padding:9px 12px;margin-bottom:13px;color:#c8c9cb;background:#22201d;font-size:12px}
+.sf9-envnote strong{color:#fff}.sf9-detect-row{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:10px 0}
+.sf9-detect-row button{background:#222;border:1px solid #4a4b4b;color:#f6f6f6;padding:7px 10px;border-radius:4px;cursor:pointer;font-size:12px}
+.sf9-detect-row span{font-size:11px;color:#aaafb0}.sf9-test-label{display:block;text-align:center;color:#999;font-size:11px}
+.sf9-field span{display:block;color:#aeb0b2;font-size:10px;font-weight:400;margin-bottom:3px}
+.sf9-printer-row{align-items:end}
+.sf9-printer-row select,.sf9-printer-row input{font-family:inherit}
+.sf9-destination [data-sf9-kind]:not([hidden]){display:block}
+.sf9-testbutton:disabled{opacity:.4;cursor:not-allowed}
+@media(max-width:820px){.sf9-printer-row{align-items:center}.sf9-envnote{font-size:12px}}

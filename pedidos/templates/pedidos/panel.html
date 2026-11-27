@@ -859,7 +859,7 @@
                 <button type="button" data-salon-tool-open="importar" aria-controls="salon-tool-dialog-importar" aria-haspopup="dialog">
                     <b>📋 Importar códigos</b><small>Importar catálogo CSV del POS anterior</small>
                 </button>
-                <a href="#sm-impresoras-panel">
+                <a href="{% url 'pedidos:impresoras_unificadas' %}">
                     <b>🖨 Impresoras</b><small>Caja, cocina, barra y vinculación de esta PC</small>
                 </a>
                 <a href="{% url 'pedidos:panel_control' %}?tab=menu#tab-menu">
@@ -1026,64 +1026,10 @@
                 <span id="config-estado-guardado" class="config-guardado" aria-live="polite"></span>
             </div>
 
-            <!-- Configuración cloud + agente Windows (v157). -->
-            <div id="sm-impresoras-panel" class="sm-impresoras"
-                 data-leer="{% url 'pedidos:impresoras_obtener' %}"
-                 data-guardar="{% url 'pedidos:impresoras_guardar' %}"
-                 data-vincular="{% url 'pedidos:impresoras_vincular' %}">
-                <div class="sm-impresoras__resumen">
-                    <div class="sm-impresoras__resumen-icono" aria-hidden="true">🖨</div>
-                    <div class="sm-impresoras__resumen-info">
-                        <strong>Impresoras del POS</strong>
-                        <span>Configurá caja, cocina y barra desde el panel.</span>
-                    </div>
-                    <span id="sm-impresoras-estado" class="sm-impresoras__estado" role="status">Consultando...</span>
-                    <button type="button" id="sm-impresoras-abrir" class="sm-impresoras__btn sm-impresoras__btn--principal"
-                            aria-haspopup="dialog" aria-controls="sm-impresoras-dialogo">Configurar impresoras</button>
-                </div>
-                <div id="sm-impresoras-dialogo" class="sm-impresoras__overlay" hidden>
-                    <button type="button" class="sm-impresoras__fondo" data-impresoras-cerrar
-                            tabindex="-1" aria-label="Cerrar configuración"></button>
-                    <section class="sm-impresoras__ventana" role="dialog" aria-modal="true"
-                             aria-labelledby="sm-impresoras-titulo">
-                        <header class="sm-impresoras__cabecera">
-                            <div>
-                                <span class="sm-impresoras__kicker">HERRAMIENTAS · IMPRESIÓN</span>
-                                <h3 id="sm-impresoras-titulo">Configurar impresoras</h3>
-                                <p>Elegí los destinos de impresión. La web guarda opciones; detección solo desde una PC con Desktop abierto. La aplicación local se configura por separado.</p>
-                            </div>
-                            <button type="button" class="sm-impresoras__cerrar" data-impresoras-cerrar
-                                    aria-label="Cerrar ventana">×</button>
-                        </header>
-                        <form id="sm-impresoras-form" class="sm-impresoras__form">
-<div class="sf6f3-tools"><button type="button" data-sf6f3-buscar>Buscar impresoras de esta PC</button><output data-sf6f3-estado>Windows USB, red o Wi-Fi · requiere Desktop abierto en esta computadora</output></div>
-<label class="sf6f3-field">Caja · tipo de conexión<select name="caja_modo"><option value="windows" selected>Instalada en Windows (USB / red / Wi-Fi)</option><option value="tcp">IP directa (puerto 9100)</option><option value="off">Sin impresora</option></select></label>
-<label class="sf6f3-field" data-sf6f3-sector="caja" data-sf6f3-mostrar="windows">Cola instalada en Windows<select data-sf6f3-select="caja"><option value="">Pulsá buscar impresoras…</option></select></label>
-<label class="sf6f3-field" data-sf6f3-sector="caja" data-sf6f3-mostrar="windows">Nombre manual, si no aparece<input name="caja_windows" maxlength="120" autocomplete="off" placeholder="Nombre de Windows"></label>
-<label class="sf6f3-field" data-sf6f3-sector="caja" data-sf6f3-mostrar="tcp">IP privada (9100)<input name="caja_ip" inputmode="decimal" autocomplete="off" placeholder="192.168.1.100"></label>
-<label class="sf6f3-field">Cocina · tipo de conexión<select name="cocina_modo"><option value="windows">Instalada en Windows (USB / red / Wi-Fi)</option><option value="tcp" selected>IP directa (puerto 9100)</option><option value="off">Sin impresora</option></select></label>
-<label class="sf6f3-field" data-sf6f3-sector="cocina" data-sf6f3-mostrar="windows">Cola instalada en Windows<select data-sf6f3-select="cocina"><option value="">Pulsá buscar impresoras…</option></select></label>
-<label class="sf6f3-field" data-sf6f3-sector="cocina" data-sf6f3-mostrar="windows">Nombre manual, si no aparece<input name="cocina_windows" maxlength="120" autocomplete="off" placeholder="Nombre de Windows"></label>
-<label class="sf6f3-field" data-sf6f3-sector="cocina" data-sf6f3-mostrar="tcp">IP privada (9100)<input name="ip_cocina" inputmode="decimal" autocomplete="off" placeholder="192.168.1.100"></label>
-<label class="sf6f3-field">Barra · tipo de conexión<select name="barra_modo"><option value="windows">Instalada en Windows (USB / red / Wi-Fi)</option><option value="tcp" selected>IP directa (puerto 9100)</option><option value="off">Sin impresora</option></select></label>
-<label class="sf6f3-field" data-sf6f3-sector="barra" data-sf6f3-mostrar="windows">Cola instalada en Windows<select data-sf6f3-select="barra"><option value="">Pulsá buscar impresoras…</option></select></label>
-<label class="sf6f3-field" data-sf6f3-sector="barra" data-sf6f3-mostrar="windows">Nombre manual, si no aparece<input name="barra_windows" maxlength="120" autocomplete="off" placeholder="Nombre de Windows"></label>
-<label class="sf6f3-field" data-sf6f3-sector="barra" data-sf6f3-mostrar="tcp">IP privada (9100)<input name="ip_barra" inputmode="decimal" autocomplete="off" placeholder="192.168.1.100"></label>
-<label class="sf6f3-field">Ancho del ticket<select name="ancho_ticket"><option value="32">32 caracteres</option><option value="42">42 caracteres</option><option value="48">48 caracteres</option></select></label>
-<div class="sm-impresoras__acciones">
-                                <button type="submit" class="sm-impresoras__btn sm-impresoras__btn--principal">Guardar cambios</button>
-                                <button type="button" id="sm-impresoras-vincular" class="sm-impresoras__btn sm-impresoras__btn--secundario">Vincular PC / descargar clave</button>
-                            </div>
-                        </form>
-                        <details class="sm-impresoras__ayuda">
-                            <summary>¿Cómo vinculo esta computadora?</summary>
-                            <p>Descargá la clave y guardala como <code>datos_locales\impresoras_config.json</code>
-                               dentro de SisteMaSM. Reiniciá la ticketera si hace falta. No subas esa clave a GitHub.
-                               Generar otra clave invalida la anterior.</p>
-                        </details>
-                        <div id="sm-impresoras-mensaje" role="status" aria-live="polite"></div>
-                    </section>
-                </div>
+            <!-- sf69r2-unificado: acceso unico Web/Desktop; sin modal duplicado -->
+            <div id="sm-impresoras-panel" class="sm-impresoras sf69r2-unificado">
+              <a href="{% url 'pedidos:impresoras_unificadas' %}" class="sm-impresoras__btn sm-impresoras__btn--principal">Abrir impresoras</a>
+              <small>Caja, cocina y barra en una sola pantalla.</small>
             </div>
 
             <div class="config-ayuda-v2">

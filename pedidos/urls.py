@@ -118,3 +118,11 @@ urlpatterns = [
     path('api/tickets-cuenta-pendientes/', views.api_tickets_cuenta_pendientes, name='api_tickets_cuenta_pendientes'),
     path('api/marcar-ticket-cuenta-impreso/<int:trabajo_id>/', views.api_ticket_cuenta_impreso, name='api_ticket_cuenta_impreso'),
 ]
+
+
+# STERAKFOOD_6F9_R2_WEB_DESKTOP - mismas rutas en Web y Desktop
+from . import impresoras_unificadas as _sf_unifica_impresoras
+urlpatterns += [
+    path('dashboard/impresoras/', _sf_unifica_impresoras.impresoras_unificadas, name='impresoras_unificadas'),
+    path('dashboard/impresoras/probar/<str:sector>/', _sf_unifica_impresoras.prueba_local, name='impresoras_prueba_local'),
+]

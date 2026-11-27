@@ -1,0 +1,102 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Impresoras | SterakFood</title>
+  <link rel="stylesheet" href="{% static 'desktop6c/desktop.css' %}">
+  <link rel="stylesheet" href="{% static 'css/impresoras_unificadas.css' %}?v=sf69r2">
+</head>
+<body>
+<main class="sf-wrap sf9-wrap">
+  <header class="sf9-header">
+    <div><div class="sf-mark">STERAKFOOD <span>{% if es_local %}DESKTOP{% else %}WEB{% endif %}</span></div>
+      <h1>Impresoras</h1>
+      <p>Misma configuración sencilla para caja, cocina y barra.</p>
+    </div>
+    <a class="sf9-back" href="{% if es_local %}{% url 'desktop6c:desktop6d:panel' %}{% else %}{% url 'pedidos:panel_control' %}{% endif %}">Volver</a>
+  </header>
+  {% if error %}<div class="sf9-alert" role="alert">{{ error }}</div>{% endif %}
+  {% if mensaje %}<div class="sf9-ok" role="status">{{ mensaje }}</div>{% endif %}
+  {% if messages %}{% for msg in messages %}<div class="sf9-alert" role="status">{{ msg }}</div>{% endfor %}{% endif %}
+  <div class="sf9-envnote">
+    {% if es_local %}<strong>Configuración de esta PC.</strong> Los tickets salen desde Windows o la red local. Render no controla este hardware.
+    {% else %}<strong>Configuración web en Render.</strong> Guardás los destinos del negocio; para imprimir físicamente debe estar instalado y configurado el agente local. Esta pantalla no cambia la configuración de otras PC.
+    {% endif %}
+  </div>
+  <form class="sf9-main" method="post" id="sf9-form" autocomplete="off" action="{% url 'pedidos:impresoras_unificadas' %}">
+    {% csrf_token %}
+    <div class="sf9-titlebar"><strong>Destinos de impresión</strong><span id="sf9-count">{% if es_local %}{{ detectadas|length }} impresoras de Windows detectadas{% else %}Configuración web{% endif %}</span></div>
+    <div class="sf9-detect-row"><button type="button" id="sf9-detect">Detectar impresoras de Windows</button><span id="sf9-detect-msg" role="status">{% if advertencia %}{{ advertencia }}{% else %}Si Desktop está abierto en esta PC, se pueden detectar colas instaladas.{% endif %}</span></div>
+    <datalist id="sf9-win-printers">{% for impresora in detectadas %}<option value="{{ impresora.nombre }}">{{ impresora.conexion }}</option>{% endfor %}</datalist>
+    <div class="sf9-gridhead" aria-hidden="true"><span>Sector</span><span>Conexión</span><span>Destino</span><span></span></div>
+    <div class="sf9-printer-row" data-sf9-row>
+      <div class="sf9-sector"><strong>Caja</strong><small>Ticket cliente</small></div>
+      <label class="sf9-field sf9-method"><span>Conexión</span><select name="caja_modo" data-sf9-method>
+        <option value="windows" {% if cfg.caja_modo == 'windows' %}selected{% endif %}>Windows</option>
+        <option value="tcp" {% if cfg.caja_modo == 'tcp' %}selected{% endif %}>IP directa</option>
+        <option value="off" {% if cfg.caja_modo == 'off' %}selected{% endif %}>Desactivada</option>
+      </select></label>
+      <div class="sf9-destination">
+        <label class="sf9-field" data-sf9-kind="windows"><span>Impresora instalada</span><input list="sf9-win-printers" name="caja_windows" value="{{ cfg.caja_windows }}" maxlength="120" placeholder="Elegir o escribir nombre"></label>
+        <label class="sf9-field" data-sf9-kind="tcp"><span>IPv4 privada · puerto 9100</span><input name="caja_ip" value="{{ cfg.caja_ip|default_if_none:'' }}" placeholder="192.168.1.100" inputmode="decimal"></label>
+        <span data-sf9-kind="off" class="sf9-muted">No se enviarán tickets</span>
+      </div>
+      <div class="sf9-test">{% if es_local %}<button type="submit" form="sf9-test-caja" class="sf9-testbutton">Probar</button>{% else %}<span class="sf9-test-label">Prueba desde Desktop</span>{% endif %}</div>
+    </div>
+    <div class="sf9-printer-row" data-sf9-row>
+      <div class="sf9-sector"><strong>Cocina</strong><small>Comanda sin precios</small></div>
+      <label class="sf9-field sf9-method"><span>Conexión</span><select name="cocina_modo" data-sf9-method>
+        <option value="windows" {% if cfg.cocina_modo == 'windows' %}selected{% endif %}>Windows</option>
+        <option value="tcp" {% if cfg.cocina_modo == 'tcp' %}selected{% endif %}>IP directa</option>
+        <option value="off" {% if cfg.cocina_modo == 'off' %}selected{% endif %}>Desactivada</option>
+      </select></label>
+      <div class="sf9-destination">
+        <label class="sf9-field" data-sf9-kind="windows"><span>Impresora instalada</span><input list="sf9-win-printers" name="cocina_windows" value="{{ cfg.cocina_windows }}" maxlength="120" placeholder="Elegir o escribir nombre"></label>
+        <label class="sf9-field" data-sf9-kind="tcp"><span>IPv4 privada · puerto 9100</span><input name="ip_cocina" value="{{ cfg.ip_cocina }}" placeholder="192.168.1.101" inputmode="decimal"></label>
+        <span data-sf9-kind="off" class="sf9-muted">No se enviarán comandas</span>
+      </div>
+      <div class="sf9-test">{% if es_local %}<button type="submit" form="sf9-test-cocina" class="sf9-testbutton">Probar</button>{% else %}<span class="sf9-test-label">Prueba desde Desktop</span>{% endif %}</div>
+    </div>
+    <div class="sf9-printer-row" data-sf9-row>
+      <div class="sf9-sector"><strong>Barra</strong><small>Opcional</small></div>
+      <label class="sf9-field sf9-method"><span>Conexión</span><select name="barra_modo" data-sf9-method>
+        <option value="windows" {% if cfg.barra_modo == 'windows' %}selected{% endif %}>Windows</option>
+        <option value="tcp" {% if cfg.barra_modo == 'tcp' %}selected{% endif %}>IP directa</option>
+        <option value="off" {% if cfg.barra_modo == 'off' %}selected{% endif %}>Desactivada</option>
+      </select></label>
+      <div class="sf9-destination">
+        <label class="sf9-field" data-sf9-kind="windows"><span>Impresora instalada</span><input list="sf9-win-printers" name="barra_windows" value="{{ cfg.barra_windows }}" maxlength="120" placeholder="Elegir o escribir nombre"></label>
+        <label class="sf9-field" data-sf9-kind="tcp"><span>IPv4 privada · puerto 9100</span><input name="ip_barra" value="{{ cfg.ip_barra }}" placeholder="192.168.1.102" inputmode="decimal"></label>
+        <span data-sf9-kind="off" class="sf9-muted">No se enviarán tickets</span>
+      </div>
+      <div class="sf9-test">{% if es_local %}<button type="submit" form="sf9-test-barra" class="sf9-testbutton">Probar</button>{% else %}<span class="sf9-test-label">Prueba desde Desktop</span>{% endif %}</div>
+    </div>
+    <div class="sf9-bottom">
+      <label class="sf9-paper" for="ancho_ticket">Ancho del ticket<select name="ancho_ticket" id="ancho_ticket">
+        <option value="32" {% if cfg.ancho_ticket == 32 %}selected{% endif %}>32 caracteres</option>
+        <option value="42" {% if cfg.ancho_ticket == 42 %}selected{% endif %}>42 caracteres</option>
+        <option value="48" {% if cfg.ancho_ticket == 48 %}selected{% endif %}>48 caracteres</option>
+      </select></label>
+      {% if es_local %}<label class="sf9-agent"><input type="checkbox" name="habilitar" {% if habilitada %}checked{% endif %}><span><strong>Activar agente local</strong><small>Envía tickets que están en cola. No activa ARCA.</small></span></label>{% endif %}
+      <button class="sf9-save" type="submit">Guardar configuración</button>
+    </div>
+    {% if es_local and pendientes or es_local and inciertos or es_local and por_descubrir %}
+    <div class="sf9-alert sf9-warning">
+      <strong>Revisar antes de activar: {{ pendientes }} en cola, {{ inciertos }} inciertos y {{ por_descubrir }} trabajos por descubrir.</strong>
+      <span>El agente puede imprimir trabajos antiguos. No habilites hasta revisarlos.</span>
+      {% if not habilitada %}<label class="sf9-confirm"><input type="checkbox" name="revisado" value="si"> Revisé los pendientes y acepto que pueden imprimirse al activar.</label>{% endif %}
+      <a href="{% url 'desktop6c:desktop6d:panel' %}">Ver trabajos</a>
+    </div>{% endif %}
+  </form>
+  {% if es_local %}
+    <form id="sf9-test-caja" method="post" action="{% url 'pedidos:impresoras_prueba_local' 'caja' %}">{% csrf_token %}</form>
+    <form id="sf9-test-cocina" method="post" action="{% url 'pedidos:impresoras_prueba_local' 'cocina' %}">{% csrf_token %}</form>
+    <form id="sf9-test-barra" method="post" action="{% url 'pedidos:impresoras_prueba_local' 'barra' %}">{% csrf_token %}</form>
+  {% endif %}
+  <p class="sf9-note">Las pruebas son no fiscales, no generan ventas y no reintentan la cola. Guardá primero los destinos. El resultado debe comprobarse en el papel.</p>
+  <p class="sf9-note">Cocina recibe comandas de Para llevar; las mesas del salón no las envían automáticamente.</p>
+</main>
+<script src="{% static 'script/impresoras_unificadas.js' %}?v=sf69r2" defer></script>
+</body></html>
