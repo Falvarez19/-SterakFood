@@ -69,7 +69,7 @@ def _pedido_bytes(p, destino):
 
     fecha, hora = _fecha_hora_ticket()
     if destino == 'caja':
-        lines = ['STERAKFOOD', 'CONTROL DE MESA - NO FISCAL',
+        lines = ['STERAKFOOD', 'CONTROL DE MESA',
                  'FECHA: ' + fecha + '  HORA: ' + hora, '']
     else:
         # En cocina se conserva el ID interno, necesario para distinguir comandas.
