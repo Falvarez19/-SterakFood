@@ -8,7 +8,7 @@
 <form method="post" action="{% url 'desktop6c:sync_now' %}">{% csrf_token %}<button type="submit">Sincronizar ahora</button></form>
 <p class="sf-note">Las categorías, productos, precios, opciones, fotos y marca se descargan de la web. Sin Internet permanece la última copia válida. El envío de operaciones 6E se habilita por separado. Nunca emite facturas en automático.</p>
 {% else %}
-<h2>Vincular con SterakFood Web</h2><p>1. Entrá a la web del restaurante con el propietario. 2. Abrí <strong>/desktop/web/claves/</strong> y generá una clave de esta PC. 3. Pegala acá una única vez.</p>
+<h2>Vincular con SterakFood Web</h2><p><a href="{% url 'desktop6c:vincular_codigo' %}">Vincular con código temporal (recomendado)</a></p><p>1. Entrá a la web del restaurante con el propietario. 2. Abrí <strong>/desktop/web/claves/</strong> y generá una clave de esta PC. 3. Pegala acá una única vez.</p>
 <form method="post">{% csrf_token %}<label>URL de tu restaurante (HTTPS)<input name="server_url" type="url" maxlength="300" placeholder="https://tu-restaurante.onrender.com" required></label><label>Clave de vinculación<input name="token" type="password" autocomplete="new-password" required maxlength="128"></label><button type="submit">Vincular y descargar menú</button></form>
 <p class="sf-note">Una PC se asocia con un único restaurante. Para cambiarla se debe transferir primero la base local; no se borrarán sus datos.</p>
 {% endif %}</section>

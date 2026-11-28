@@ -26,3 +26,12 @@ urlpatterns += [
     path('sync-6e/accion/', _sf6e_views.accion, name='sync6e_action'),
     path('web/operaciones-6e/', _sf6e_views.recibidos, name='sync6e_inbox'),
 ]
+
+# SF_6F12B_ENLACE_SIMPLE
+from . import pairing_6f12 as _sf12b_pair
+urlpatterns += [
+    path('web/equipos/', _sf12b_pair.equipos, name='equipos'),
+    path('api/v1/vincular-codigo/', _sf12b_pair.canjear, name='canjear_codigo'),
+    path('vincular-codigo/', _sf12b_pair.vincular, name='vincular_codigo'),
+]
+

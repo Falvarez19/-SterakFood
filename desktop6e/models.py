@@ -48,3 +48,18 @@ class Desktop6eInbox(models.Model):
     class Meta:
         constraints = [models.UniqueConstraint(fields=['device_id', 'tipo', 'origen'], name='sf6e_inbox_origen_unico')]
         ordering = ['-received_at']
+
+# STERAKFOOD_6F12A_MIRROR_MODEL
+class Desktop6f12MesaMirror(models.Model):
+    """Estado visible de mesas de una PC vinculada, nunca una venta."""
+    device_id = models.UUIDField(primary_key=True, editable=False)
+    installation_id = models.UUIDField()
+    version = models.PositiveBigIntegerField(default=0)
+    snapshot = models.JSONField(default=dict)
+    digest = models.CharField(max_length=64)
+    token_label = models.CharField(max_length=80, blank=True, default='')
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Replica de mesas Desktop (solo lectura)'
+

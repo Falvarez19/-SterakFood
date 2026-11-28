@@ -1,0 +1,3 @@
+Cerrá Desktop. Restaurá los archivos de este respaldo a sus rutas originales.
+Los archivos nuevos se enumeran en NUEVOS.txt; se pueden quitar solo si no son usados por código posterior.
+Las migraciones y las bases NO se revierten con este respaldo.

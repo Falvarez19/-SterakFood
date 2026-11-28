@@ -36,3 +36,11 @@ urlpatterns += [
 
 # STERAKFOOD_DESKTOP_6C_URLS
 urlpatterns.append(path('desktop/', include('desktop6c.urls')))
+
+# STERAKFOOD_6F12A_MESAS_ROUTES
+from desktop6e import mesas_6f12 as _sf12_mesas
+urlpatterns += [
+    path('desktop/api/v1/mesas-6f12/', _sf12_mesas.recibir_mesas, name='sf12_recibir'),
+    path('salon/api/mesas-desktop-6f12/', _sf12_mesas.estado_mesas_web, name='sf12_estado_web'),
+]
+

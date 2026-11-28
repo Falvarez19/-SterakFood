@@ -1,0 +1,19 @@
+{% load static %}
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SterakFood Desktop | Vinculación</title><link rel="stylesheet" href="{% static 'desktop6c/desktop.css' %}"></head>
+<body><main class="sf-wrap"><header class="sf-head"><div><div class="sf-mark">STERAKFOOD <span>DESKTOP</span></div><h1>Mi restaurante</h1><p>Menú en Render, operaciones en esta PC. 6E: las operaciones se registran en cola local y se envían solo al autorizarlo.</p></div><a class="sf-link" href="{% url 'pedidos:salon' %}">Abrir Salón</a></header><section class="sf-panel">
+{% if error %}<div class="sf-alert">{{ error }}</div>{% endif %}
+{% if link %}
+<div class="sf-grid"><div><small>Restaurante vinculado</small><strong>{{ link.server_url }}</strong></div><div><small>Última sincronización correcta</small><strong>{{ link.last_sync_at|date:'d/m/Y H:i'|default:'Pendiente' }}</strong></div><div><small>Modo de funcionamiento</small><strong>Offline local disponible</strong></div></div>
+{% if link.last_error %}<div class="sf-alert">Último error: {{ link.last_error }}</div>{% endif %}
+<form method="post" action="{% url 'desktop6c:sync_now' %}">{% csrf_token %}<button type="submit">Sincronizar ahora</button></form>
+<p class="sf-note">Las categorías, productos, precios, opciones, fotos y marca se descargan de la web. Sin Internet permanece la última copia válida. El envío de operaciones 6E se habilita por separado. Nunca emite facturas en automático.</p>
+{% else %}
+<h2>Vincular con SterakFood Web</h2><p>1. Entrá a la web del restaurante con el propietario. 2. Abrí <strong>/desktop/web/claves/</strong> y generá una clave de esta PC. 3. Pegala acá una única vez.</p>
+<form method="post">{% csrf_token %}<label>URL de tu restaurante (HTTPS)<input name="server_url" type="url" maxlength="300" placeholder="https://tu-restaurante.onrender.com" required></label><label>Clave de vinculación<input name="token" type="password" autocomplete="new-password" required maxlength="128"></label><button type="submit">Vincular y descargar menú</button></form>
+<p class="sf-note">Una PC se asocia con un único restaurante. Para cambiarla se debe transferir primero la base local; no se borrarán sus datos.</p>
+{% endif %}</section>
+<section class="sf-panel"><h2>Últimas sincronizaciones</h2>{% if events %}<table><thead><tr><th>Fecha</th><th>Estado</th><th>Productos</th><th>Detalle</th></tr></thead><tbody>{% for ev in events %}<tr><td>{{ ev.created_at|date:'d/m H:i' }}</td><td>{% if ev.ok %}<span class="sf-good">OK</span>{% else %}<span class="sf-bad">Error</span>{% endif %}</td><td>{{ ev.products_count }}</td><td>{{ ev.summary }}</td></tr>{% endfor %}</tbody></table>{% else %}<p>No hay sincronizaciones registradas.</p>{% endif %}</section>
+<!-- STERAKFOOD_6D_MENU -->
+<nav class="sf-foot"><a href="{% url 'desktop6c:desktop6d:panel' %}">Operación offline 6D</a> <a href="{% url 'pedidos:panel_control' %}">Panel</a><a href="{% url 'pedidos:salon' %}">Mesas</a><a href="{% url 'pedidos:pedidos_para_llevar' %}">Para llevar</a><a href="{% url 'marca:configurar' %}">Mi negocio</a><!-- STERAKFOOD_6E_LOCAL_PANEL -->
+<a href="{% url 'desktop6c:sync6e_status' %}">Sincronización de operaciones 6E</a>
+</nav></main></body></html>

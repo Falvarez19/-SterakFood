@@ -1,0 +1,1 @@
+Para restaurar: cerrar Desktop, copiar los archivos de este respaldo a sus rutas originales. Los archivos nuevos de 6F12A pueden eliminarse. La migración no se deshace automáticamente. No editar la base sin respaldo.

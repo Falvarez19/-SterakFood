@@ -48,3 +48,26 @@ class DesktopSyncEvent(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+# SF_6F12B_IDENTIDADES_POR_PC
+class DesktopPairingCode(models.Model):
+    """Solo hash del código de 100 bits; válida 15 minutos, un único uso."""
+    installation_id = models.UUIDField(db_index=True)
+    code_hash = models.CharField(max_length=64, unique=True)
+    label = models.CharField(max_length=80)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    redeemed_at = models.DateTimeField(null=True, blank=True)
+    device_uid = models.UUIDField(null=True, blank=True)
+    token = models.ForeignKey('DesktopAccessToken', on_delete=models.PROTECT, null=True, blank=True)
+
+
+class DesktopRegisteredDevice(models.Model):
+    """Identidad de caja y token individual; no contiene ventas ni comandas."""
+    device_uid = models.UUIDField(unique=True)
+    installation_id = models.UUIDField(db_index=True)
+    label = models.CharField(max_length=80)
+    token = models.OneToOneField('DesktopAccessToken', on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    revoked_at = models.DateTimeField(null=True, blank=True)
+

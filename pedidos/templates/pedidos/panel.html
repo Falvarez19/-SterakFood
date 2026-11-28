@@ -859,6 +859,7 @@
                 <button type="button" data-salon-tool-open="importar" aria-controls="salon-tool-dialog-importar" aria-haspopup="dialog">
                     <b>📋 Importar códigos</b><small>Importar catálogo CSV del POS anterior</small>
                 </button>
+                {# SF_6F12B_MENU_EQUIPOS #}{% if not sm_local_mode %}<a href="{% url 'desktop6c:equipos' %}"><b>Computadoras</b><small>Agregar cajas con código temporal</small></a>{% endif %}
                 <a href="{% url 'pedidos:impresoras_unificadas' %}">
                     <b>🖨 Impresoras</b><small>Caja, cocina, barra y vinculación de esta PC</small>
                 </a>

@@ -1,0 +1,9 @@
+/* 6F.12A: indicadores discretos de mesas Desktop, SIN editar cuentas del navegador. */
+.sf12-mensaje {display:inline-block; margin:.35rem 0; font-size:.79rem; font-weight:600; color:#d97706}
+.sf12-mensaje.sf12-alerta {color:#d02f2f}
+.salon-pos__mesa.sf12-desktop {border:2px solid #ef8b18!important; box-shadow:inset 0 0 0 1px rgba(240,134,0,.16)}
+.salon-pos__mesa.sf12-desktop .salon-pos__mesa-libre {display:none!important}
+.salon-pos__mesa.sf12-desktop::after {content:attr(data-sf12-etiqueta); display:block; font-size:.72rem;
+  color:#ffb454; font-weight:700; line-height:1.25; margin-top:.25rem; white-space:normal; overflow-wrap:anywhere}
+.salon-pos__mesa.sf12-conflicto {border-color:#d72c2c!important}
+.salon-pos__mesa.sf12-conflicto::after {color:#e43b3b}

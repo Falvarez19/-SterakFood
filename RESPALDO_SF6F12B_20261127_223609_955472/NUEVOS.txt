@@ -1,0 +1,4 @@
+desktop6c/pairing_6f12.py
+desktop6c/migrations/0002_terminales_6f12.py
+desktop6c/templates/desktop6c/equipos_6f12.html
+desktop6c/templates/desktop6c/vincular_codigo_6f12.html
