@@ -10,11 +10,12 @@ from decimal import Decimal, ROUND_HALF_UP
 import re
 import textwrap
 
-ANCHO = 48  # Fuente ESC/POS A, rollo térmico 80 mm (dependiente de la impresora).
-ANCHO_PRODUCTO = 24
-ANCHO_UNITARIO = 11
-ANCHO_IMPORTE = 11
+ANCHO = 40  # Fuente ESC/POS A, rollo térmico 80 mm (dependiente de la impresora).
+ANCHO_PRODUCTO = 20
+ANCHO_UNITARIO = 9
+ANCHO_IMPORTE = 9
 MARCA = 'SF_CONTROL_80_R8_3COLUMNAS'
+# SF_CONTROL_80_R9_ANCHO_REAL_40: evita que precios y totales salten de línea.
 
 
 def _limpio(valor):
@@ -60,7 +61,7 @@ def _envolver(texto, ancho):
 
 
 def _fila_producto(cantidad, nombre, unitario, importe):
-    """Columnas que siempre suman 48, sin perder dígitos por truncamiento."""
+    """Columnas que siempre suman 40, sin perder dígitos por truncamiento."""
     nombre = f'{_cantidad(cantidad)}x {_limpio(nombre).upper()}'
     pu, imp = _moneda(unitario), _moneda(importe)
     if len(pu) > ANCHO_UNITARIO or len(imp) > ANCHO_IMPORTE:
@@ -124,7 +125,7 @@ def preparar_lineas(mesa, mozo, detalles, total, momento=None, nombre_cliente=''
                    ('aviso', 'NO VALIDO COMO FACTURA')])
     for _, linea in lineas:
         if len(linea) > ANCHO:
-            raise ValueError('Linea fuera del ancho fisico de 48 columnas: ' + repr(linea))
+            raise ValueError('Linea fuera del ancho seguro de 40 columnas: ' + repr(linea))
     return lineas
 
 
