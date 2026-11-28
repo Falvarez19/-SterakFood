@@ -43,7 +43,7 @@ def _importe_ticket(valor):
     return '$' + visual
 
 
-def _alinear_importe(descripcion, importe, ancho=32):
+def _alinear_importe(descripcion, importe, ancho=48):
     # Una sola linea si alcanza; si no, el importe se imprime a la derecha abajo.
     descripcion = _texto(descripcion)
     importe = _texto(importe)
@@ -54,16 +54,48 @@ def _alinear_importe(descripcion, importe, ancho=32):
 
 
 def _raw(lines, compacta=False):
-    # Fuente B + dimensiones normales en tickets cliente (impresoras ESC/POS).
-    # Cada trabajo inicia con ESC @; no se altera la configuracion permanente.
-    contenido = '\n'.join(_texto(x) for x in lines) + '\n\n\n\n'
-    prefijo = b'\x1b@'
-    if compacta:
-        prefijo += b'\x1b!\x00\x1d!\x00\x1bM\x01'
-    return prefijo + contenido.encode('cp850', errors='replace') + b'\x1dV\x00'
+    """ESC/POS. Caja 80 mm: fuente A, 48 columnas, centrado y total visible.
+
+    Cocina/barra conservan el comportamiento anterior; no se tocan facturas.
+    Los comandos se emiten como bytes, no en lineas de texto sin sanear.
+    """
+    # SF80MM_V1_LEGIBLE
+    if not compacta:
+        contenido = '\n'.join(_texto(x) for x in lines) + '\n\n\n\n'
+        return b'\x1b@' + contenido.encode('cp850', errors='replace') + b'\x1dV\x00'
+
+    data = bytearray(b'\x1b@\x1bM\x00\x1b!\x00\x1d!\x00\x1bE\x00\x1ba\x00')
+    # Fuente A normal (la B anterior imprimia demasiado chico).
+    for pos, linea in enumerate(lines):
+        s = _texto(linea)
+        total = s.startswith('TOTAL') and '$' in s
+        gracias = s == 'GRACIAS POR ELEGIRNOS'
+        aviso = s == 'NO VALIDO COMO FACTURA'
+        if pos == 0:
+            data.extend(b'\x1ba\x01\x1bE\x01')       # marca centrada y negrita
+        elif pos == 1:
+            data.extend(b'\x1bE\x00')                  # titulo centrado normal
+        elif pos == 3:
+            data.extend(b'\x1ba\x00')                  # detalle a la izquierda
+        if total:
+            data.extend(b'\x1ba\x00\x1bE\x01\x1d!\x01')  # doble alto, mismo ancho
+        elif gracias:
+            data.extend(b'\x1ba\x01\x1bE\x01')
+        elif aviso:
+            data.extend(b'\x1ba\x01\x1bE\x00')
+        data.extend(s.encode('cp850', errors='replace'))
+        data.extend(b'\n')
+        if total:
+            data.extend(b'\x1d!\x00\x1bE\x00')
+    data.extend(b'\x1bE\x00\x1ba\x00\n\n\n\x1dV\x00')
+    return bytes(data)
 
 
 def _pedido_bytes(p, destino):
+    # SF_CONTROL_80_R8_3COLUMNAS: solo control impreso de CAJA, nunca comandas ni ARCA.
+    if destino == 'caja':
+        from ticket_80mm_r8 import ticket_desktop_80mm
+        return ticket_desktop_80mm(p)
     if destino != 'caja' and p.tipo_entrega != 'para_llevar':
         raise ValueError('Salón manual no envía comandas a cocina.')
 
@@ -83,7 +115,7 @@ def _pedido_bytes(p, destino):
     nombre_cliente = _texto(p.nombre_cliente or '').strip()
     if nombre_cliente and not nombre_cliente.upper().startswith('POS SALON'):
         lines.append('CLIENTE: ' + nombre_cliente)
-    lines.append('-' * 32)
+    lines.append('-' * (48 if destino == 'caja' else 32))
 
     for d in p.items.select_related('producto').all():
         nombre = _texto(d.producto.nombre if d.producto else 'Producto eliminado').upper()
@@ -106,7 +138,7 @@ def _pedido_bytes(p, destino):
         extra = getattr(p, 'para_llevar', None)
         if extra and extra.observaciones:
             lines.extend(textwrap.wrap('OBS: ' + _texto(extra.observaciones), width=32))
-    lines.append('-' * 32)
+    lines.append('-' * (48 if destino == 'caja' else 32))
     if destino == 'caja':
         lines.extend(_alinear_importe('TOTAL', _importe_ticket(p.total)))
         lines.extend(['', 'GRACIAS POR ELEGIRNOS', 'NO VALIDO COMO FACTURA'])
